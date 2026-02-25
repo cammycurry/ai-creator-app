@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Influencer Academy — Brand Kit</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=Playfair+Display:wght@400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF8F5;
+    --warm-white: #FFFFFF;
+    --sand: #F0EBE3;
+    --blush: #E8D5CF;
+    --sage: #C5CFC6;
+    --sky: #CADCE8;
+    --lavender: #D5D0E5;
+    --peach: #F2D8C9;
+    --charcoal: #2C2C2C;
+    --graphite: #4A4A4A;
+    --stone: #8A8A8A;
+    --mist: #B8B8B8;
+    --light-line: #E5E0DA;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    position: relative;
+    background: linear-gradient(160deg, var(--cream) 0%, #F5F0EB 40%, #EDE8E3 100%);
+  }
+
+  .cover-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 48px;
+  }
+
+  .cover-logo {
+    margin-bottom: 20px;
+  }
+
+  .cover-logo .logo-mark {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--charcoal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 32px;
+  }
+
+  .cover-logo .logo-mark span {
+    color: var(--cream);
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+  }
+
+  .cover h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 400;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    color: var(--charcoal);
+    margin-bottom: 16px;
+  }
+
+  .cover h1 em {
+    font-style: italic;
+    color: var(--graphite);
+  }
+
+  .cover-sub {
+    font-size: 15px;
+    color: var(--stone);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    margin-bottom: 64px;
+  }
+
+  .cover-line {
+    width: 1px;
+    height: 80px;
+    background: var(--light-line);
+  }
+
+  .cover-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--mist);
+    margin-top: 32px;
+  }
+
+  /* ── Sections ── */
+  .section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 100px 40px;
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    color: var(--charcoal);
+    margin-bottom: 16px;
+  }
+
+  .section-desc {
+    font-size: 15px;
+    color: var(--graphite);
+    font-weight: 300;
+    line-height: 1.8;
+    max-width: 560px;
+    margin-bottom: 56px;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--light-line);
+  }
+
+  /* ── Brand Essence ── */
+  .essence-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  .essence-card {
+    padding: 36px 28px;
+    background: var(--warm-white);
+    border-radius: 16px;
+    border: 1px solid var(--light-line);
+  }
+
+  .essence-card h4 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 14px;
+  }
+
+  .essence-card p {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--charcoal);
+    line-height: 1.5;
+  }
+
+  /* ── Color Palette ── */
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .color-card {
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--warm-white);
+    border: 1px solid var(--light-line);
+  }
+
+  .color-swatch {
+    height: 120px;
+    width: 100%;
+  }
+
+  .color-info {
+    padding: 18px 20px;
+  }
+
+  .color-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--charcoal);
+    margin-bottom: 4px;
+  }
+
+  .color-hex {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--stone);
+    letter-spacing: 0.5px;
+  }
+
+  .palette-section-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 20px;
+    margin-top: 8px;
+  }
+
+  /* ── Typography ── */
+  .type-specimen {
+    margin-bottom: 56px;
+  }
+
+  .type-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--light-line);
+    margin-bottom: 32px;
+  }
+
+  .type-header h4 {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--stone);
+  }
+
+  .type-header span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--mist);
+  }
+
+  .type-display {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 400;
+    letter-spacing: -1px;
+    color: var(--charcoal);
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .type-body-sample {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--charcoal);
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+
+  .type-mono-sample {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--graphite);
+    line-height: 1.6;
+  }
+
+  .type-weights {
+    display: flex;
+    gap: 40px;
+    margin-top: 20px;
+  }
+
+  .type-weight {
+    font-size: 14px;
+    color: var(--stone);
+  }
+
+  .type-weight span { color: var(--charcoal); }
+
+  /* ── Logo System ── */
+  .logo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .logo-display {
+    border-radius: 20px;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 280px;
+    border: 1px solid var(--light-line);
+    position: relative;
+  }
+
+  .logo-display.light { background: var(--warm-white); }
+  .logo-display.dark { background: var(--charcoal); border-color: transparent; }
+  .logo-display.sand { background: var(--sand); border-color: transparent; }
+  .logo-display.sage { background: var(--sage); border-color: transparent; }
+
+  .logo-display .logo-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .logo-display.light .logo-icon,
+  .logo-display.sand .logo-icon,
+  .logo-display.sage .logo-icon { background: var(--charcoal); }
+  .logo-display.dark .logo-icon { background: var(--cream); }
+
+  .logo-display.light .logo-icon span,
+  .logo-display.sand .logo-icon span,
+  .logo-display.sage .logo-icon span {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--cream);
+  }
+
+  .logo-display.dark .logo-icon span {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--charcoal);
+  }
+
+  .logo-display .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.3px;
+  }
+
+  .logo-display.light .logo-text { color: var(--charcoal); }
+  .logo-display.dark .logo-text { color: var(--cream); }
+  .logo-display.sand .logo-text { color: var(--charcoal); }
+  .logo-display.sage .logo-text { color: var(--charcoal); }
+
+  .logo-display .logo-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .logo-display.light .logo-sub { color: var(--stone); }
+  .logo-display.dark .logo-sub { color: var(--mist); }
+  .logo-display.sand .logo-sub { color: var(--graphite); }
+  .logo-display.sage .logo-sub { color: var(--graphite); }
+
+  .logo-variant-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    position: absolute;
+    bottom: 20px;
+    right: 24px;
+  }
+
+  .logo-display.light .logo-variant-label { color: var(--mist); }
+  .logo-display.dark .logo-variant-label { color: #666; }
+  .logo-display.sand .logo-variant-label { color: var(--stone); }
+  .logo-display.sage .logo-variant-label { color: var(--graphite); }
+
+  /* ── Spacing / Clear Space ── */
+  .clearspace-demo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    background: var(--warm-white);
+    border-radius: 20px;
+    border: 1px solid var(--light-line);
+    margin-top: 24px;
+    position: relative;
+  }
+
+  .clearspace-inner {
+    border: 1px dashed var(--blush);
+    padding: 40px 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .clearspace-inner::before {
+    content: '← Minimum clear space: 1× icon width →';
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--blush);
+    position: absolute;
+    bottom: 8px;
+  }
+
+  /* ── Brand Voice ── */
+  .voice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .voice-card {
+    padding: 36px 32px;
+    background: var(--warm-white);
+    border-radius: 16px;
+    border: 1px solid var(--light-line);
+  }
+
+  .voice-card.do { border-left: 3px solid var(--sage); }
+  .voice-card.dont { border-left: 3px solid var(--blush); }
+
+  .voice-card h4 {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .voice-card.do h4 { color: #7A9A7D; }
+  .voice-card.dont h4 { color: #C4908A; }
+
+  .voice-card p {
+    font-size: 14px;
+    color: var(--graphite);
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  /* ── Usage Examples ── */
+  .usage-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+
+  .usage-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--light-line);
+    background: var(--warm-white);
+  }
+
+  .usage-mockup {
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .usage-mockup.social {
+    background: linear-gradient(135deg, var(--sky) 0%, var(--lavender) 100%);
+  }
+
+  .usage-mockup.email {
+    background: linear-gradient(135deg, var(--sand) 0%, var(--blush) 100%);
+  }
+
+  .usage-mockup.web {
+    background: linear-gradient(135deg, var(--sage) 0%, var(--sky) 100%);
+  }
+
+  .usage-mockup-inner {
+    background: rgba(255,255,255,0.85);
+    border-radius: 10px;
+    padding: 24px 20px;
+    width: 75%;
+    text-align: center;
+    backdrop-filter: blur(10px);
+  }
+
+  .usage-mockup-inner .mock-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: var(--charcoal);
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .usage-mockup-inner .mock-logo span {
+    color: var(--cream);
+    font-family: 'Playfair Display', serif;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .usage-mockup-inner .mock-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    color: var(--charcoal);
+    margin-bottom: 4px;
+  }
+
+  .usage-mockup-inner .mock-text {
+    font-size: 9px;
+    color: var(--stone);
+    line-height: 1.5;
+  }
+
+  .usage-info {
+    padding: 20px 22px;
+  }
+
+  .usage-info h5 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--charcoal);
+    margin-bottom: 4px;
+  }
+
+  .usage-info p {
+    font-size: 12px;
+    color: var(--stone);
+    font-weight: 300;
+  }
+
+  /* ── Scale / Hierarchy ── */
+  .scale-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .scale-table tr { border-bottom: 1px solid var(--light-line); }
+  .scale-table tr:last-child { border-bottom: none; }
+
+  .scale-table td {
+    padding: 24px 0;
+    vertical-align: baseline;
+  }
+
+  .scale-table .scale-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--mist);
+    width: 140px;
+  }
+
+  .scale-table .scale-size {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--stone);
+    width: 100px;
+  }
+
+  .scale-h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+  }
+
+  .scale-h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+  }
+
+  .scale-h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .scale-body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--graphite);
+  }
+
+  .scale-caption {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--stone);
+  }
+
+  .scale-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--stone);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 80px 40px;
+    border-top: 1px solid var(--light-line);
+  }
+
+  .footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--mist);
+    text-transform: uppercase;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .essence-grid,
+    .palette-grid,
+    .logo-grid,
+    .voice-grid,
+    .usage-grid {
+      grid-template-columns: 1fr;
+    }
+    .section { padding: 60px 24px; }
+  }
+
+  @media print {
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════ COVER ════════════════ -->
+<section class="cover">
+  <div class="cover-badge">Brand Identity Kit</div>
+  <div class="cover-logo">
+    <div class="logo-mark"><span>Ai</span></div>
+  </div>
+  <h1>AI Influencer<br><em>Academy</em></h1>
+  <p class="cover-sub">Brand Guidelines & Visual Identity System</p>
+  <div class="cover-line"></div>
+  <p class="cover-date">Version 1.0 — 2026</p>
+</section>
+
+<!-- ════════════════ BRAND ESSENCE ════════════════ -->
+<div class="divider"></div>
+<section class="section">
+  <p class="section-label">01 — Brand Essence</p>
+  <h2 class="section-title">Who We Are</h2>
+  <p class="section-desc">
+    AI Influencer Academy sits at the intersection of technology and personal brand building. Our identity communicates approachability, credibility, and forward-thinking expertise — without the noise.
+  </p>
+  <div class="essence-grid">
+    <div class="essence-card">
+      <h4>Mission</h4>
+      <p>Empower creators to build authentic influence using AI — with clarity, not complexity.</p>
+    </div>
+    <div class="essence-card">
+      <h4>Positioning</h4>
+      <p>The trusted, premium resource for creators serious about AI-powered growth.</p>
+    </div>
+    <div class="essence-card">
+      <h4>Personality</h4>
+      <p>Confident yet approachable. Knowledgeable without being intimidating. Clean, never cold.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ COLOR PALETTE ════════════════ -->
+<div class="divider"></div>
+<section class="section">
+  <p class="section-label">02 — Color Palette</p>
+  <h2 class="section-title">A Soft, Grounded Palette</h2>
+  <p class="section-desc">
+    Our colors are warm, muted, and intentionally understated. They create a calm, professional presence that feels elevated rather than loud.
+  </p>
+
+  <p class="palette-section-label">Primary</p>
+  <div class="palette-grid">
+    <div class="color-card">
+      <div class="color-swatch" style="background: #2C2C2C;"></div>
+      <div class="color-info">
+        <div class="color-name">Charcoal</div>
+        <div class="color-hex">#2C2C2C</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background: #FAF8F5;"></div>
+      <div class="color-info">
+        <div class="color-name">Cream</div>
+        <div class="color-hex">#FAF8F5</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background: #F0EBE3;"></div>
+      <div class="color-info">
+        <div class="color-name">Sand</div>
+        <div class="color-hex">#F0EBE3</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background: #4A4A4A;"></div>
+      <div class="color-info">
+        <div class="color-name">Graphite</div>
+        <div class="color-hex">#4A4A4A</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="palette-section-label">Accent Pastels</p>
+  <div class="palette-grid">
+    <div class="color-card">
+      <div class="color-swatch" style="background: #E8D5CF;"></div>
+      <div class="color-info">
+        <div class="color-name">Blush</div>
+        <div class="color-hex">#E8D5CF</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background: #C5CFC6;"></div>
+      <div class="color-info">
+        <div class="color-name">Sage</div>
+        <div class="color-hex">#C5CFC6</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background: #CADCE8;"></div>
+      <div class="color-info">
+        <div class="color-name">Sky</div>
+        <div class="color-hex">#CADCE8</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background: #D5D0E5;"></div>
+      <div class="color-info">
+        <div class="color-name">Lavender</div>
+        <div class="color-hex">#D5D0E5</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ TYPOGRAPHY ════════════════ -->
+<div class="divider"></div>
+<section class="section">
+  <p class="section-label">03 — Typography</p>
+  <h2 class="section-title">Type System</h2>
+  <p class="section-desc">
+    A refined three-font system that balances editorial elegance with modern clarity. Each typeface has a defined role within the hierarchy.
+  </p>
+
+  <div class="type-specimen">
+    <div class="type-header">
+      <h4>Display — Playfair Display</h4>
+      <span>Headlines & Titles</span>
+    </div>
+    <p class="type-display">The future of influence<br>starts with intention.</p>
+    <div class="type-weights">
+      <p class="type-weight"><span>Regular 400</span> — Headlines</p>
+      <p class="type-weight"><span>Medium 500</span> — Emphasis</p>
+      <p class="type-weight"><span>Italic</span> — Editorial accent</p>
+    </div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-header">
+      <h4>Body — DM Sans</h4>
+      <span>Body Copy & UI</span>
+    </div>
+    <p class="type-body-sample">Clean, readable, and quietly confident.</p>
+    <div class="type-weights">
+      <p class="type-weight"><span>Light 300</span> — Body text</p>
+      <p class="type-weight"><span>Regular 400</span> — UI elements</p>
+      <p class="type-weight"><span>Medium 500</span> — Labels & buttons</p>
+    </div>
+  </div>
+
+  <div class="type-specimen">
+    <div class="type-header">
+      <h4>Utility — JetBrains Mono</h4>
+      <span>Captions, Labels & Data</span>
+    </div>
+    <p class="type-mono-sample">Module 04 — Advanced AI Strategy</p>
+    <div class="type-weights">
+      <p class="type-weight"><span>Light 300</span> — Labels & metadata</p>
+      <p class="type-weight"><span>Regular 400</span> — Technical details</p>
+    </div>
+  </div>
+
+  <div style="margin-top: 56px;">
+    <p class="palette-section-label">Type Scale</p>
+    <table class="scale-table">
+      <tr>
+        <td class="scale-label">Heading 1</td>
+        <td class="scale-size">40px</td>
+        <td><span class="scale-h1">AI Influencer Academy</span></td>
+      </tr>
+      <tr>
+        <td class="scale-label">Heading 2</td>
+        <td class="scale-size">28px</td>
+        <td><span class="scale-h2">Build Your Brand</span></td>
+      </tr>
+      <tr>
+        <td class="scale-label">Heading 3</td>
+        <td class="scale-size">20px</td>
+        <td><span class="scale-h3">Course Module Title</span></td>
+      </tr>
+      <tr>
+        <td class="scale-label">Body</td>
+        <td class="scale-size">15px</td>
+        <td><span class="scale-body">Learn to leverage AI tools with authenticity and purpose.</span></td>
+      </tr>
+      <tr>
+        <td class="scale-label">Caption</td>
+        <td class="scale-size">12px</td>
+        <td><span class="scale-caption">Enrollment opens March 2026</span></td>
+      </tr>
+      <tr>
+        <td class="scale-label">Mono</td>
+        <td class="scale-size">11px</td>
+        <td><span class="scale-mono">MODULE 04 — STRATEGY</span></td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- ════════════════ LOGO SYSTEM ════════════════ -->
+<div class="divider"></div>
+<section class="section">
+  <p class="section-label">04 — Logo System</p>
+  <h2 class="section-title">Logo Variations</h2>
+  <p class="section-desc">
+    The logo combines a minimal icon mark with refined typography. It should always have ample breathing room and never be distorted, rotated, or recolored outside the approved palette.
+  </p>
+
+  <div class="logo-grid">
+    <div class="logo-display light">
+      <div class="logo-icon"><span>Ai</span></div>
+      <div class="logo-text">AI Influencer Academy</div>
+      <div class="logo-sub">Learn. Create. Influence.</div>
+      <span class="logo-variant-label">Primary — Light</span>
+    </div>
+    <div class="logo-display dark">
+      <div class="logo-icon"><span>Ai</span></div>
+      <div class="logo-text">AI Influencer Academy</div>
+      <div class="logo-sub">Learn. Create. Influence.</div>
+      <span class="logo-variant-label">Primary — Dark</span>
+    </div>
+    <div class="logo-display sand">
+      <div class="logo-icon"><span>Ai</span></div>
+      <div class="logo-text">AI Influencer Academy</div>
+      <div class="logo-sub">Learn. Create. Influence.</div>
+      <span class="logo-variant-label">Warm Background</span>
+    </div>
+    <div class="logo-display sage">
+      <div class="logo-icon"><span>Ai</span></div>
+      <div class="logo-text">AI Influencer Academy</div>
+      <div class="logo-sub">Learn. Create. Influence.</div>
+      <span class="logo-variant-label">Accent Background</span>
+    </div>
+  </div>
+
+  <div class="clearspace-demo">
+    <div class="clearspace-inner">
+      <div style="width:40px;height:40px;border-radius:10px;background:var(--charcoal);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+        <span style="color:var(--cream);font-family:'Playfair Display',serif;font-size:16px;font-weight:500;">Ai</span>
+      </div>
+      <span style="font-family:'Playfair Display',serif;font-size:16px;color:var(--charcoal);">AI Influencer Academy</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ BRAND VOICE ════════════════ -->
+<div class="divider"></div>
+<section class="section">
+  <p class="section-label">05 — Brand Voice</p>
+  <h2 class="section-title">How We Communicate</h2>
+  <p class="section-desc">
+    Our tone is that of a knowledgeable mentor — direct, supportive, and refreshingly clear. We educate without condescending and inspire without over-promising.
+  </p>
+
+  <div class="voice-grid">
+    <div class="voice-card do">
+      <h4>We Do</h4>
+      <p>
+        Speak with quiet confidence.<br>
+        Use clear, concise language.<br>
+        Educate and empower equally.<br>
+        Sound like a trusted advisor.<br>
+        Keep things actionable and grounded.<br>
+        Respect our audience's intelligence.
+      </p>
+    </div>
+    <div class="voice-card dont">
+      <h4>We Don't</h4>
+      <p>
+        Hype, oversell, or use clickbait.<br>
+        Use jargon for the sake of it.<br>
+        Sound robotic or overly corporate.<br>
+        Promise overnight success.<br>
+        Talk down to our community.<br>
+        Chase trends over substance.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ APPLICATION ════════════════ -->
+<div class="divider"></div>
+<section class="section">
+  <p class="section-label">06 — Application</p>
+  <h2 class="section-title">In Practice</h2>
+  <p class="section-desc">
+    How the brand translates across key touchpoints — from social media to email communications and course materials.
+  </p>
+
+  <div class="usage-grid">
+    <div class="usage-card">
+      <div class="usage-mockup social">
+        <div class="usage-mockup-inner">
+          <div class="mock-logo"><span>Ai</span></div>
+          <div class="mock-title">AI Influencer Academy</div>
+          <div class="mock-text">Master the tools. Own the narrative.<br>New cohort starting soon.</div>
+        </div>
+      </div>
+      <div class="usage-info">
+        <h5>Social Media</h5>
+        <p>Pastel gradients, centered layouts, minimal copy</p>
+      </div>
+    </div>
+    <div class="usage-card">
+      <div class="usage-mockup email">
+        <div class="usage-mockup-inner">
+          <div class="mock-logo"><span>Ai</span></div>
+          <div class="mock-title">Welcome to the Academy</div>
+          <div class="mock-text">Your journey to AI-powered influence begins here. Let's get started.</div>
+        </div>
+      </div>
+      <div class="usage-info">
+        <h5>Email</h5>
+        <p>Clean headers, warm tones, structured hierarchy</p>
+      </div>
+    </div>
+    <div class="usage-card">
+      <div class="usage-mockup web">
+        <div class="usage-mockup-inner">
+          <div class="mock-logo"><span>Ai</span></div>
+          <div class="mock-title">Module 01: Foundations</div>
+          <div class="mock-text">Understanding AI tools and how they integrate into your content workflow.</div>
+        </div>
+      </div>
+      <div class="usage-info">
+        <h5>Course Materials</h5>
+        <p>Clear navigation, breathing room, focused content</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ FOOTER ════════════════ -->
+<div class="divider"></div>
+<footer class="footer">
+  <p>AI Influencer Academy — Brand Identity Kit v1.0</p>
+</footer>
+
+</body>
+</html>
