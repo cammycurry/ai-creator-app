@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Input Bar Variations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #F5F5F5;
+      color: #111;
+      padding: 40px 24px;
+    }
+    h1 { font-size: 28px; font-weight: 600; text-align: center; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: #888; text-align: center; margin-bottom: 48px; }
+
+    .variation {
+      max-width: 800px;
+      margin: 0 auto 48px;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border: 1px solid #EBEBEB;
+    }
+    .variation-label {
+      padding: 16px 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #111;
+      border-bottom: 1px solid #EBEBEB;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .variation-label .tag {
+      font-size: 10px;
+      font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #F5F5F5;
+      color: #888;
+    }
+
+    /* Fake chat area for context */
+    .fake-chat {
+      background: #FAFAFA;
+      padding: 24px 32px;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+    .fake-msg {
+      display: flex;
+      gap: 10px;
+      max-width: 520px;
+    }
+    .fake-msg.user {
+      flex-direction: row-reverse;
+      align-self: flex-end;
+    }
+    .fake-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .fake-avatar.bot { background: #111; color: #fff; }
+    .fake-avatar.human { background: #F0F0F0; color: #888; }
+    .fake-bubble {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .fake-msg:not(.user) .fake-bubble { background: #fff; border: 1px solid #EBEBEB; }
+    .fake-msg.user .fake-bubble { background: #111; color: #fff; }
+
+    /* Shared icon helpers */
+    svg { flex-shrink: 0; }
+    button { cursor: pointer; font-family: 'Inter', sans-serif; border: none; background: none; color: #111; }
+
+    /* ============================================= */
+    /* VARIATION A: Floating card (ChatGPT style)    */
+    /* ============================================= */
+    .input-a {
+      padding: 16px 24px 20px;
+      background: #FAFAFA;
+    }
+    .input-a .float-card {
+      background: #fff;
+      border: 1px solid #E0E0E0;
+      border-radius: 16px;
+      padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .input-a .top-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .input-a .mode-pill {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #888;
+      transition: all 150ms;
+      cursor: pointer;
+    }
+    .input-a .mode-pill:hover { background: #F5F5F5; color: #111; }
+    .input-a .mode-pill.active { background: #111; color: #fff; }
+    .input-a .bottom-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .input-a textarea {
+      flex: 1;
+      resize: none;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #111;
+      line-height: 1.5;
+      min-height: 20px;
+      max-height: 120px;
+      background: transparent;
+    }
+    .input-a textarea::placeholder { color: #bbb; }
+    .input-a .icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      color: #999;
+      transition: all 150ms;
+    }
+    .input-a .icon-btn:hover { background: #F5F5F5; color: #111; }
+    .input-a .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #111;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 150ms;
+    }
+    .input-a .send-btn:hover { opacity: 0.8; }
+
+    /* ============================================= */
+    /* VARIATION B: Clean divider, pills inside box  */
+    /* ============================================= */
+    .input-b {
+      padding: 0;
+      background: #fff;
+      border-top: 1px solid #EBEBEB;
+    }
+    .input-b .inner {
+      padding: 14px 24px 18px;
+    }
+    .input-b .text-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #F8F8F8;
+      border: 1px solid #E8E8E8;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    .input-b .text-row:focus-within { border-color: #CCC; }
+    .input-b textarea {
+      flex: 1;
+      resize: none;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #111;
+      line-height: 1.5;
+      min-height: 20px;
+      max-height: 120px;
+      background: transparent;
+    }
+    .input-b textarea::placeholder { color: #bbb; }
+    .input-b .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .input-b .modes {
+      display: flex;
+      gap: 2px;
+    }
+    .input-b .mode-pill {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #999;
+      transition: all 150ms;
+      cursor: pointer;
+    }
+    .input-b .mode-pill:hover { color: #111; background: #F5F5F5; }
+    .input-b .mode-pill.active { color: #111; font-weight: 600; background: transparent; border-bottom: 2px solid #111; border-radius: 0; padding-bottom: 3px; }
+    .input-b .tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .input-b .icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      color: #999;
+      transition: all 150ms;
+    }
+    .input-b .icon-btn:hover { background: #F5F5F5; color: #111; }
+    .input-b .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #111;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ============================================= */
+    /* VARIATION C: Minimal — just the box           */
+    /* ============================================= */
+    .input-c {
+      padding: 12px 32px 20px;
+      background: #FAFAFA;
+    }
+    .input-c .main-input {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      background: #fff;
+      border: 1px solid #E0E0E0;
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      transition: border-color 200ms;
+    }
+    .input-c .main-input:focus-within { border-color: #BBB; }
+    .input-c textarea {
+      flex: 1;
+      resize: none;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #111;
+      line-height: 1.5;
+      min-height: 22px;
+      max-height: 120px;
+      background: transparent;
+    }
+    .input-c textarea::placeholder { color: #bbb; }
+    .input-c .tools {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .input-c .icon-btn {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      color: #999;
+      transition: all 150ms;
+    }
+    .input-c .icon-btn:hover { color: #111; }
+    .input-c .divider { width: 1px; height: 20px; background: #E0E0E0; margin: 0 4px; }
+    .input-c .send-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: #111;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .input-c .mode-hint {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      padding: 0 4px;
+    }
+    .input-c .mode-hint span {
+      font-size: 11px;
+      color: #BBB;
+      cursor: pointer;
+      transition: color 150ms;
+    }
+    .input-c .mode-hint span:hover { color: #888; }
+    .input-c .mode-hint span.active { color: #111; font-weight: 500; }
+
+    /* ============================================= */
+    /* VARIATION D: Two-tier with prominent modes    */
+    /* ============================================= */
+    .input-d {
+      background: #fff;
+      border-top: 1px solid #EBEBEB;
+    }
+    .input-d .mode-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 24px 0;
+      gap: 0;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .input-d .mode-tab {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #BBB;
+      transition: all 150ms;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .input-d .mode-tab:hover { color: #666; }
+    .input-d .mode-tab.active { color: #111; }
+    .input-d .mode-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 16px;
+      right: 16px;
+      height: 2px;
+      background: #111;
+      border-radius: 1px;
+    }
+    .input-d .compose {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 14px 24px 16px;
+    }
+    .input-d textarea {
+      flex: 1;
+      resize: none;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #111;
+      line-height: 1.5;
+      min-height: 22px;
+      max-height: 120px;
+      background: transparent;
+    }
+    .input-d textarea::placeholder { color: #ccc; }
+    .input-d .tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .input-d .icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      color: #999;
+      transition: all 150ms;
+    }
+    .input-d .icon-btn:hover { background: #F5F5F5; color: #111; }
+    .input-d .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #111;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ============================================= */
+    /* VARIATION E: Centered floating (Claude-like)  */
+    /* ============================================= */
+    .input-e {
+      padding: 12px 64px 24px;
+      background: #FAFAFA;
+    }
+    .input-e .float-box {
+      background: #fff;
+      border: 1px solid #E0E0E0;
+      border-radius: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+    .input-e .compose-area {
+      padding: 16px 18px 10px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .input-e textarea {
+      flex: 1;
+      resize: none;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #111;
+      line-height: 1.5;
+      min-height: 22px;
+      max-height: 120px;
+      background: transparent;
+    }
+    .input-e textarea::placeholder { color: #bbb; }
+    .input-e .send-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: #111;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .input-e .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 14px 10px;
+      border-top: 1px solid #F5F5F5;
+    }
+    .input-e .tool-left {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .input-e .tool-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .input-e .icon-btn {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      color: #BBB;
+      transition: all 150ms;
+    }
+    .input-e .icon-btn:hover { color: #666; background: #F8F8F8; }
+    .input-e .mode-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #999;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+    .input-e .mode-chip:hover { color: #666; background: #F8F8F8; }
+    .input-e .mode-chip.active { color: #111; background: #F0F0F0; }
+    .input-e .mode-chip svg { width: 12px; height: 12px; }
+
+    /* Selection state */
+    .variation { position: relative; transition: border-color 200ms; }
+    .variation.selected { border-color: #111; }
+    .variation.selected .variation-label .tag { background: #111; color: #fff; }
+    .pick-btn {
+      display: none;
+      position: absolute;
+      top: 14px;
+      right: 100px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      background: #111;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .variation.selected .pick-btn { display: block; }
+  </style>
+</head>
+<body>
+
+<h1>Input Bar Variations</h1>
+<p class="subtitle">Click a variation to select it. The bottom input bar is the heart of the app.</p>
+
+<!-- VARIATION A: Floating Card (ChatGPT-style) -->
+<div class="variation" onclick="selectVariation(this)">
+  <div class="variation-label">
+    A. Floating Card
+    <span class="tag">ChatGPT-style</span>
+  </div>
+  <div class="fake-chat">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Ready to create content for Sophia. What are we making today?</div>
+    </div>
+    <div class="fake-msg user">
+      <div class="fake-avatar human">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="fake-bubble">gym mirror selfie, lavender set</div>
+    </div>
+  </div>
+  <div class="input-a">
+    <div class="float-card">
+      <div class="top-row">
+        <button class="mode-pill active">Chat</button>
+        <button class="mode-pill">Image</button>
+        <button class="mode-pill">Video</button>
+        <button class="mode-pill">Talking Head</button>
+      </div>
+      <div class="bottom-row">
+        <button class="icon-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <textarea rows="1" placeholder="What do you want to create?"></textarea>
+        <button class="icon-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VARIATION B: Clean divider, modes below -->
+<div class="variation" onclick="selectVariation(this)">
+  <div class="variation-label">
+    B. Split Zones
+    <span class="tag">Modes underneath</span>
+  </div>
+  <div class="fake-chat">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Ready to create content for Sophia. What are we making today?</div>
+    </div>
+    <div class="fake-msg user">
+      <div class="fake-avatar human">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="fake-bubble">gym mirror selfie, lavender set</div>
+    </div>
+  </div>
+  <div class="input-b">
+    <div class="inner">
+      <div class="text-row">
+        <textarea rows="1" placeholder="What do you want to create?"></textarea>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="action-row">
+        <div class="modes">
+          <button class="mode-pill active">Chat</button>
+          <button class="mode-pill">Image</button>
+          <button class="mode-pill">Video</button>
+          <button class="mode-pill">Talking Head</button>
+        </div>
+        <div class="tools">
+          <button class="icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <button class="icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VARIATION C: Minimal — just the box, modes as subtle text -->
+<div class="variation" onclick="selectVariation(this)">
+  <div class="variation-label">
+    C. Minimal
+    <span class="tag">Clean + subtle modes</span>
+  </div>
+  <div class="fake-chat">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Ready to create content for Sophia. What are we making today?</div>
+    </div>
+    <div class="fake-msg user">
+      <div class="fake-avatar human">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="fake-bubble">gym mirror selfie, lavender set</div>
+    </div>
+  </div>
+  <div class="input-c">
+    <div class="main-input">
+      <textarea rows="1" placeholder="What do you want to create?"></textarea>
+      <div class="tools">
+        <button class="icon-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <button class="icon-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </button>
+        <div class="divider"></div>
+        <button class="icon-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="mode-hint">
+      <span class="active">Chat</span>
+      <span>Image</span>
+      <span>Video</span>
+      <span>Talking Head</span>
+    </div>
+  </div>
+</div>
+
+<!-- VARIATION D: Tab bar with compose area -->
+<div class="variation" onclick="selectVariation(this)">
+  <div class="variation-label">
+    D. Tab Bar
+    <span class="tag">Modes as tabs</span>
+  </div>
+  <div class="fake-chat">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Ready to create content for Sophia. What are we making today?</div>
+    </div>
+    <div class="fake-msg user">
+      <div class="fake-avatar human">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="fake-bubble">gym mirror selfie, lavender set</div>
+    </div>
+  </div>
+  <div class="input-d">
+    <div class="mode-bar">
+      <button class="mode-tab active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Chat
+      </button>
+      <button class="mode-tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Image
+      </button>
+      <button class="mode-tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Video
+      </button>
+      <button class="mode-tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+        Talking Head
+      </button>
+    </div>
+    <div class="compose">
+      <button class="icon-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+      </button>
+      <textarea rows="1" placeholder="What do you want to create?"></textarea>
+      <div class="tools">
+        <button class="icon-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VARIATION E: Centered floating (Claude-like) -->
+<div class="variation" onclick="selectVariation(this)">
+  <div class="variation-label">
+    E. Floating Capsule
+    <span class="tag">Claude / Perplexity style</span>
+  </div>
+  <div class="fake-chat">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Ready to create content for Sophia. What are we making today?</div>
+    </div>
+    <div class="fake-msg user">
+      <div class="fake-avatar human">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="fake-bubble">gym mirror selfie, lavender set</div>
+    </div>
+  </div>
+  <div class="input-e">
+    <div class="float-box">
+      <div class="compose-area">
+        <textarea rows="1" placeholder="What do you want to create?"></textarea>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="tool-left">
+          <button class="icon-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <button class="icon-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </button>
+          <button class="icon-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
+        </div>
+        <div class="tool-right">
+          <button class="mode-chip active">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Chat
+          </button>
+          <button class="mode-chip">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            Image
+          </button>
+          <button class="mode-chip">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            Video
+          </button>
+          <button class="mode-chip">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+            Voice
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function selectVariation(el) {
+    document.querySelectorAll('.variation').forEach(v => v.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+</script>
+
+</body>
+</html>

@@ -259,8 +259,8 @@ Once validated:
   createdAt: "2026-02-24T...",
   
   // Base assets
-  baseImageUrl: "s3://bucket/creators/abc123/base.png",
-  baseImageUpscaledUrl: "s3://bucket/creators/abc123/base_4k.png",
+  baseImageUrl: "s3://ai-creator-app-bucket-for-my-app/creators/abc123/base.png",
+  baseImageUpscaledUrl: "s3://ai-creator-app-bucket-for-my-app/creators/abc123/base_4k.png",
   
   // All the inputs (for regeneration/variations)
   settings: {
@@ -274,8 +274,8 @@ Once validated:
   
   // Validation images (for reference)
   validationImages: [
-    { type: "side_profile", url: "s3://..." },
-    { type: "three_quarter", url: "s3://..." },
+    { type: "side_profile", url: "s3://ai-creator-app-bucket-for-my-app/..." },
+    { type: "three_quarter", url: "s3://ai-creator-app-bucket-for-my-app/..." },
     // ...
   ],
   

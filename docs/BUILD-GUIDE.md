@@ -13,9 +13,10 @@
 | Components | **shadcn/ui** | Accessible, customizable, not a dependency |
 | Auth | **Clerk** | Best DX, handles everything |
 | Database | **PostgreSQL + Prisma** | Type-safe, migrations |
-| Storage | **Cloudflare R2** | S3-compatible, cheap |
+| Storage | **AWS S3** (us-east-1) | Familiar, reliable, pairs with existing AWS usage |
 | Payments | **Stripe** | Subscriptions, metered billing |
-| Queue | **Inngest** | Background jobs, retries |
+| Background Jobs | **Vercel Fluid Compute** | No extra vendor — functions run up to 14min on Pro plan |
+| Hosting | **Vercel** (Pro) | Edge network, CD from Git, Fluid Compute for long tasks |
 
 ---
 

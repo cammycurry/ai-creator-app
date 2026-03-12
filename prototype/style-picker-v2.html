@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electric Coral Variations — Style Picker v2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Satoshi:wght@300;400;500;600;700&family=General+Sans:wght@300;400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- Satoshi & General Sans via Fontshare fallback -->
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,600,700&f[]=general-sans@300,400,500,600,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0A0A0A; color: #fff;
+      padding: 40px; line-height: 1.5;
+    }
+    h1 { font-size: 32px; font-weight: 600; margin-bottom: 4px; }
+    .subtitle { color: #888; font-size: 15px; margin-bottom: 12px; }
+    .base-note { color: #FF6B35; font-size: 13px; margin-bottom: 48px; font-weight: 500; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+
+    /* Palette card */
+    .card {
+      border: 1px solid #1F1F1F; border-radius: 20px; overflow: hidden;
+      transition: all 300ms ease; cursor: pointer;
+    }
+    .card:hover { border-color: #444; transform: translateY(-2px); }
+    .card.selected { border-color: #FF6B35; box-shadow: 0 0 0 2px #FF6B35; }
+    .card-top { padding: 24px 24px 16px; }
+    .card-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .card-desc { font-size: 13px; color: #888; margin-bottom: 12px; line-height: 1.5; }
+    .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tag {
+      font-size: 10px; padding: 3px 10px; border-radius: 999px;
+      border: 1px solid #333; color: #777; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+
+    /* Swatches */
+    .swatch-bar { display: flex; gap: 4px; padding: 0 24px 16px; }
+    .sw {
+      height: 28px; flex: 1; border-radius: 6px; position: relative;
+      transition: transform 150ms;
+    }
+    .sw:first-child { border-radius: 6px 4px 4px 6px; }
+    .sw:last-child { border-radius: 4px 6px 6px 4px; }
+    .sw:hover { transform: scaleY(1.15); z-index: 1; }
+    .sw-border { border: 1px solid rgba(255,255,255,0.08); }
+    .sw .tip {
+      position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+      font-size: 8px; font-family: monospace; color: #555; white-space: nowrap;
+      opacity: 0; transition: opacity 150ms; pointer-events: none;
+    }
+    .sw:hover .tip { opacity: 1; }
+
+    /* Mode toggle */
+    .mode-row { padding: 0 24px 12px; display: flex; gap: 6px; }
+    .mode-btn {
+      padding: 5px 14px; border-radius: 999px; font-size: 11px; font-weight: 500;
+      cursor: pointer; transition: all 200ms; border: 1px solid #333;
+      background: transparent; color: #666;
+    }
+    .mode-btn.on { border-color: transparent; }
+
+    /* Mini mockup */
+    .mockup {
+      display: flex; height: 360px; border-top: 1px solid #1F1F1F;
+      transition: all 300ms;
+    }
+    .m-side {
+      width: 190px; display: flex; flex-direction: column;
+      border-right: 1px solid; transition: all 300ms;
+    }
+    .m-side-head {
+      padding: 14px; display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid; font-size: 12px; font-weight: 500;
+      transition: all 300ms;
+    }
+    .m-logo {
+      width: 26px; height: 26px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; transition: all 300ms;
+    }
+    .m-creators { flex: 1; padding: 10px; }
+    .m-cr {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 8px; border-radius: 8px; margin-bottom: 3px;
+      font-size: 12px; transition: all 300ms;
+    }
+    .m-av {
+      width: 28px; height: 28px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; transition: all 300ms;
+    }
+    .m-cr-meta { font-size: 10px; opacity: 0.5; }
+    .m-nav { border-top: 1px solid; padding: 10px; transition: all 300ms; }
+    .m-nav-i {
+      padding: 7px 8px; border-radius: 7px; font-size: 12px;
+      margin-bottom: 2px; display: flex; align-items: center; gap: 7px;
+      transition: all 300ms;
+    }
+    .m-dot { width: 5px; height: 5px; border-radius: 50%; transition: all 300ms; }
+    .m-main { flex: 1; display: flex; flex-direction: column; transition: all 300ms; }
+    .m-chat { flex: 1; padding: 18px; overflow: hidden; }
+    .m-msg {
+      padding: 12px 16px; border-radius: 12px; font-size: 12px;
+      max-width: 340px; margin-bottom: 10px; line-height: 1.5;
+      transition: all 300ms;
+    }
+    .m-msg.usr { margin-left: auto; }
+    .m-imgs { display: flex; gap: 5px; margin-top: 8px; }
+    .m-img { width: 65px; height: 82px; border-radius: 6px; }
+    .m-acts { display: flex; gap: 5px; margin-top: 8px; }
+    .m-act {
+      padding: 5px 10px; border-radius: 5px; font-size: 10px;
+      font-weight: 500; transition: all 300ms;
+    }
+    .m-input { border-top: 1px solid; padding: 12px 16px; transition: all 300ms; }
+    .m-pills { display: flex; gap: 3px; margin-bottom: 8px; }
+    .m-pill {
+      padding: 4px 10px; border-radius: 999px; font-size: 11px;
+      transition: all 300ms;
+    }
+    .m-irow {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 12px; border-radius: 8px; border: 1px solid;
+      transition: all 300ms;
+    }
+    .m-itext { flex: 1; font-size: 12px; opacity: 0.35; }
+    .m-send {
+      width: 26px; height: 26px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; transition: all 300ms;
+    }
+
+    /* Vote */
+    .card-foot {
+      padding: 16px 24px; border-top: 1px solid #1F1F1F;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-foot-note { font-size: 11px; color: #444; }
+    .pick-btn {
+      padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      border: 1px solid #333; background: transparent; color: #999;
+      cursor: pointer; transition: all 200ms;
+    }
+    .pick-btn:hover { background: #1A1A1A; border-color: #555; color: #fff; }
+    .card.selected .pick-btn { background: #FF6B35; color: #fff; border-color: #FF6B35; }
+  </style>
+</head>
+<body>
+
+<h1>Electric Coral — Variations</h1>
+<p class="subtitle">You picked the coral/orange energy. Here are 6 sub-variations with different accent tones, secondary colors, and fonts.</p>
+<p class="base-note">Each has a Dark / Light toggle. Click to compare.</p>
+
+<div class="grid">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- V1: Original Coral                         -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="card" onclick="sel(this)" id="v1">
+  <div class="card-top">
+    <div class="card-name" style="font-family:'Sora'">V1. Original Coral</div>
+    <div class="card-desc">The original pick. Hot orange-coral, pure dark backgrounds, Sora font. High energy, social-first.</div>
+    <div class="card-tags"><span class="tag">Sora</span><span class="tag">#FF6B35</span><span class="tag">Pure dark</span></div>
+  </div>
+  <div class="swatch-bar">
+    <div class="sw sw-border" style="background:#0C0C0C"><span class="tip">#0C0C0C bg</span></div>
+    <div class="sw" style="background:#141414"><span class="tip">#141414 sidebar</span></div>
+    <div class="sw" style="background:#1C1C1C"><span class="tip">#1C1C1C surface</span></div>
+    <div class="sw" style="background:#262626"><span class="tip">#262626 card</span></div>
+    <div class="sw" style="background:#FF6B35"><span class="tip">#FF6B35 accent</span></div>
+    <div class="sw" style="background:#FF8C5A"><span class="tip">#FF8C5A accent-light</span></div>
+    <div class="sw" style="background:#F5F5F5"><span class="tip">#F5F5F5 text</span></div>
+    <div class="sw" style="background:#525252"><span class="tip">#525252 muted</span></div>
+  </div>
+  <div class="mode-row">
+    <button class="mode-btn on" style="background:#FF6B35;color:#fff" onclick="event.stopPropagation();setMode(this,'dark','v1')">Dark</button>
+    <button class="mode-btn" onclick="event.stopPropagation();setMode(this,'light','v1')">Light</button>
+  </div>
+  <div class="mockup" style="font-family:'Sora',sans-serif" id="mock-v1"></div>
+  <div class="card-foot"><span class="card-foot-note">Font: Sora / Accent: #FF6B35</span><button class="pick-btn" onclick="event.stopPropagation()">This One</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- V2: Burnt Ember                            -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="card" onclick="sel(this)" id="v2">
+  <div class="card-top">
+    <div class="card-name" style="font-family:'Outfit'">V2. Burnt Ember</div>
+    <div class="card-desc">Deeper, richer red-orange. Warmer dark backgrounds with subtle brown undertone. More premium, less flashy. Secondary: muted sage for success states.</div>
+    <div class="card-tags"><span class="tag">Outfit</span><span class="tag">#E8523A</span><span class="tag">Warm dark</span><span class="tag">Sage secondary</span></div>
+  </div>
+  <div class="swatch-bar">
+    <div class="sw sw-border" style="background:#0E0C0B"><span class="tip">#0E0C0B bg</span></div>
+    <div class="sw" style="background:#161412"><span class="tip">#161412 sidebar</span></div>
+    <div class="sw" style="background:#1E1B19"><span class="tip">#1E1B19 surface</span></div>
+    <div class="sw" style="background:#2A2622"><span class="tip">#2A2622 card</span></div>
+    <div class="sw" style="background:#E8523A"><span class="tip">#E8523A accent</span></div>
+    <div class="sw" style="background:#F0755F"><span class="tip">#F0755F accent-light</span></div>
+    <div class="sw" style="background:#A8B5A0"><span class="tip">#A8B5A0 sage</span></div>
+    <div class="sw" style="background:#F2EDE8"><span class="tip">#F2EDE8 text</span></div>
+  </div>
+  <div class="mode-row">
+    <button class="mode-btn on" style="background:#E8523A;color:#fff" onclick="event.stopPropagation();setMode(this,'dark','v2')">Dark</button>
+    <button class="mode-btn" onclick="event.stopPropagation();setMode(this,'light','v2')">Light</button>
+  </div>
+  <div class="mockup" style="font-family:'Outfit',sans-serif" id="mock-v2"></div>
+  <div class="card-foot"><span class="card-foot-note">Font: Outfit / Accent: #E8523A + Sage</span><button class="pick-btn" onclick="event.stopPropagation()">This One</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- V3: Sunset Peach                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="card" onclick="sel(this)" id="v3">
+  <div class="card-top">
+    <div class="card-name" style="font-family:'Plus Jakarta Sans'">V3. Sunset Peach</div>
+    <div class="card-desc">Softer coral that leans peach-pink. From the original brand kit's peach/blush palette but electrified. Secondary: sky blue for info/links. Approachable but modern.</div>
+    <div class="card-tags"><span class="tag">Plus Jakarta Sans</span><span class="tag">#F27B50</span><span class="tag">Peach energy</span><span class="tag">Sky secondary</span></div>
+  </div>
+  <div class="swatch-bar">
+    <div class="sw sw-border" style="background:#0D0D0F"><span class="tip">#0D0D0F bg</span></div>
+    <div class="sw" style="background:#151517"><span class="tip">#151517 sidebar</span></div>
+    <div class="sw" style="background:#1D1D20"><span class="tip">#1D1D20 surface</span></div>
+    <div class="sw" style="background:#282830"><span class="tip">#282830 card</span></div>
+    <div class="sw" style="background:#F27B50"><span class="tip">#F27B50 accent</span></div>
+    <div class="sw" style="background:#F4A07A"><span class="tip">#F4A07A peach</span></div>
+    <div class="sw" style="background:#5BA3CF"><span class="tip">#5BA3CF sky</span></div>
+    <div class="sw" style="background:#F5F5F7"><span class="tip">#F5F5F7 text</span></div>
+  </div>
+  <div class="mode-row">
+    <button class="mode-btn on" style="background:#F27B50;color:#fff" onclick="event.stopPropagation();setMode(this,'dark','v3')">Dark</button>
+    <button class="mode-btn" onclick="event.stopPropagation();setMode(this,'light','v3')">Light</button>
+  </div>
+  <div class="mockup" style="font-family:'Plus Jakarta Sans',sans-serif" id="mock-v3"></div>
+  <div class="card-foot"><span class="card-foot-note">Font: Plus Jakarta Sans / Accent: #F27B50 + Sky</span><button class="pick-btn" onclick="event.stopPropagation()">This One</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- V4: Neon Tangerine                         -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="card" onclick="sel(this)" id="v4">
+  <div class="card-top">
+    <div class="card-name" style="font-family:'Space Grotesk'">V4. Neon Tangerine</div>
+    <div class="card-desc">Cranked up to maximum. Bright yellow-orange neon accent on pure black. Electric, bold, impossible to ignore. Secondary: electric lavender for contrast.</div>
+    <div class="card-tags"><span class="tag">Space Grotesk</span><span class="tag">#FF8800</span><span class="tag">Neon</span><span class="tag">Lavender secondary</span></div>
+  </div>
+  <div class="swatch-bar">
+    <div class="sw sw-border" style="background:#000000"><span class="tip">#000 bg</span></div>
+    <div class="sw" style="background:#0A0A0A"><span class="tip">#0A0A0A sidebar</span></div>
+    <div class="sw" style="background:#151515"><span class="tip">#151515 surface</span></div>
+    <div class="sw" style="background:#222222"><span class="tip">#222 card</span></div>
+    <div class="sw" style="background:#FF8800"><span class="tip">#FF8800 accent</span></div>
+    <div class="sw" style="background:#FFAA33"><span class="tip">#FFAA33 accent-light</span></div>
+    <div class="sw" style="background:#A78BFA"><span class="tip">#A78BFA lavender</span></div>
+    <div class="sw" style="background:#FAFAFA"><span class="tip">#FAFAFA text</span></div>
+  </div>
+  <div class="mode-row">
+    <button class="mode-btn on" style="background:#FF8800;color:#000" onclick="event.stopPropagation();setMode(this,'dark','v4')">Dark</button>
+    <button class="mode-btn" onclick="event.stopPropagation();setMode(this,'light','v4')">Light</button>
+  </div>
+  <div class="mockup" style="font-family:'Space Grotesk',sans-serif" id="mock-v4"></div>
+  <div class="card-foot"><span class="card-foot-note">Font: Space Grotesk / Accent: #FF8800 + Lavender</span><button class="pick-btn" onclick="event.stopPropagation()">This One</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- V5: Terracotta                             -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="card" onclick="sel(this)" id="v5">
+  <div class="card-top">
+    <div class="card-name" style="font-family:'Satoshi','DM Sans',sans-serif">V5. Terracotta</div>
+    <div class="card-desc">Earthy, muted coral — terracotta tone. Warm neutrals from the original brand kit. Sophisticated, not loud. Secondary: original sage. Premium creative tool energy.</div>
+    <div class="card-tags"><span class="tag">Satoshi</span><span class="tag">#C4603A</span><span class="tag">Earthy</span><span class="tag">Brand kit colors</span></div>
+  </div>
+  <div class="swatch-bar">
+    <div class="sw sw-border" style="background:#100F0D"><span class="tip">#100F0D bg</span></div>
+    <div class="sw" style="background:#1A1816"><span class="tip">#1A1816 sidebar</span></div>
+    <div class="sw" style="background:#23201C"><span class="tip">#23201C surface</span></div>
+    <div class="sw" style="background:#2E2A25"><span class="tip">#2E2A25 card</span></div>
+    <div class="sw" style="background:#C4603A"><span class="tip">#C4603A terracotta</span></div>
+    <div class="sw" style="background:#D8845F"><span class="tip">#D8845F light</span></div>
+    <div class="sw" style="background:#9BAA93"><span class="tip">#9BAA93 sage</span></div>
+    <div class="sw" style="background:#F0EBE3"><span class="tip">#F0EBE3 sand text</span></div>
+  </div>
+  <div class="mode-row">
+    <button class="mode-btn on" style="background:#C4603A;color:#fff" onclick="event.stopPropagation();setMode(this,'dark','v5')">Dark</button>
+    <button class="mode-btn" onclick="event.stopPropagation();setMode(this,'light','v5')">Light</button>
+  </div>
+  <div class="mockup" style="font-family:'Satoshi','DM Sans',sans-serif" id="mock-v5"></div>
+  <div class="card-foot"><span class="card-foot-note">Font: Satoshi / Accent: #C4603A + Sage</span><button class="pick-btn" onclick="event.stopPropagation()">This One</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- V6: Coral + Violet Duo                     -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="card" onclick="sel(this)" id="v6">
+  <div class="card-top">
+    <div class="card-name" style="font-family:'General Sans','DM Sans',sans-serif">V6. Coral + Violet Duo</div>
+    <div class="card-desc">Two-accent system: coral for actions/CTAs, violet for active states/highlights. Duotone energy. Like Instagram meets a pro tool. Cool-warm tension.</div>
+    <div class="card-tags"><span class="tag">General Sans</span><span class="tag">#FF6B45</span><span class="tag">#8B5CF6</span><span class="tag">Duotone</span></div>
+  </div>
+  <div class="swatch-bar">
+    <div class="sw sw-border" style="background:#09090B"><span class="tip">#09090B bg</span></div>
+    <div class="sw" style="background:#111114"><span class="tip">#111114 sidebar</span></div>
+    <div class="sw" style="background:#1A1A1F"><span class="tip">#1A1A1F surface</span></div>
+    <div class="sw" style="background:#26262E"><span class="tip">#26262E card</span></div>
+    <div class="sw" style="background:#FF6B45"><span class="tip">#FF6B45 coral</span></div>
+    <div class="sw" style="background:#8B5CF6"><span class="tip">#8B5CF6 violet</span></div>
+    <div class="sw" style="background:#A78BFA"><span class="tip">#A78BFA violet-lt</span></div>
+    <div class="sw" style="background:#F5F5F5"><span class="tip">#F5F5F5 text</span></div>
+  </div>
+  <div class="mode-row">
+    <button class="mode-btn on" style="background:linear-gradient(135deg,#FF6B45,#8B5CF6);color:#fff;border:none" onclick="event.stopPropagation();setMode(this,'dark','v6')">Dark</button>
+    <button class="mode-btn" onclick="event.stopPropagation();setMode(this,'light','v6')">Light</button>
+  </div>
+  <div class="mockup" style="font-family:'General Sans','DM Sans',sans-serif" id="mock-v6"></div>
+  <div class="card-foot"><span class="card-foot-note">Font: General Sans / Coral + Violet duotone</span><button class="pick-btn" onclick="event.stopPropagation()">This One</button></div>
+</div>
+
+</div><!-- grid -->
+
+<script>
+const P = {
+  v1: {
+    dark: {
+      side:'#141414', sideBdr:'#262626', headBdr:'#262626', headTxt:'#F5F5F5',
+      logo:'#FF6B35', logoTxt:'#fff',
+      crAct:'#FF6B35', crActTxt:'#fff', crActAv:'#E85D26', crActAvTxt:'#fff', crActMeta:'#FFB899',
+      crIn:'#A3A3A3', crInAv:'#262626', crInAvTxt:'#A3A3A3', crInName:'#F5F5F5',
+      navBdr:'#262626', niAct:'#1C1C1C', niActTxt:'#F5F5F5', niDot:'#FF6B35',
+      niIn:'#525252', niDotIn:'#404040',
+      main:'#0C0C0C',
+      botBg:'#1A1A1A', botTxt:'#F5F5F5', botBdr:'#262626',
+      usrBg:'#FF6B35', usrTxt:'#fff',
+      actSec:'#262626', actSecTxt:'#A3A3A3', actPri:'#FF6B35', actPriTxt:'#fff',
+      inpBg:'#141414', inpBdr:'#262626',
+      pillAct:'#FF6B35', pillActTxt:'#fff', pillIn:'#525252',
+      rowBg:'#1A1A1A', rowBdr:'#262626', rowTxt:'#525252',
+      sendBg:'#FF6B35', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#E85D26,#FF6B35)', img2:'linear-gradient(135deg,#FF6B35,#FF8C5A)', img3:'linear-gradient(135deg,#FF8C5A,#FFB899)',
+    },
+    light: {
+      side:'#FFF7F3', sideBdr:'#FFE8DE', headBdr:'#FFE8DE', headTxt:'#1a1a1a',
+      logo:'#FF6B35', logoTxt:'#fff',
+      crAct:'#FF6B35', crActTxt:'#fff', crActAv:'#E85D26', crActAvTxt:'#fff', crActMeta:'#FFB899',
+      crIn:'#6B7280', crInAv:'#FFF0EA', crInAvTxt:'#FF6B35', crInName:'#1a1a1a',
+      navBdr:'#FFE8DE', niAct:'#FFF0EA', niActTxt:'#E85D26', niDot:'#FF6B35',
+      niIn:'#9CA3AF', niDotIn:'#FFD6C7',
+      main:'#FFFFFF',
+      botBg:'#FFF7F3', botTxt:'#1a1a1a', botBdr:'#FFE8DE',
+      usrBg:'#FF6B35', usrTxt:'#fff',
+      actSec:'#FFF0EA', actSecTxt:'#9A3412', actPri:'#FF6B35', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#FFE8DE',
+      pillAct:'#FF6B35', pillActTxt:'#fff', pillIn:'#9CA3AF',
+      rowBg:'#FFF7F3', rowBdr:'#FFE8DE', rowTxt:'#9CA3AF',
+      sendBg:'#FF6B35', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#FFD6C7,#FFB899)', img2:'linear-gradient(135deg,#FFB899,#FF8C5A)', img3:'linear-gradient(135deg,#FFF0EA,#FFD6C7)',
+    }
+  },
+  v2: {
+    dark: {
+      side:'#161412', sideBdr:'#2A2622', headBdr:'#2A2622', headTxt:'#F2EDE8',
+      logo:'#E8523A', logoTxt:'#fff',
+      crAct:'#E8523A', crActTxt:'#fff', crActAv:'#C4412D', crActAvTxt:'#fff', crActMeta:'#F0B0A3',
+      crIn:'#8A847D', crInAv:'#2A2622', crInAvTxt:'#8A847D', crInName:'#F2EDE8',
+      navBdr:'#2A2622', niAct:'#1E1B19', niActTxt:'#F2EDE8', niDot:'#E8523A',
+      niIn:'#5C5753', niDotIn:'#3D3936',
+      main:'#0E0C0B',
+      botBg:'#1E1B19', botTxt:'#F2EDE8', botBdr:'#2A2622',
+      usrBg:'#E8523A', usrTxt:'#fff',
+      actSec:'#2A2622', actSecTxt:'#8A847D', actPri:'#E8523A', actPriTxt:'#fff',
+      inpBg:'#161412', inpBdr:'#2A2622',
+      pillAct:'#E8523A', pillActTxt:'#fff', pillIn:'#5C5753',
+      rowBg:'#1E1B19', rowBdr:'#2A2622', rowTxt:'#5C5753',
+      sendBg:'#E8523A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#C4412D,#E8523A)', img2:'linear-gradient(135deg,#E8523A,#F0755F)', img3:'linear-gradient(135deg,#A8B5A0,#C5CFC6)',
+    },
+    light: {
+      side:'#FBF8F6', sideBdr:'#EDE5DD', headBdr:'#EDE5DD', headTxt:'#2A2622',
+      logo:'#E8523A', logoTxt:'#fff',
+      crAct:'#E8523A', crActTxt:'#fff', crActAv:'#C4412D', crActAvTxt:'#fff', crActMeta:'#F0B0A3',
+      crIn:'#8A847D', crInAv:'#F5EFEA', crInAvTxt:'#E8523A', crInName:'#2A2622',
+      navBdr:'#EDE5DD', niAct:'#FFF0EC', niActTxt:'#C4412D', niDot:'#E8523A',
+      niIn:'#A39E98', niDotIn:'#DDD5CC',
+      main:'#FFFFFF',
+      botBg:'#FBF8F6', botTxt:'#2A2622', botBdr:'#EDE5DD',
+      usrBg:'#E8523A', usrTxt:'#fff',
+      actSec:'#FFF0EC', actSecTxt:'#7C2D12', actPri:'#E8523A', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#EDE5DD',
+      pillAct:'#E8523A', pillActTxt:'#fff', pillIn:'#A39E98',
+      rowBg:'#FBF8F6', rowBdr:'#EDE5DD', rowTxt:'#A39E98',
+      sendBg:'#E8523A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#FDDDD6,#F0B0A3)', img2:'linear-gradient(135deg,#F0B0A3,#F0755F)', img3:'linear-gradient(135deg,#D6E0D3,#A8B5A0)',
+    }
+  },
+  v3: {
+    dark: {
+      side:'#151517', sideBdr:'#282830', headBdr:'#282830', headTxt:'#F5F5F7',
+      logo:'#F27B50', logoTxt:'#fff',
+      crAct:'#F27B50', crActTxt:'#fff', crActAv:'#D4633B', crActAvTxt:'#fff', crActMeta:'#F4C0A8',
+      crIn:'#8E8E99', crInAv:'#282830', crInAvTxt:'#8E8E99', crInName:'#F5F5F7',
+      navBdr:'#282830', niAct:'#1D1D20', niActTxt:'#F5F5F7', niDot:'#F27B50',
+      niIn:'#55555F', niDotIn:'#3A3A44',
+      main:'#0D0D0F',
+      botBg:'#1D1D20', botTxt:'#F5F5F7', botBdr:'#282830',
+      usrBg:'#F27B50', usrTxt:'#fff',
+      actSec:'#282830', actSecTxt:'#8E8E99', actPri:'#F27B50', actPriTxt:'#fff',
+      inpBg:'#151517', inpBdr:'#282830',
+      pillAct:'#F27B50', pillActTxt:'#fff', pillIn:'#55555F',
+      rowBg:'#1D1D20', rowBdr:'#282830', rowTxt:'#55555F',
+      sendBg:'#F27B50', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#D4633B,#F27B50)', img2:'linear-gradient(135deg,#F27B50,#F4A07A)', img3:'linear-gradient(135deg,#3D7EAA,#5BA3CF)',
+    },
+    light: {
+      side:'#FFF9F6', sideBdr:'#FFE6D9', headBdr:'#FFE6D9', headTxt:'#1a1a1a',
+      logo:'#F27B50', logoTxt:'#fff',
+      crAct:'#F27B50', crActTxt:'#fff', crActAv:'#D4633B', crActAvTxt:'#fff', crActMeta:'#F4C0A8',
+      crIn:'#6B7280', crInAv:'#FFF0EA', crInAvTxt:'#F27B50', crInName:'#1a1a1a',
+      navBdr:'#FFE6D9', niAct:'#FFF0EA', niActTxt:'#D4633B', niDot:'#F27B50',
+      niIn:'#9CA3AF', niDotIn:'#FFD1BE',
+      main:'#FFFFFF',
+      botBg:'#FFF9F6', botTxt:'#1a1a1a', botBdr:'#FFE6D9',
+      usrBg:'#F27B50', usrTxt:'#fff',
+      actSec:'#FFF0EA', actSecTxt:'#9A3412', actPri:'#F27B50', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#FFE6D9',
+      pillAct:'#F27B50', pillActTxt:'#fff', pillIn:'#9CA3AF',
+      rowBg:'#FFF9F6', rowBdr:'#FFE6D9', rowTxt:'#9CA3AF',
+      sendBg:'#F27B50', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#FFD1BE,#F4A07A)', img2:'linear-gradient(135deg,#F4A07A,#F27B50)', img3:'linear-gradient(135deg,#BFDDEF,#5BA3CF)',
+    }
+  },
+  v4: {
+    dark: {
+      side:'#0A0A0A', sideBdr:'#222222', headBdr:'#222222', headTxt:'#FAFAFA',
+      logo:'#FF8800', logoTxt:'#000',
+      crAct:'#FF8800', crActTxt:'#000', crActAv:'#CC6D00', crActAvTxt:'#000', crActMeta:'#FFD699',
+      crIn:'#737373', crInAv:'#222222', crInAvTxt:'#737373', crInName:'#FAFAFA',
+      navBdr:'#222222', niAct:'#151515', niActTxt:'#FAFAFA', niDot:'#FF8800',
+      niIn:'#404040', niDotIn:'#333333',
+      main:'#000000',
+      botBg:'#151515', botTxt:'#FAFAFA', botBdr:'#222222',
+      usrBg:'#FF8800', usrTxt:'#000',
+      actSec:'#222222', actSecTxt:'#737373', actPri:'#FF8800', actPriTxt:'#000',
+      inpBg:'#0A0A0A', inpBdr:'#222222',
+      pillAct:'#FF8800', pillActTxt:'#000', pillIn:'#404040',
+      rowBg:'#151515', rowBdr:'#222222', rowTxt:'#404040',
+      sendBg:'#FF8800', sendTxt:'#000',
+      img1:'linear-gradient(135deg,#CC6D00,#FF8800)', img2:'linear-gradient(135deg,#FF8800,#FFAA33)', img3:'linear-gradient(135deg,#7C3AED,#A78BFA)',
+    },
+    light: {
+      side:'#FFFBF5', sideBdr:'#FFE8CC', headBdr:'#FFE8CC', headTxt:'#1a1a1a',
+      logo:'#FF8800', logoTxt:'#000',
+      crAct:'#FF8800', crActTxt:'#000', crActAv:'#CC6D00', crActAvTxt:'#000', crActMeta:'#B36000',
+      crIn:'#6B7280', crInAv:'#FFF4E6', crInAvTxt:'#FF8800', crInName:'#1a1a1a',
+      navBdr:'#FFE8CC', niAct:'#FFF4E6', niActTxt:'#B36000', niDot:'#FF8800',
+      niIn:'#9CA3AF', niDotIn:'#FFD699',
+      main:'#FFFFFF',
+      botBg:'#FFFBF5', botTxt:'#1a1a1a', botBdr:'#FFE8CC',
+      usrBg:'#FF8800', usrTxt:'#000',
+      actSec:'#FFF4E6', actSecTxt:'#7C4600', actPri:'#FF8800', actPriTxt:'#000',
+      inpBg:'#FFFFFF', inpBdr:'#FFE8CC',
+      pillAct:'#FF8800', pillActTxt:'#000', pillIn:'#9CA3AF',
+      rowBg:'#FFFBF5', rowBdr:'#FFE8CC', rowTxt:'#9CA3AF',
+      sendBg:'#FF8800', sendTxt:'#000',
+      img1:'linear-gradient(135deg,#FFD699,#FFAA33)', img2:'linear-gradient(135deg,#FFAA33,#FF8800)', img3:'linear-gradient(135deg,#DDD6FE,#A78BFA)',
+    }
+  },
+  v5: {
+    dark: {
+      side:'#1A1816', sideBdr:'#2E2A25', headBdr:'#2E2A25', headTxt:'#F0EBE3',
+      logo:'#C4603A', logoTxt:'#fff',
+      crAct:'#2E2A25', crActTxt:'#F0EBE3', crActAv:'#C4603A', crActAvTxt:'#fff', crActMeta:'#8A847D',
+      crIn:'#8A847D', crInAv:'#2E2A25', crInAvTxt:'#8A847D', crInName:'#F0EBE3',
+      navBdr:'#2E2A25', niAct:'#23201C', niActTxt:'#F0EBE3', niDot:'#C4603A',
+      niIn:'#5C5753', niDotIn:'#3D3936',
+      main:'#100F0D',
+      botBg:'#23201C', botTxt:'#F0EBE3', botBdr:'#2E2A25',
+      usrBg:'#C4603A', usrTxt:'#fff',
+      actSec:'#2E2A25', actSecTxt:'#8A847D', actPri:'#C4603A', actPriTxt:'#fff',
+      inpBg:'#1A1816', inpBdr:'#2E2A25',
+      pillAct:'#C4603A', pillActTxt:'#fff', pillIn:'#5C5753',
+      rowBg:'#23201C', rowBdr:'#2E2A25', rowTxt:'#5C5753',
+      sendBg:'#C4603A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#A34E2C,#C4603A)', img2:'linear-gradient(135deg,#C4603A,#D8845F)', img3:'linear-gradient(135deg,#7A8C72,#9BAA93)',
+    },
+    light: {
+      side:'#FAF8F5', sideBdr:'#EDE5DD', headBdr:'#EDE5DD', headTxt:'#2E2A25',
+      logo:'#C4603A', logoTxt:'#fff',
+      crAct:'#FAEDE6', crActTxt:'#2E2A25', crActAv:'#C4603A', crActAvTxt:'#fff', crActMeta:'#8A847D',
+      crIn:'#8A847D', crInAv:'#F0EBE3', crInAvTxt:'#C4603A', crInName:'#2E2A25',
+      navBdr:'#EDE5DD', niAct:'#FAEDE6', niActTxt:'#A34E2C', niDot:'#C4603A',
+      niIn:'#A39E98', niDotIn:'#DDD5CC',
+      main:'#FFFFFF',
+      botBg:'#FAF8F5', botTxt:'#2E2A25', botBdr:'#EDE5DD',
+      usrBg:'#C4603A', usrTxt:'#fff',
+      actSec:'#FAEDE6', actSecTxt:'#7C3A20', actPri:'#C4603A', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#EDE5DD',
+      pillAct:'#C4603A', pillActTxt:'#fff', pillIn:'#A39E98',
+      rowBg:'#FAF8F5', rowBdr:'#EDE5DD', rowTxt:'#A39E98',
+      sendBg:'#C4603A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#FADDD1,#D8845F)', img2:'linear-gradient(135deg,#D8845F,#C4603A)', img3:'linear-gradient(135deg,#D6E0D3,#9BAA93)',
+    }
+  },
+  v6: {
+    dark: {
+      side:'#111114', sideBdr:'#26262E', headBdr:'#26262E', headTxt:'#F5F5F5',
+      logo:'#FF6B45', logoTxt:'#fff',
+      crAct:'#8B5CF6', crActTxt:'#fff', crActAv:'#7C3AED', crActAvTxt:'#fff', crActMeta:'#C4B5FD',
+      crIn:'#8E8E99', crInAv:'#26262E', crInAvTxt:'#8E8E99', crInName:'#F5F5F5',
+      navBdr:'#26262E', niAct:'#1A1A1F', niActTxt:'#F5F5F5', niDot:'#8B5CF6',
+      niIn:'#55555F', niDotIn:'#3A3A44',
+      main:'#09090B',
+      botBg:'#1A1A1F', botTxt:'#F5F5F5', botBdr:'#26262E',
+      usrBg:'#8B5CF6', usrTxt:'#fff',
+      actSec:'#26262E', actSecTxt:'#8E8E99', actPri:'#FF6B45', actPriTxt:'#fff',
+      inpBg:'#111114', inpBdr:'#26262E',
+      pillAct:'#FF6B45', pillActTxt:'#fff', pillIn:'#55555F',
+      rowBg:'#1A1A1F', rowBdr:'#26262E', rowTxt:'#55555F',
+      sendBg:'#FF6B45', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#FF6B45,#FF8C5A)', img2:'linear-gradient(135deg,#8B5CF6,#A78BFA)', img3:'linear-gradient(135deg,#FF8C5A,#C4B5FD)',
+    },
+    light: {
+      side:'#FAFAFE', sideBdr:'#E8E5F0', headBdr:'#E8E5F0', headTxt:'#1a1a2e',
+      logo:'#FF6B45', logoTxt:'#fff',
+      crAct:'#8B5CF6', crActTxt:'#fff', crActAv:'#7C3AED', crActAvTxt:'#fff', crActMeta:'#C4B5FD',
+      crIn:'#6B7280', crInAv:'#F3F0FF', crInAvTxt:'#8B5CF6', crInName:'#1a1a2e',
+      navBdr:'#E8E5F0', niAct:'#F3F0FF', niActTxt:'#7C3AED', niDot:'#8B5CF6',
+      niIn:'#9CA3AF', niDotIn:'#D6D3E5',
+      main:'#FFFFFF',
+      botBg:'#FAFAFE', botTxt:'#1a1a2e', botBdr:'#E8E5F0',
+      usrBg:'#8B5CF6', usrTxt:'#fff',
+      actSec:'#F3F0FF', actSecTxt:'#4C1D95', actPri:'#FF6B45', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#E8E5F0',
+      pillAct:'#FF6B45', pillActTxt:'#fff', pillIn:'#9CA3AF',
+      rowBg:'#FAFAFE', rowBdr:'#E8E5F0', rowTxt:'#9CA3AF',
+      sendBg:'#FF6B45', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#FFD6CC,#FF8C5A)', img2:'linear-gradient(135deg,#DDD6FE,#A78BFA)', img3:'linear-gradient(135deg,#FFE4DE,#DDD6FE)',
+    }
+  },
+};
+
+function buildMockup(id, t) {
+  return `
+    <div class="m-side" style="background:${t.side};border-color:${t.sideBdr}">
+      <div class="m-side-head" style="border-color:${t.headBdr};color:${t.headTxt}">
+        <div class="m-logo" style="background:${t.logo};color:${t.logoTxt}">Ai</div>
+        Creator App
+      </div>
+      <div class="m-creators">
+        <div class="m-cr" style="background:${t.crAct};color:${t.crActTxt};border-radius:8px">
+          <div class="m-av" style="background:${t.crActAv};color:${t.crActAvTxt}">S</div>
+          <div><div>Sophia</div><div class="m-cr-meta" style="color:${t.crActMeta}">Fitness</div></div>
+        </div>
+        <div class="m-cr" style="color:${t.crIn}">
+          <div class="m-av" style="background:${t.crInAv};color:${t.crInAvTxt}">L</div>
+          <div><div style="color:${t.crInName}">Luna</div><div class="m-cr-meta">Lifestyle</div></div>
+        </div>
+      </div>
+      <div class="m-nav" style="border-color:${t.navBdr}">
+        <div class="m-nav-i" style="background:${t.niAct};color:${t.niActTxt}"><div class="m-dot" style="background:${t.niDot}"></div>Chat</div>
+        <div class="m-nav-i" style="color:${t.niIn}"><div class="m-dot" style="background:${t.niDotIn}"></div>Library</div>
+        <div class="m-nav-i" style="color:${t.niIn}"><div class="m-dot" style="background:${t.niDotIn}"></div>Workflows</div>
+      </div>
+    </div>
+    <div class="m-main" style="background:${t.main}">
+      <div class="m-chat">
+        <div class="m-msg" style="background:${t.botBg};color:${t.botTxt};border:1px solid ${t.botBdr}">
+          <strong>Hey!</strong> Ready to create for Sophia.
+          <div class="m-imgs">
+            <div class="m-img" style="background:${t.img1}"></div>
+            <div class="m-img" style="background:${t.img2}"></div>
+            <div class="m-img" style="background:${t.img3}"></div>
+          </div>
+          <div class="m-acts">
+            <div class="m-act" style="background:${t.actSec};color:${t.actSecTxt}">Download</div>
+            <div class="m-act" style="background:${t.actSec};color:${t.actSecTxt}">Video</div>
+            <div class="m-act" style="background:${t.actPri};color:${t.actPriTxt}">Upscale</div>
+          </div>
+        </div>
+        <div class="m-msg usr" style="background:${t.usrBg};color:${t.usrTxt}">gym mirror selfie, lavender set</div>
+      </div>
+      <div class="m-input" style="border-color:${t.inpBdr};background:${t.inpBg}">
+        <div class="m-pills">
+          <div class="m-pill" style="background:${t.pillAct};color:${t.pillActTxt}">Chat</div>
+          <div class="m-pill" style="color:${t.pillIn}">Image</div>
+          <div class="m-pill" style="color:${t.pillIn}">Video</div>
+          <div class="m-pill" style="color:${t.pillIn}">Talking Head</div>
+        </div>
+        <div class="m-irow" style="background:${t.rowBg};border-color:${t.rowBdr}">
+          <div class="m-itext" style="color:${t.rowTxt}">What do you want to create?</div>
+          <div class="m-send" style="background:${t.sendBg};color:${t.sendTxt}">↑</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// Init all mockups in dark mode
+Object.keys(P).forEach(id => {
+  document.getElementById('mock-'+id).innerHTML = buildMockup(id, P[id].dark);
+});
+
+function setMode(btn, mode, id) {
+  const row = btn.parentElement;
+  row.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.remove('on');
+    b.style.background = 'transparent';
+    b.style.color = '#666';
+    b.style.borderColor = '#333';
+  });
+  btn.classList.add('on');
+  const accent = P[id][mode].logo || P[id][mode].pillAct;
+  const txtC = P[id][mode].logoTxt || '#fff';
+  if (id === 'v6') {
+    btn.style.background = mode === 'dark' ? 'linear-gradient(135deg,#FF6B45,#8B5CF6)' : 'linear-gradient(135deg,#FF6B45,#8B5CF6)';
+    btn.style.color = '#fff';
+  } else {
+    btn.style.background = accent;
+    btn.style.color = txtC;
+  }
+  btn.style.borderColor = 'transparent';
+  document.getElementById('mock-'+id).innerHTML = buildMockup(id, P[id][mode]);
+}
+
+function sel(el) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+</script>
+
+</body>
+</html>

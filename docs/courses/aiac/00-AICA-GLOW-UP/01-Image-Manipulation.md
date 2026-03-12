@@ -1,0 +1,26 @@
+# Image Manipulation
+
+> **Module:** AICA GLOW UP
+> **Original URL:** https://www.skool.com/aica/classroom/d6557ee3?md=267331c1709b4a1db3813d07dd209d29
+> **Has Video:** ✅
+
+---
+
+## Content
+
+[Try Here](https://openart.ai/home?via=aica)
+
+## 🎬 Video Transcript
+
+<details>
+<summary>Click to expand transcript</summary>
+
+In this video, I'm going to show you how to edit any image that is going to feel like you're a little magician. So in order to do that, go to Image and choose Chat to edit. Here, you can upload any image you want to edit, and with the help of this prompt box and Nano Banana as an image model, you can make any changes to your images. So let's upload our image that we want to edit. And now here, you can start giving instructions on what you want to see differently. So for example, here, we can see Maddie is very serious. So we can change that by saying, Make her smile. We can also add some kind of necklace. Add a silver cross necklace. And we can also change the handbag. Change the handbag to light beige YSL handbag. So let's see what we're going to get. Usually, it works the best if you only use one instruction per prompt. But sometimes, it can listen to more. In this case, we have three requests. So let's see. Perfect. She's smiling, cross necklace, YSL handbag. This is already perfect. So let's play a bit more just to show you the possibilities. Let's change the background. She is on a sidewalk in a modern city street. Add few people in the background. Let's see what we're going to get. For some reason, we got an error. Maybe there's something wrong with the prompt. She's on a sidewalk in a modern street. Add few people in the background. Nope, I don't think anything is wrong. Let's try again. Perfect. So we went from here to here while keeping her exactly the same. Modern city sidewalk, few people in the background. Now, let's play a bit more. Let's change her hairstyle and maybe nails. Let's say something like she has a ponytail. She has long, light pink nails. Let's see. All right. It's solid but didn't listen to the nails and I don't really like the hairstyle. So now, when you want to change something, if you're unhappy with it, click the image that you want to change, okay? So whichever one you have selected here, this is what the prompt is going to change. So if I go here, let's try again. Change her hairstyle to a ponytail. She has long, light pink nails. Let's see. A little bit better. Still didn't listen about the nails. Let's try one more time. Usually, if the system doesn't listen, it's either because of heavy traffic or we need to restructure our prompt a little bit. So we can say something like she has a ponytail and long, light pink nails. Let's see. All right. This is better. Didn't listen about the nails. So this is what I was saying. It's usually the best, one prompt at a time. But sometimes, it can also struggle to read the image. So this software is very, very smart. It usually reads the image really well. However, the nails are not so visible. So that's why maybe it struggles. Let's try it one more time just to see. She has long, light pink nails. Perfect. It changed that. You can also play around with outfits. For example, you can upload any kind of reference image. So if I change it, if I use this one, and if I write something like, change her entire outfit, replace her handbag with a water bottle. So let's see what we're going to get. All right. Almost perfect. We can see some error here. So let's just go and try one more time. Perfect. We got it. It's exactly the same outfit. We can pull it up just for the comparison. So as you can see, Gymshark outfit, exactly the same, water bottle, perfect. So this is how you can basically play around. You can also play with depth by making her closer or further away from the camera. For example, we can say, full body image. She is wearing white Nike shoes. Awesome. You see, we basically went from this image to this image. Then we place her into a city. We change the hairstyle. We change the nails. We change the clothes and even remove the handbag. And we also change from the half body image to full body image. So this is how you can play around with it. One thing that is very important to mention is that sometimes the longer you go on, the more changes are going to make to your actual model. So in this case, it didn't really change her. It kept her face exactly the same, the quality exactly the same. But sometimes it can happen, probably due to heavy traffic, that after the third or fourth sequence, you are going to see slight decrease in facial features. So just so you are aware of that. But this is how you can basically change any kind of image. It really feels like you have a magic wand, and you can basically do whatever you want. This image model is very smart, and the system is very smart here inside Chat to Edit. It reads the image really, really well. It doesn't really add some weird stuff. And if it does, like this, you can always go back to the previous image, like we did here. And basically, by repeating the prompt or just changing the prompt a little bit, you get a perfect image. Okay? So I hope you find this useful, and I'll see you in the next one.
+
+
+</details>
+
+## 🔗 Resources
+
+- [Try Here](https://openart.ai/home?via=aica)
+

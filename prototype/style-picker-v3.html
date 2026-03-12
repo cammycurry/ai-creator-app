@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warm & Earthy — 10 Palette Variations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,600,700&f[]=general-sans@300,400,500,600,700&f[]=switzer@300,400,500,600,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0A0A0A; color: #fff;
+      padding: 40px 40px 80px; line-height: 1.5;
+    }
+    h1 { font-size: 32px; font-weight: 600; margin-bottom: 4px; }
+    .subtitle { color: #888; font-size: 15px; margin-bottom: 8px; }
+    .faves { color: #C4603A; font-size: 13px; margin-bottom: 8px; font-weight: 500; }
+    .base-note { color: #666; font-size: 13px; margin-bottom: 48px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+
+    .card {
+      border: 1px solid #1F1F1F; border-radius: 20px; overflow: hidden;
+      transition: all 300ms ease; cursor: pointer;
+    }
+    .card:hover { border-color: #444; transform: translateY(-2px); }
+    .card.selected { border-color: #C4603A; box-shadow: 0 0 0 2px #C4603A; }
+    .card-top { padding: 24px 24px 16px; }
+    .card-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .card-desc { font-size: 13px; color: #888; margin-bottom: 12px; line-height: 1.5; }
+    .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tag {
+      font-size: 10px; padding: 3px 10px; border-radius: 999px;
+      border: 1px solid #333; color: #777; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .tag.fav { border-color: #C4603A44; color: #C4603A; }
+
+    .swatch-bar { display: flex; gap: 4px; padding: 0 24px 16px; }
+    .sw {
+      height: 28px; flex: 1; border-radius: 6px; position: relative;
+      transition: transform 150ms;
+    }
+    .sw:first-child { border-radius: 6px 4px 4px 6px; }
+    .sw:last-child { border-radius: 4px 6px 6px 4px; }
+    .sw:hover { transform: scaleY(1.15); z-index: 1; }
+    .sw-border { border: 1px solid rgba(255,255,255,0.08); }
+    .sw .tip {
+      position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+      font-size: 8px; font-family: monospace; color: #555; white-space: nowrap;
+      opacity: 0; transition: opacity 150ms; pointer-events: none;
+    }
+    .sw:hover .tip { opacity: 1; }
+
+    .mode-row { padding: 0 24px 12px; display: flex; gap: 6px; }
+    .mode-btn {
+      padding: 5px 14px; border-radius: 999px; font-size: 11px; font-weight: 500;
+      cursor: pointer; transition: all 200ms; border: 1px solid #333;
+      background: transparent; color: #666;
+    }
+    .mode-btn.on { border-color: transparent; }
+
+    .mockup {
+      display: flex; height: 360px; border-top: 1px solid #1F1F1F;
+      transition: all 300ms;
+    }
+    .m-side {
+      width: 190px; display: flex; flex-direction: column;
+      border-right: 1px solid; transition: all 300ms;
+    }
+    .m-side-head {
+      padding: 14px; display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid; font-size: 12px; font-weight: 500;
+      transition: all 300ms;
+    }
+    .m-logo {
+      width: 26px; height: 26px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; transition: all 300ms;
+    }
+    .m-creators { flex: 1; padding: 10px; }
+    .m-cr {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 8px; border-radius: 8px; margin-bottom: 3px;
+      font-size: 12px; transition: all 300ms;
+    }
+    .m-av {
+      width: 28px; height: 28px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; transition: all 300ms;
+    }
+    .m-cr-meta { font-size: 10px; opacity: 0.5; }
+    .m-nav { border-top: 1px solid; padding: 10px; transition: all 300ms; }
+    .m-nav-i {
+      padding: 7px 8px; border-radius: 7px; font-size: 12px;
+      margin-bottom: 2px; display: flex; align-items: center; gap: 7px;
+      transition: all 300ms;
+    }
+    .m-dot { width: 5px; height: 5px; border-radius: 50%; transition: all 300ms; }
+    .m-main { flex: 1; display: flex; flex-direction: column; transition: all 300ms; }
+    .m-chat { flex: 1; padding: 18px; overflow: hidden; }
+    .m-msg {
+      padding: 12px 16px; border-radius: 12px; font-size: 12px;
+      max-width: 340px; margin-bottom: 10px; line-height: 1.5;
+      transition: all 300ms;
+    }
+    .m-msg.usr { margin-left: auto; }
+    .m-imgs { display: flex; gap: 5px; margin-top: 8px; }
+    .m-img { width: 65px; height: 82px; border-radius: 6px; }
+    .m-acts { display: flex; gap: 5px; margin-top: 8px; }
+    .m-act {
+      padding: 5px 10px; border-radius: 5px; font-size: 10px;
+      font-weight: 500; transition: all 300ms;
+    }
+    .m-input { border-top: 1px solid; padding: 12px 16px; transition: all 300ms; }
+    .m-pills { display: flex; gap: 3px; margin-bottom: 8px; }
+    .m-pill {
+      padding: 4px 10px; border-radius: 999px; font-size: 11px;
+      transition: all 300ms;
+    }
+    .m-irow {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 12px; border-radius: 8px; border: 1px solid;
+      transition: all 300ms;
+    }
+    .m-itext { flex: 1; font-size: 12px; opacity: 0.35; }
+    .m-send {
+      width: 26px; height: 26px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; transition: all 300ms;
+    }
+
+    .card-foot {
+      padding: 16px 24px; border-top: 1px solid #1F1F1F;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-foot-note { font-size: 11px; color: #444; }
+    .pick-btn {
+      padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      border: 1px solid #333; background: transparent; color: #999;
+      cursor: pointer; transition: all 200ms;
+    }
+    .pick-btn:hover { background: #1A1A1A; border-color: #555; color: #fff; }
+    .card.selected .pick-btn { background: #C4603A; color: #fff; border-color: #C4603A; }
+  </style>
+</head>
+<body>
+
+<h1>Warm & Earthy — 10 Variations</h1>
+<p class="subtitle">You liked Burnt Ember and Terracotta. Here are 8 more in that family.</p>
+<p class="faves">V1 & V2 are your previous favorites. V3-V10 are new.</p>
+<p class="base-note">Each has Dark / Light toggle. Click a card to select it.</p>
+
+<div class="grid" id="grid"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// PALETTE DEFINITIONS
+// ════════════════════════════════════════════════════════════════
+
+const palettes = [
+
+  // ── V1: Burnt Ember (KEPT) ───────────────────────────────────
+  {
+    id:'v1', name:'Burnt Ember', font:'Outfit', fontStack:"'Outfit',sans-serif",
+    desc:'Deeper red-orange. Warm dark backgrounds with brown undertone. Premium, not flashy. Secondary: muted sage.',
+    tags:[{t:'Outfit'},{t:'#E8523A'},{t:'Warm dark'},{t:'Sage secondary'},{t:'FAVE',fav:true}],
+    swatches:['#0E0C0B','#161412','#1E1B19','#2A2622','#E8523A','#F0755F','#A8B5A0','#F2EDE8'],
+    swLabels:['bg','sidebar','surface','card','accent','accent-lt','sage','text'],
+    accent:'#E8523A',
+    dark: {
+      side:'#161412', sideBdr:'#2A2622', headBdr:'#2A2622', headTxt:'#F2EDE8',
+      logo:'#E8523A', logoTxt:'#fff',
+      crAct:'#E8523A', crActTxt:'#fff', crActAv:'#C4412D', crActAvTxt:'#fff', crActMeta:'#F0B0A3',
+      crIn:'#8A847D', crInAv:'#2A2622', crInAvTxt:'#8A847D', crInName:'#F2EDE8',
+      navBdr:'#2A2622', niAct:'#1E1B19', niActTxt:'#F2EDE8', niDot:'#E8523A',
+      niIn:'#5C5753', niDotIn:'#3D3936',
+      main:'#0E0C0B',
+      botBg:'#1E1B19', botTxt:'#F2EDE8', botBdr:'#2A2622',
+      usrBg:'#E8523A', usrTxt:'#fff',
+      actSec:'#2A2622', actSecTxt:'#8A847D', actPri:'#E8523A', actPriTxt:'#fff',
+      inpBg:'#161412', inpBdr:'#2A2622',
+      pillAct:'#E8523A', pillActTxt:'#fff', pillIn:'#5C5753',
+      rowBg:'#1E1B19', rowBdr:'#2A2622', rowTxt:'#5C5753',
+      sendBg:'#E8523A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#C4412D,#E8523A)', img2:'linear-gradient(135deg,#E8523A,#F0755F)', img3:'linear-gradient(135deg,#A8B5A0,#C5CFC6)',
+    },
+    light: {
+      side:'#FBF8F6', sideBdr:'#EDE5DD', headBdr:'#EDE5DD', headTxt:'#2A2622',
+      logo:'#E8523A', logoTxt:'#fff',
+      crAct:'#E8523A', crActTxt:'#fff', crActAv:'#C4412D', crActAvTxt:'#fff', crActMeta:'#F0B0A3',
+      crIn:'#8A847D', crInAv:'#F5EFEA', crInAvTxt:'#E8523A', crInName:'#2A2622',
+      navBdr:'#EDE5DD', niAct:'#FFF0EC', niActTxt:'#C4412D', niDot:'#E8523A',
+      niIn:'#A39E98', niDotIn:'#DDD5CC',
+      main:'#FFFFFF',
+      botBg:'#FBF8F6', botTxt:'#2A2622', botBdr:'#EDE5DD',
+      usrBg:'#E8523A', usrTxt:'#fff',
+      actSec:'#FFF0EC', actSecTxt:'#7C2D12', actPri:'#E8523A', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#EDE5DD',
+      pillAct:'#E8523A', pillActTxt:'#fff', pillIn:'#A39E98',
+      rowBg:'#FBF8F6', rowBdr:'#EDE5DD', rowTxt:'#A39E98',
+      sendBg:'#E8523A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#FDDDD6,#F0B0A3)', img2:'linear-gradient(135deg,#F0B0A3,#F0755F)', img3:'linear-gradient(135deg,#D6E0D3,#A8B5A0)',
+    }
+  },
+
+  // ── V2: Terracotta (KEPT) ────────────────────────────────────
+  {
+    id:'v2', name:'Terracotta', font:'Satoshi', fontStack:"'Satoshi','DM Sans',sans-serif",
+    desc:'Earthy, muted coral. Warm neutrals from the brand kit. Sophisticated, not loud. Secondary: sage. Premium creative tool energy.',
+    tags:[{t:'Satoshi'},{t:'#C4603A'},{t:'Earthy'},{t:'Sage'},{t:'FAVE',fav:true}],
+    swatches:['#100F0D','#1A1816','#23201C','#2E2A25','#C4603A','#D8845F','#9BAA93','#F0EBE3'],
+    swLabels:['bg','sidebar','surface','card','terracotta','light','sage','text'],
+    accent:'#C4603A',
+    dark: {
+      side:'#1A1816', sideBdr:'#2E2A25', headBdr:'#2E2A25', headTxt:'#F0EBE3',
+      logo:'#C4603A', logoTxt:'#fff',
+      crAct:'#2E2A25', crActTxt:'#F0EBE3', crActAv:'#C4603A', crActAvTxt:'#fff', crActMeta:'#8A847D',
+      crIn:'#8A847D', crInAv:'#2E2A25', crInAvTxt:'#8A847D', crInName:'#F0EBE3',
+      navBdr:'#2E2A25', niAct:'#23201C', niActTxt:'#F0EBE3', niDot:'#C4603A',
+      niIn:'#5C5753', niDotIn:'#3D3936',
+      main:'#100F0D',
+      botBg:'#23201C', botTxt:'#F0EBE3', botBdr:'#2E2A25',
+      usrBg:'#C4603A', usrTxt:'#fff',
+      actSec:'#2E2A25', actSecTxt:'#8A847D', actPri:'#C4603A', actPriTxt:'#fff',
+      inpBg:'#1A1816', inpBdr:'#2E2A25',
+      pillAct:'#C4603A', pillActTxt:'#fff', pillIn:'#5C5753',
+      rowBg:'#23201C', rowBdr:'#2E2A25', rowTxt:'#5C5753',
+      sendBg:'#C4603A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#A34E2C,#C4603A)', img2:'linear-gradient(135deg,#C4603A,#D8845F)', img3:'linear-gradient(135deg,#7A8C72,#9BAA93)',
+    },
+    light: {
+      side:'#FAF8F5', sideBdr:'#EDE5DD', headBdr:'#EDE5DD', headTxt:'#2E2A25',
+      logo:'#C4603A', logoTxt:'#fff',
+      crAct:'#FAEDE6', crActTxt:'#2E2A25', crActAv:'#C4603A', crActAvTxt:'#fff', crActMeta:'#8A847D',
+      crIn:'#8A847D', crInAv:'#F0EBE3', crInAvTxt:'#C4603A', crInName:'#2E2A25',
+      navBdr:'#EDE5DD', niAct:'#FAEDE6', niActTxt:'#A34E2C', niDot:'#C4603A',
+      niIn:'#A39E98', niDotIn:'#DDD5CC',
+      main:'#FFFFFF',
+      botBg:'#FAF8F5', botTxt:'#2E2A25', botBdr:'#EDE5DD',
+      usrBg:'#C4603A', usrTxt:'#fff',
+      actSec:'#FAEDE6', actSecTxt:'#7C3A20', actPri:'#C4603A', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#EDE5DD',
+      pillAct:'#C4603A', pillActTxt:'#fff', pillIn:'#A39E98',
+      rowBg:'#FAF8F5', rowBdr:'#EDE5DD', rowTxt:'#A39E98',
+      sendBg:'#C4603A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#FADDD1,#D8845F)', img2:'linear-gradient(135deg,#D8845F,#C4603A)', img3:'linear-gradient(135deg,#D6E0D3,#9BAA93)',
+    }
+  },
+
+  // ── V3: Rust ─────────────────────────────────────────────────
+  {
+    id:'v3', name:'Rust', font:'Manrope', fontStack:"'Manrope',sans-serif",
+    desc:'Deep rust red — darker and more dramatic than Burnt Ember. Almost burgundy energy. Secondary: muted olive green. Feels editorial.',
+    tags:[{t:'Manrope'},{t:'#B7472A'},{t:'Deep rust'},{t:'Olive secondary'}],
+    swatches:['#0D0B09','#15120F','#1D1A16','#28241F','#B7472A','#D06A4E','#8B9A6B','#EDE7DF'],
+    swLabels:['bg','sidebar','surface','card','rust','rust-lt','olive','text'],
+    accent:'#B7472A',
+    dark: {
+      side:'#15120F', sideBdr:'#28241F', headBdr:'#28241F', headTxt:'#EDE7DF',
+      logo:'#B7472A', logoTxt:'#fff',
+      crAct:'#B7472A', crActTxt:'#fff', crActAv:'#963A22', crActAvTxt:'#fff', crActMeta:'#D9A596',
+      crIn:'#847D75', crInAv:'#28241F', crInAvTxt:'#847D75', crInName:'#EDE7DF',
+      navBdr:'#28241F', niAct:'#1D1A16', niActTxt:'#EDE7DF', niDot:'#B7472A',
+      niIn:'#585450', niDotIn:'#3A3733',
+      main:'#0D0B09',
+      botBg:'#1D1A16', botTxt:'#EDE7DF', botBdr:'#28241F',
+      usrBg:'#B7472A', usrTxt:'#fff',
+      actSec:'#28241F', actSecTxt:'#847D75', actPri:'#B7472A', actPriTxt:'#fff',
+      inpBg:'#15120F', inpBdr:'#28241F',
+      pillAct:'#B7472A', pillActTxt:'#fff', pillIn:'#585450',
+      rowBg:'#1D1A16', rowBdr:'#28241F', rowTxt:'#585450',
+      sendBg:'#B7472A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#963A22,#B7472A)', img2:'linear-gradient(135deg,#B7472A,#D06A4E)', img3:'linear-gradient(135deg,#6B7E4E,#8B9A6B)',
+    },
+    light: {
+      side:'#FAF7F4', sideBdr:'#E8DFD5', headBdr:'#E8DFD5', headTxt:'#28241F',
+      logo:'#B7472A', logoTxt:'#fff',
+      crAct:'#B7472A', crActTxt:'#fff', crActAv:'#963A22', crActAvTxt:'#fff', crActMeta:'#D9A596',
+      crIn:'#847D75', crInAv:'#F5EFEA', crInAvTxt:'#B7472A', crInName:'#28241F',
+      navBdr:'#E8DFD5', niAct:'#FBEDE8', niActTxt:'#963A22', niDot:'#B7472A',
+      niIn:'#A09A93', niDotIn:'#DCD4CA',
+      main:'#FFFFFF',
+      botBg:'#FAF7F4', botTxt:'#28241F', botBdr:'#E8DFD5',
+      usrBg:'#B7472A', usrTxt:'#fff',
+      actSec:'#FBEDE8', actSecTxt:'#6E2A18', actPri:'#B7472A', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#E8DFD5',
+      pillAct:'#B7472A', pillActTxt:'#fff', pillIn:'#A09A93',
+      rowBg:'#FAF7F4', rowBdr:'#E8DFD5', rowTxt:'#A09A93',
+      sendBg:'#B7472A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#F5D5CC,#D9A596)', img2:'linear-gradient(135deg,#D9A596,#D06A4E)', img3:'linear-gradient(135deg,#D5DEC8,#8B9A6B)',
+    }
+  },
+
+  // ── V4: Sienna ───────────────────────────────────────────────
+  {
+    id:'v4', name:'Sienna', font:'DM Sans', fontStack:"'DM Sans',sans-serif",
+    desc:'Classic raw sienna brown-orange. Very warm, very grounded. Secondary: dusty gold. Old-money creative studio feel.',
+    tags:[{t:'DM Sans'},{t:'#A0522D'},{t:'Classic sienna'},{t:'Dusty gold'}],
+    swatches:['#0F0D0B','#181614','#211E1B','#2D2925','#A0522D','#C07850','#C4A969','#EDE5D8'],
+    swLabels:['bg','sidebar','surface','card','sienna','sienna-lt','gold','text'],
+    accent:'#A0522D',
+    dark: {
+      side:'#181614', sideBdr:'#2D2925', headBdr:'#2D2925', headTxt:'#EDE5D8',
+      logo:'#A0522D', logoTxt:'#fff',
+      crAct:'#A0522D', crActTxt:'#fff', crActAv:'#854322', crActAvTxt:'#fff', crActMeta:'#D4B09A',
+      crIn:'#857E76', crInAv:'#2D2925', crInAvTxt:'#857E76', crInName:'#EDE5D8',
+      navBdr:'#2D2925', niAct:'#211E1B', niActTxt:'#EDE5D8', niDot:'#A0522D',
+      niIn:'#5A5652', niDotIn:'#3B3835',
+      main:'#0F0D0B',
+      botBg:'#211E1B', botTxt:'#EDE5D8', botBdr:'#2D2925',
+      usrBg:'#A0522D', usrTxt:'#fff',
+      actSec:'#2D2925', actSecTxt:'#857E76', actPri:'#A0522D', actPriTxt:'#fff',
+      inpBg:'#181614', inpBdr:'#2D2925',
+      pillAct:'#A0522D', pillActTxt:'#fff', pillIn:'#5A5652',
+      rowBg:'#211E1B', rowBdr:'#2D2925', rowTxt:'#5A5652',
+      sendBg:'#A0522D', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#854322,#A0522D)', img2:'linear-gradient(135deg,#A0522D,#C07850)', img3:'linear-gradient(135deg,#A89040,#C4A969)',
+    },
+    light: {
+      side:'#FBF8F3', sideBdr:'#E8DFD2', headBdr:'#E8DFD2', headTxt:'#2D2925',
+      logo:'#A0522D', logoTxt:'#fff',
+      crAct:'#A0522D', crActTxt:'#fff', crActAv:'#854322', crActAvTxt:'#fff', crActMeta:'#D4B09A',
+      crIn:'#857E76', crInAv:'#F5EFE5', crInAvTxt:'#A0522D', crInName:'#2D2925',
+      navBdr:'#E8DFD2', niAct:'#FBF0E6', niActTxt:'#854322', niDot:'#A0522D',
+      niIn:'#A09888', niDotIn:'#DCD4C4',
+      main:'#FFFFFF',
+      botBg:'#FBF8F3', botTxt:'#2D2925', botBdr:'#E8DFD2',
+      usrBg:'#A0522D', usrTxt:'#fff',
+      actSec:'#FBF0E6', actSecTxt:'#6B3518', actPri:'#A0522D', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#E8DFD2',
+      pillAct:'#A0522D', pillActTxt:'#fff', pillIn:'#A09888',
+      rowBg:'#FBF8F3', rowBdr:'#E8DFD2', rowTxt:'#A09888',
+      sendBg:'#A0522D', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#F2DDD0,#D4B09A)', img2:'linear-gradient(135deg,#D4B09A,#C07850)', img3:'linear-gradient(135deg,#EDE0B8,#C4A969)',
+    }
+  },
+
+  // ── V5: Copper ───────────────────────────────────────────────
+  {
+    id:'v5', name:'Copper', font:'Plus Jakarta Sans', fontStack:"'Plus Jakarta Sans',sans-serif",
+    desc:'Warm metallic copper-bronze. Rich and luxurious without being gaudy. Secondary: deep teal for contrast. Fintech-meets-creative-tool.',
+    tags:[{t:'Plus Jakarta Sans'},{t:'#B87333'},{t:'Copper'},{t:'Teal secondary'}],
+    swatches:['#0C0B09','#141210','#1C1A17','#272420','#B87333','#D4944E','#5B8A8A','#EFE9E0'],
+    swLabels:['bg','sidebar','surface','card','copper','copper-lt','teal','text'],
+    accent:'#B87333',
+    dark: {
+      side:'#141210', sideBdr:'#272420', headBdr:'#272420', headTxt:'#EFE9E0',
+      logo:'#B87333', logoTxt:'#fff',
+      crAct:'#B87333', crActTxt:'#fff', crActAv:'#9A5F28', crActAvTxt:'#fff', crActMeta:'#D9B897',
+      crIn:'#8A847B', crInAv:'#272420', crInAvTxt:'#8A847B', crInName:'#EFE9E0',
+      navBdr:'#272420', niAct:'#1C1A17', niActTxt:'#EFE9E0', niDot:'#B87333',
+      niIn:'#5C5854', niDotIn:'#3C3935',
+      main:'#0C0B09',
+      botBg:'#1C1A17', botTxt:'#EFE9E0', botBdr:'#272420',
+      usrBg:'#B87333', usrTxt:'#fff',
+      actSec:'#272420', actSecTxt:'#8A847B', actPri:'#B87333', actPriTxt:'#fff',
+      inpBg:'#141210', inpBdr:'#272420',
+      pillAct:'#B87333', pillActTxt:'#fff', pillIn:'#5C5854',
+      rowBg:'#1C1A17', rowBdr:'#272420', rowTxt:'#5C5854',
+      sendBg:'#B87333', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#9A5F28,#B87333)', img2:'linear-gradient(135deg,#B87333,#D4944E)', img3:'linear-gradient(135deg,#3D6B6B,#5B8A8A)',
+    },
+    light: {
+      side:'#FBF9F5', sideBdr:'#E8E0D4', headBdr:'#E8E0D4', headTxt:'#272420',
+      logo:'#B87333', logoTxt:'#fff',
+      crAct:'#B87333', crActTxt:'#fff', crActAv:'#9A5F28', crActAvTxt:'#fff', crActMeta:'#D9B897',
+      crIn:'#8A847B', crInAv:'#F5F0E6', crInAvTxt:'#B87333', crInName:'#272420',
+      navBdr:'#E8E0D4', niAct:'#FBF2E6', niActTxt:'#9A5F28', niDot:'#B87333',
+      niIn:'#A39D93', niDotIn:'#DCD5C8',
+      main:'#FFFFFF',
+      botBg:'#FBF9F5', botTxt:'#272420', botBdr:'#E8E0D4',
+      usrBg:'#B87333', usrTxt:'#fff',
+      actSec:'#FBF2E6', actSecTxt:'#6E4A1E', actPri:'#B87333', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#E8E0D4',
+      pillAct:'#B87333', pillActTxt:'#fff', pillIn:'#A39D93',
+      rowBg:'#FBF9F5', rowBdr:'#E8E0D4', rowTxt:'#A39D93',
+      sendBg:'#B87333', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#F0DCC8,#D9B897)', img2:'linear-gradient(135deg,#D9B897,#D4944E)', img3:'linear-gradient(135deg,#C4DEDE,#5B8A8A)',
+    }
+  },
+
+  // ── V6: Paprika ──────────────────────────────────────────────
+  {
+    id:'v6', name:'Paprika', font:'General Sans', fontStack:"'General Sans','DM Sans',sans-serif",
+    desc:'Spicier and more vivid — sits between Burnt Ember and Electric Coral. Still warm but with more punch. Neutral warm gray secondary.',
+    tags:[{t:'General Sans'},{t:'#D94F30'},{t:'Spicy red-orange'},{t:'Warm gray'}],
+    swatches:['#0E0C0A','#161310','#1F1C18','#2B2722','#D94F30','#E87A5D','#9E958A','#F0EAE2'],
+    swLabels:['bg','sidebar','surface','card','paprika','paprika-lt','warm-gray','text'],
+    accent:'#D94F30',
+    dark: {
+      side:'#161310', sideBdr:'#2B2722', headBdr:'#2B2722', headTxt:'#F0EAE2',
+      logo:'#D94F30', logoTxt:'#fff',
+      crAct:'#D94F30', crActTxt:'#fff', crActAv:'#B84028', crActAvTxt:'#fff', crActMeta:'#F0AFA0',
+      crIn:'#8A8480', crInAv:'#2B2722', crInAvTxt:'#8A8480', crInName:'#F0EAE2',
+      navBdr:'#2B2722', niAct:'#1F1C18', niActTxt:'#F0EAE2', niDot:'#D94F30',
+      niIn:'#5C5854', niDotIn:'#3D3935',
+      main:'#0E0C0A',
+      botBg:'#1F1C18', botTxt:'#F0EAE2', botBdr:'#2B2722',
+      usrBg:'#D94F30', usrTxt:'#fff',
+      actSec:'#2B2722', actSecTxt:'#8A8480', actPri:'#D94F30', actPriTxt:'#fff',
+      inpBg:'#161310', inpBdr:'#2B2722',
+      pillAct:'#D94F30', pillActTxt:'#fff', pillIn:'#5C5854',
+      rowBg:'#1F1C18', rowBdr:'#2B2722', rowTxt:'#5C5854',
+      sendBg:'#D94F30', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#B84028,#D94F30)', img2:'linear-gradient(135deg,#D94F30,#E87A5D)', img3:'linear-gradient(135deg,#807870,#9E958A)',
+    },
+    light: {
+      side:'#FBF8F5', sideBdr:'#EAE2D8', headBdr:'#EAE2D8', headTxt:'#2B2722',
+      logo:'#D94F30', logoTxt:'#fff',
+      crAct:'#D94F30', crActTxt:'#fff', crActAv:'#B84028', crActAvTxt:'#fff', crActMeta:'#F0AFA0',
+      crIn:'#8A8480', crInAv:'#F5F0EA', crInAvTxt:'#D94F30', crInName:'#2B2722',
+      navBdr:'#EAE2D8', niAct:'#FFEDE8', niActTxt:'#B84028', niDot:'#D94F30',
+      niIn:'#A3A09B', niDotIn:'#DDD8D0',
+      main:'#FFFFFF',
+      botBg:'#FBF8F5', botTxt:'#2B2722', botBdr:'#EAE2D8',
+      usrBg:'#D94F30', usrTxt:'#fff',
+      actSec:'#FFEDE8', actSecTxt:'#7C2E18', actPri:'#D94F30', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#EAE2D8',
+      pillAct:'#D94F30', pillActTxt:'#fff', pillIn:'#A3A09B',
+      rowBg:'#FBF8F5', rowBdr:'#EAE2D8', rowTxt:'#A3A09B',
+      sendBg:'#D94F30', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#FDDDD4,#F0AFA0)', img2:'linear-gradient(135deg,#F0AFA0,#E87A5D)', img3:'linear-gradient(135deg,#DDD8D0,#9E958A)',
+    }
+  },
+
+  // ── V7: Adobe Clay ───────────────────────────────────────────
+  {
+    id:'v7', name:'Adobe Clay', font:'Switzer', fontStack:"'Switzer','DM Sans',sans-serif",
+    desc:'Muted pink-terracotta — softer, more feminine. Like sun-baked clay. Secondary: dusty blue for a calm contrast. Very balanced.',
+    tags:[{t:'Switzer'},{t:'#BC6C5A'},{t:'Muted pink-terra'},{t:'Dusty blue'}],
+    swatches:['#0F0D0D','#171515','#201D1D','#2B2727','#BC6C5A','#D4917F','#7A95A8','#F0E8E4'],
+    swLabels:['bg','sidebar','surface','card','clay','clay-lt','dusty-blue','text'],
+    accent:'#BC6C5A',
+    dark: {
+      side:'#171515', sideBdr:'#2B2727', headBdr:'#2B2727', headTxt:'#F0E8E4',
+      logo:'#BC6C5A', logoTxt:'#fff',
+      crAct:'#BC6C5A', crActTxt:'#fff', crActAv:'#A05848', crActAvTxt:'#fff', crActMeta:'#D9B5AA',
+      crIn:'#8A8280', crInAv:'#2B2727', crInAvTxt:'#8A8280', crInName:'#F0E8E4',
+      navBdr:'#2B2727', niAct:'#201D1D', niActTxt:'#F0E8E4', niDot:'#BC6C5A',
+      niIn:'#5A5656', niDotIn:'#3B3838',
+      main:'#0F0D0D',
+      botBg:'#201D1D', botTxt:'#F0E8E4', botBdr:'#2B2727',
+      usrBg:'#BC6C5A', usrTxt:'#fff',
+      actSec:'#2B2727', actSecTxt:'#8A8280', actPri:'#BC6C5A', actPriTxt:'#fff',
+      inpBg:'#171515', inpBdr:'#2B2727',
+      pillAct:'#BC6C5A', pillActTxt:'#fff', pillIn:'#5A5656',
+      rowBg:'#201D1D', rowBdr:'#2B2727', rowTxt:'#5A5656',
+      sendBg:'#BC6C5A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#A05848,#BC6C5A)', img2:'linear-gradient(135deg,#BC6C5A,#D4917F)', img3:'linear-gradient(135deg,#5A7888,#7A95A8)',
+    },
+    light: {
+      side:'#FBF7F6', sideBdr:'#E8E0DD', headBdr:'#E8E0DD', headTxt:'#2B2727',
+      logo:'#BC6C5A', logoTxt:'#fff',
+      crAct:'#BC6C5A', crActTxt:'#fff', crActAv:'#A05848', crActAvTxt:'#fff', crActMeta:'#D9B5AA',
+      crIn:'#8A8280', crInAv:'#F5EEEC', crInAvTxt:'#BC6C5A', crInName:'#2B2727',
+      navBdr:'#E8E0DD', niAct:'#FBF0EC', niActTxt:'#A05848', niDot:'#BC6C5A',
+      niIn:'#A39F9D', niDotIn:'#DDD8D5',
+      main:'#FFFFFF',
+      botBg:'#FBF7F6', botTxt:'#2B2727', botBdr:'#E8E0DD',
+      usrBg:'#BC6C5A', usrTxt:'#fff',
+      actSec:'#FBF0EC', actSecTxt:'#6E3A2D', actPri:'#BC6C5A', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#E8E0DD',
+      pillAct:'#BC6C5A', pillActTxt:'#fff', pillIn:'#A39F9D',
+      rowBg:'#FBF7F6', rowBdr:'#E8E0DD', rowTxt:'#A39F9D',
+      sendBg:'#BC6C5A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#F2DDD6,#D9B5AA)', img2:'linear-gradient(135deg,#D9B5AA,#D4917F)', img3:'linear-gradient(135deg,#C8D8E0,#7A95A8)',
+    }
+  },
+
+  // ── V8: Cinnamon ─────────────────────────────────────────────
+  {
+    id:'v8', name:'Cinnamon', font:'Inter', fontStack:"'Inter',sans-serif",
+    desc:'Brown-orange that reads warm and inviting. Like a cinnamon latte. Clean, readable Inter font. Secondary: cool slate for contrast. Very tech-friendly.',
+    tags:[{t:'Inter'},{t:'#A5603B'},{t:'Warm brown-orange'},{t:'Slate secondary'}],
+    swatches:['#0E0C0A','#161412','#1E1B18','#292623','#A5603B','#C4845E','#7C8894','#EDE8E0'],
+    swLabels:['bg','sidebar','surface','card','cinnamon','cinnamon-lt','slate','text'],
+    accent:'#A5603B',
+    dark: {
+      side:'#161412', sideBdr:'#292623', headBdr:'#292623', headTxt:'#EDE8E0',
+      logo:'#A5603B', logoTxt:'#fff',
+      crAct:'#A5603B', crActTxt:'#fff', crActAv:'#8B4F30', crActAvTxt:'#fff', crActMeta:'#D4B59E',
+      crIn:'#8A847D', crInAv:'#292623', crInAvTxt:'#8A847D', crInName:'#EDE8E0',
+      navBdr:'#292623', niAct:'#1E1B18', niActTxt:'#EDE8E0', niDot:'#A5603B',
+      niIn:'#5A5653', niDotIn:'#3B3835',
+      main:'#0E0C0A',
+      botBg:'#1E1B18', botTxt:'#EDE8E0', botBdr:'#292623',
+      usrBg:'#A5603B', usrTxt:'#fff',
+      actSec:'#292623', actSecTxt:'#8A847D', actPri:'#A5603B', actPriTxt:'#fff',
+      inpBg:'#161412', inpBdr:'#292623',
+      pillAct:'#A5603B', pillActTxt:'#fff', pillIn:'#5A5653',
+      rowBg:'#1E1B18', rowBdr:'#292623', rowTxt:'#5A5653',
+      sendBg:'#A5603B', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#8B4F30,#A5603B)', img2:'linear-gradient(135deg,#A5603B,#C4845E)', img3:'linear-gradient(135deg,#5C6E7A,#7C8894)',
+    },
+    light: {
+      side:'#FBF8F4', sideBdr:'#E8E0D6', headBdr:'#E8E0D6', headTxt:'#292623',
+      logo:'#A5603B', logoTxt:'#fff',
+      crAct:'#A5603B', crActTxt:'#fff', crActAv:'#8B4F30', crActAvTxt:'#fff', crActMeta:'#D4B59E',
+      crIn:'#8A847D', crInAv:'#F5EFE6', crInAvTxt:'#A5603B', crInName:'#292623',
+      navBdr:'#E8E0D6', niAct:'#FBF0E5', niActTxt:'#8B4F30', niDot:'#A5603B',
+      niIn:'#A09A90', niDotIn:'#DCD5C8',
+      main:'#FFFFFF',
+      botBg:'#FBF8F4', botTxt:'#292623', botBdr:'#E8E0D6',
+      usrBg:'#A5603B', usrTxt:'#fff',
+      actSec:'#FBF0E5', actSecTxt:'#6B3D22', actPri:'#A5603B', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#E8E0D6',
+      pillAct:'#A5603B', pillActTxt:'#fff', pillIn:'#A09A90',
+      rowBg:'#FBF8F4', rowBdr:'#E8E0D6', rowTxt:'#A09A90',
+      sendBg:'#A5603B', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#F0DDD0,#D4B59E)', img2:'linear-gradient(135deg,#D4B59E,#C4845E)', img3:'linear-gradient(135deg,#C8D4DC,#7C8894)',
+    }
+  },
+
+  // ── V9: Brick ────────────────────────────────────────────────
+  {
+    id:'v9', name:'Brick', font:'Space Grotesk', fontStack:"'Space Grotesk',sans-serif",
+    desc:'Darkest and most muted. Deep brick red, almost maroon. Extremely premium and understated. Secondary: moss green. Moody editorial vibes.',
+    tags:[{t:'Space Grotesk'},{t:'#8B3A2A'},{t:'Deep brick'},{t:'Moss secondary'}],
+    swatches:['#0A0908','#12100E','#1A1816','#252220','#8B3A2A','#B05A48','#6B7E5E','#E8E2DA'],
+    swLabels:['bg','sidebar','surface','card','brick','brick-lt','moss','text'],
+    accent:'#8B3A2A',
+    dark: {
+      side:'#12100E', sideBdr:'#252220', headBdr:'#252220', headTxt:'#E8E2DA',
+      logo:'#8B3A2A', logoTxt:'#fff',
+      crAct:'#8B3A2A', crActTxt:'#fff', crActAv:'#733020', crActAvTxt:'#fff', crActMeta:'#C49888',
+      crIn:'#807A74', crInAv:'#252220', crInAvTxt:'#807A74', crInName:'#E8E2DA',
+      navBdr:'#252220', niAct:'#1A1816', niActTxt:'#E8E2DA', niDot:'#8B3A2A',
+      niIn:'#555250', niDotIn:'#383533',
+      main:'#0A0908',
+      botBg:'#1A1816', botTxt:'#E8E2DA', botBdr:'#252220',
+      usrBg:'#8B3A2A', usrTxt:'#fff',
+      actSec:'#252220', actSecTxt:'#807A74', actPri:'#8B3A2A', actPriTxt:'#fff',
+      inpBg:'#12100E', inpBdr:'#252220',
+      pillAct:'#8B3A2A', pillActTxt:'#fff', pillIn:'#555250',
+      rowBg:'#1A1816', rowBdr:'#252220', rowTxt:'#555250',
+      sendBg:'#8B3A2A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#733020,#8B3A2A)', img2:'linear-gradient(135deg,#8B3A2A,#B05A48)', img3:'linear-gradient(135deg,#4E6040,#6B7E5E)',
+    },
+    light: {
+      side:'#F9F7F4', sideBdr:'#E5DDD5', headBdr:'#E5DDD5', headTxt:'#252220',
+      logo:'#8B3A2A', logoTxt:'#fff',
+      crAct:'#8B3A2A', crActTxt:'#fff', crActAv:'#733020', crActAvTxt:'#fff', crActMeta:'#C49888',
+      crIn:'#807A74', crInAv:'#F2ECE6', crInAvTxt:'#8B3A2A', crInName:'#252220',
+      navBdr:'#E5DDD5', niAct:'#F8ECE8', niActTxt:'#733020', niDot:'#8B3A2A',
+      niIn:'#9E9890', niDotIn:'#D8D0C6',
+      main:'#FFFFFF',
+      botBg:'#F9F7F4', botTxt:'#252220', botBdr:'#E5DDD5',
+      usrBg:'#8B3A2A', usrTxt:'#fff',
+      actSec:'#F8ECE8', actSecTxt:'#5A2518', actPri:'#8B3A2A', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#E5DDD5',
+      pillAct:'#8B3A2A', pillActTxt:'#fff', pillIn:'#9E9890',
+      rowBg:'#F9F7F4', rowBdr:'#E5DDD5', rowTxt:'#9E9890',
+      sendBg:'#8B3A2A', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#ECDAD3,#C49888)', img2:'linear-gradient(135deg,#C49888,#B05A48)', img3:'linear-gradient(135deg,#CDD8C4,#6B7E5E)',
+    }
+  },
+
+  // ── V10: Sandstone ───────────────────────────────────────────
+  {
+    id:'v10', name:'Sandstone', font:'Figtree', fontStack:"'Figtree',sans-serif",
+    desc:'Lightest and warmest. Soft peach-sand tone. Gentle, approachable, friendly. Secondary: muted lavender. Less intense — inviting for new users.',
+    tags:[{t:'Figtree'},{t:'#D08B68'},{t:'Soft sand'},{t:'Lavender secondary'}],
+    swatches:['#0F0D0B','#181614','#211E1B','#2C2925','#D08B68','#E0AA8C','#9B8EC4','#F2ECE4'],
+    swLabels:['bg','sidebar','surface','card','sand','sand-lt','lavender','text'],
+    accent:'#D08B68',
+    dark: {
+      side:'#181614', sideBdr:'#2C2925', headBdr:'#2C2925', headTxt:'#F2ECE4',
+      logo:'#D08B68', logoTxt:'#fff',
+      crAct:'#D08B68', crActTxt:'#fff', crActAv:'#B07350', crActAvTxt:'#fff', crActMeta:'#E0C4B0',
+      crIn:'#8A847D', crInAv:'#2C2925', crInAvTxt:'#8A847D', crInName:'#F2ECE4',
+      navBdr:'#2C2925', niAct:'#211E1B', niActTxt:'#F2ECE4', niDot:'#D08B68',
+      niIn:'#5C5854', niDotIn:'#3B3835',
+      main:'#0F0D0B',
+      botBg:'#211E1B', botTxt:'#F2ECE4', botBdr:'#2C2925',
+      usrBg:'#D08B68', usrTxt:'#fff',
+      actSec:'#2C2925', actSecTxt:'#8A847D', actPri:'#D08B68', actPriTxt:'#fff',
+      inpBg:'#181614', inpBdr:'#2C2925',
+      pillAct:'#D08B68', pillActTxt:'#fff', pillIn:'#5C5854',
+      rowBg:'#211E1B', rowBdr:'#2C2925', rowTxt:'#5C5854',
+      sendBg:'#D08B68', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#B07350,#D08B68)', img2:'linear-gradient(135deg,#D08B68,#E0AA8C)', img3:'linear-gradient(135deg,#7B70A6,#9B8EC4)',
+    },
+    light: {
+      side:'#FBF8F4', sideBdr:'#E8E0D5', headBdr:'#E8E0D5', headTxt:'#2C2925',
+      logo:'#D08B68', logoTxt:'#fff',
+      crAct:'#D08B68', crActTxt:'#fff', crActAv:'#B07350', crActAvTxt:'#fff', crActMeta:'#E0C4B0',
+      crIn:'#8A847D', crInAv:'#F5EFE6', crInAvTxt:'#D08B68', crInName:'#2C2925',
+      navBdr:'#E8E0D5', niAct:'#FBF0E8', niActTxt:'#B07350', niDot:'#D08B68',
+      niIn:'#A09A90', niDotIn:'#DCD5C8',
+      main:'#FFFFFF',
+      botBg:'#FBF8F4', botTxt:'#2C2925', botBdr:'#E8E0D5',
+      usrBg:'#D08B68', usrTxt:'#fff',
+      actSec:'#FBF0E8', actSecTxt:'#7A4D30', actPri:'#D08B68', actPriTxt:'#fff',
+      inpBg:'#FFFFFF', inpBdr:'#E8E0D5',
+      pillAct:'#D08B68', pillActTxt:'#fff', pillIn:'#A09A90',
+      rowBg:'#FBF8F4', rowBdr:'#E8E0D5', rowTxt:'#A09A90',
+      sendBg:'#D08B68', sendTxt:'#fff',
+      img1:'linear-gradient(135deg,#F2DDD0,#E0C4B0)', img2:'linear-gradient(135deg,#E0C4B0,#E0AA8C)', img3:'linear-gradient(135deg,#DDD6EE,#9B8EC4)',
+    }
+  },
+
+];
+
+// ════════════════════════════════════════════════════════════════
+// BUILD MOCKUP HTML
+// ════════════════════════════════════════════════════════════════
+
+function buildMockup(t) {
+  return `
+    <div class="m-side" style="background:${t.side};border-color:${t.sideBdr}">
+      <div class="m-side-head" style="border-color:${t.headBdr};color:${t.headTxt}">
+        <div class="m-logo" style="background:${t.logo};color:${t.logoTxt}">Ai</div>
+        Creator App
+      </div>
+      <div class="m-creators">
+        <div class="m-cr" style="background:${t.crAct};color:${t.crActTxt};border-radius:8px">
+          <div class="m-av" style="background:${t.crActAv};color:${t.crActAvTxt}">S</div>
+          <div><div>Sophia</div><div class="m-cr-meta" style="color:${t.crActMeta}">Fitness</div></div>
+        </div>
+        <div class="m-cr" style="color:${t.crIn}">
+          <div class="m-av" style="background:${t.crInAv};color:${t.crInAvTxt}">L</div>
+          <div><div style="color:${t.crInName}">Luna</div><div class="m-cr-meta">Lifestyle</div></div>
+        </div>
+      </div>
+      <div class="m-nav" style="border-color:${t.navBdr}">
+        <div class="m-nav-i" style="background:${t.niAct};color:${t.niActTxt}"><div class="m-dot" style="background:${t.niDot}"></div>Chat</div>
+        <div class="m-nav-i" style="color:${t.niIn}"><div class="m-dot" style="background:${t.niDotIn}"></div>Library</div>
+        <div class="m-nav-i" style="color:${t.niIn}"><div class="m-dot" style="background:${t.niDotIn}"></div>Workflows</div>
+      </div>
+    </div>
+    <div class="m-main" style="background:${t.main}">
+      <div class="m-chat">
+        <div class="m-msg" style="background:${t.botBg};color:${t.botTxt};border:1px solid ${t.botBdr}">
+          <strong>Hey!</strong> Ready to create for Sophia.
+          <div class="m-imgs">
+            <div class="m-img" style="background:${t.img1}"></div>
+            <div class="m-img" style="background:${t.img2}"></div>
+            <div class="m-img" style="background:${t.img3}"></div>
+          </div>
+          <div class="m-acts">
+            <div class="m-act" style="background:${t.actSec};color:${t.actSecTxt}">Download</div>
+            <div class="m-act" style="background:${t.actSec};color:${t.actSecTxt}">Video</div>
+            <div class="m-act" style="background:${t.actPri};color:${t.actPriTxt}">Upscale</div>
+          </div>
+        </div>
+        <div class="m-msg usr" style="background:${t.usrBg};color:${t.usrTxt}">gym mirror selfie, lavender set</div>
+      </div>
+      <div class="m-input" style="border-color:${t.inpBdr};background:${t.inpBg}">
+        <div class="m-pills">
+          <div class="m-pill" style="background:${t.pillAct};color:${t.pillActTxt}">Chat</div>
+          <div class="m-pill" style="color:${t.pillIn}">Image</div>
+          <div class="m-pill" style="color:${t.pillIn}">Video</div>
+          <div class="m-pill" style="color:${t.pillIn}">Talking Head</div>
+        </div>
+        <div class="m-irow" style="background:${t.rowBg};border-color:${t.rowBdr}">
+          <div class="m-itext" style="color:${t.rowTxt}">What do you want to create?</div>
+          <div class="m-send" style="background:${t.sendBg};color:${t.sendTxt}">↑</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// BUILD CARDS
+// ════════════════════════════════════════════════════════════════
+
+const grid = document.getElementById('grid');
+
+palettes.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.id = p.id;
+  card.onclick = function(){ sel(this); };
+
+  const tagsHTML = p.tags.map(t =>
+    `<span class="tag${t.fav?' fav':''}">${t.t}</span>`
+  ).join('');
+
+  const swatchesHTML = p.swatches.map((c,i) =>
+    `<div class="sw${i===0?' sw-border':''}" style="background:${c}"><span class="tip">${c} ${p.swLabels[i]}</span></div>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-name" style="font-family:${p.fontStack}">${p.name}</div>
+      <div class="card-desc">${p.desc}</div>
+      <div class="card-tags">${tagsHTML}</div>
+    </div>
+    <div class="swatch-bar">${swatchesHTML}</div>
+    <div class="mode-row">
+      <button class="mode-btn on" style="background:${p.accent};color:#fff;border-color:transparent" onclick="event.stopPropagation();setMode(this,'dark','${p.id}')">Dark</button>
+      <button class="mode-btn" onclick="event.stopPropagation();setMode(this,'light','${p.id}')">Light</button>
+    </div>
+    <div class="mockup" style="font-family:${p.fontStack}" id="mock-${p.id}"></div>
+    <div class="card-foot">
+      <span class="card-foot-note">${p.font} / ${p.accent}</span>
+      <button class="pick-btn" onclick="event.stopPropagation()">This One</button>
+    </div>`;
+
+  grid.appendChild(card);
+
+  // Render initial dark mockup
+  document.getElementById('mock-'+p.id).innerHTML = buildMockup(p.dark);
+});
+
+// ════════════════════════════════════════════════════════════════
+// INTERACTIONS
+// ════════════════════════════════════════════════════════════════
+
+// Build palette lookup
+const PL = {};
+palettes.forEach(p => { PL[p.id] = p; });
+
+function setMode(btn, mode, id) {
+  const row = btn.parentElement;
+  row.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.remove('on');
+    b.style.background = 'transparent';
+    b.style.color = '#666';
+    b.style.borderColor = '#333';
+  });
+  btn.classList.add('on');
+  btn.style.background = PL[id].accent;
+  btn.style.color = '#fff';
+  btn.style.borderColor = 'transparent';
+  document.getElementById('mock-'+id).innerHTML = buildMockup(PL[id][mode]);
+}
+
+function sel(el) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+</script>
+
+</body>
+</html>

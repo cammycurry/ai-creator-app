@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Mode — Arcads Pattern Applied</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #F5F5F5;
+      color: #111;
+      padding: 40px 24px 80px;
+    }
+    h1 { font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 6px; }
+    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 48px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+    .section-title {
+      max-width: 1000px; margin: 0 auto 8px;
+      font-size: 16px; font-weight: 600;
+    }
+    .section-desc {
+      max-width: 1000px; margin: 0 auto 20px;
+      font-size: 12px; color: #888; line-height: 1.5;
+    }
+
+    svg { flex-shrink: 0; }
+    button { cursor: pointer; font-family: 'Inter', sans-serif; border: none; background: none; color: #111; }
+    input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: #E0E0E0; outline: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #111; cursor: pointer; }
+
+    /* ================================================ */
+    /* FULL WORKSPACE MOCKUP                             */
+    /* ================================================ */
+    .workspace {
+      max-width: 1000px;
+      margin: 0 auto 56px;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border: 1px solid #EBEBEB;
+      display: flex;
+      min-height: 520px;
+    }
+    .workspace-label {
+      padding: 14px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #111;
+      border-bottom: 1px solid #EBEBEB;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FAFAFA;
+    }
+    .workspace-label .tag {
+      font-size: 10px; font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 4px;
+      background: #F0F0F0; color: #888;
+    }
+
+    /* Main area (left) */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Chat area */
+    .chat-area {
+      flex: 1;
+      background: #FAFAFA;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 14px;
+    }
+    .fake-msg { display: flex; gap: 10px; max-width: 520px; }
+    .fake-msg.user { flex-direction: row-reverse; align-self: flex-end; }
+    .fake-avatar {
+      width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 600;
+    }
+    .fake-avatar.bot { background: #111; color: #fff; }
+    .fake-avatar.human { background: #F0F0F0; color: #888; }
+    .fake-bubble { padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.55; }
+    .fake-msg:not(.user) .fake-bubble { background: #fff; border: 1px solid #EBEBEB; }
+    .fake-msg.user .fake-bubble { background: #111; color: #fff; }
+
+    /* ================================================ */
+    /* MODE PILLS (above input)                          */
+    /* ================================================ */
+    .mode-bar {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 28px 0;
+      background: #FAFAFA;
+    }
+    .mode-pill {
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #999;
+      border: 1px solid #E8E8E8;
+      transition: all 150ms;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+    }
+    .mode-pill:hover { border-color: #CCC; color: #666; }
+    .mode-pill.active { background: #111; color: #fff; border-color: #111; }
+    .mode-pill svg { width: 14px; height: 14px; }
+
+    /* ================================================ */
+    /* FLOATING INPUT CARD                               */
+    /* ================================================ */
+    .input-area {
+      padding: 10px 20px 16px;
+      background: #FAFAFA;
+    }
+    .float-card {
+      background: #fff;
+      border: 1px solid #E0E0E0;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+
+    /* Script area */
+    .script-area {
+      padding: 14px 16px 8px;
+    }
+    .script-area textarea {
+      width: 100%; resize: none; border: none; outline: none;
+      font-size: 14px; font-family: 'Inter', sans-serif; color: #111;
+      line-height: 1.6; min-height: 52px; max-height: 160px; background: transparent;
+    }
+    .script-area textarea::placeholder { color: #CCC; }
+    .char-hint {
+      font-size: 11px; color: #CCC; margin-top: 2px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Creator voice cards (like Arcads actor cards) */
+    .creator-voices {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px 12px;
+    }
+    .voice-card {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: #F8F8F8;
+      border: 1px solid #EBEBEB;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+    .voice-card:hover { border-color: #DDD; }
+    .voice-card.selected { border-color: #CCC; background: #F5F5F5; }
+    .vc-avatar {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: #EBEBEB; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; color: #999;
+      position: relative;
+    }
+    .vc-play {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.4); border-radius: 8px;
+      opacity: 0; transition: opacity 150ms;
+    }
+    .voice-card:hover .vc-play { opacity: 1; }
+    .vc-play svg { color: #fff; }
+    .vc-info { flex: 1; min-width: 0; }
+    .vc-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .vc-time { font-size: 10px; color: #BBB; font-family: 'JetBrains Mono', monospace; }
+    .vc-actions {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .vc-btn {
+      width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      border-radius: 4px; color: #CCC; transition: all 150ms;
+    }
+    .vc-btn:hover { color: #666; background: #EBEBEB; }
+
+    /* Bottom toolbar */
+    .input-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px 10px;
+      border-top: 1px solid #F0F0F0;
+    }
+    .toolbar-left {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .toolbar-right {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .creator-count {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 10px 4px 4px;
+      border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #666;
+      background: #F5F5F5;
+      cursor: pointer; transition: all 150ms;
+    }
+    .creator-count:hover { background: #EBEBEB; }
+    .creator-count .avatars {
+      display: flex;
+    }
+    .creator-count .mini-av {
+      width: 20px; height: 20px; border-radius: 5px;
+      background: #DDD; border: 1.5px solid #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 600; color: #999;
+    }
+    .creator-count .mini-av + .mini-av { margin-left: -6px; }
+    .emotion-btn {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #BBB;
+      cursor: pointer; transition: all 150ms;
+    }
+    .emotion-btn:hover { color: #666; background: #F5F5F5; }
+    .emotion-btn svg { width: 13px; height: 13px; }
+    .char-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: #CCC;
+    }
+    .icon-btn {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; color: #CCC; transition: all 150ms;
+    }
+    .icon-btn:hover { color: #666; background: #F8F8F8; }
+    .send-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: #111; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: opacity 150ms;
+    }
+    .send-btn:hover { opacity: 0.8; }
+
+    /* ================================================ */
+    /* RIGHT SETTINGS PANEL                              */
+    /* ================================================ */
+    .settings-panel {
+      width: 280px;
+      border-left: 1px solid #EBEBEB;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    .settings-panel.hidden { display: none; }
+    .sp-header {
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .sp-header h3 { font-size: 14px; font-weight: 600; }
+    .sp-close {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #999; transition: all 150ms;
+    }
+    .sp-close:hover { background: #F5F5F5; color: #111; }
+    .sp-body {
+      flex: 1; overflow-y: auto; padding: 16px 20px;
+    }
+
+    /* Per-creator audio settings */
+    .sp-creator {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px; padding-bottom: 16px;
+      border-bottom: 1px dashed #EBEBEB;
+    }
+    .sp-creator-av {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: #EBEBEB;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 600; color: #999;
+    }
+    .sp-creator-name { font-size: 14px; font-weight: 500; }
+    .sp-creator-sub { font-size: 11px; color: #999; }
+    .sp-creator-play {
+      margin-left: auto;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #111; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+
+    .sp-field { margin-bottom: 18px; }
+    .sp-field-label {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .sp-field-label span:first-child { font-size: 13px; color: #555; }
+    .sp-field-label .sp-value {
+      font-size: 12px; font-weight: 500; color: #111;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .sp-select {
+      width: 100%; padding: 8px 12px;
+      border: 1px solid #EBEBEB; border-radius: 8px;
+      font-size: 13px; font-family: 'Inter', sans-serif; color: #111;
+      background: #FAFAFA; cursor: pointer;
+    }
+    .sp-select:focus { border-color: #CCC; outline: none; }
+
+    /* ================================================ */
+    /* COMPARISON INFO                                   */
+    /* ================================================ */
+    .compare-box {
+      max-width: 1000px; margin: 0 auto 48px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .compare-card {
+      background: #fff; border: 1px solid #EBEBEB; border-radius: 12px;
+      padding: 20px;
+    }
+    .compare-card h3 {
+      font-size: 14px; font-weight: 600; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .compare-card h3 .label {
+      font-size: 10px; font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 2px 6px; border-radius: 3px;
+    }
+    .compare-card ul {
+      font-size: 12px; color: #666; line-height: 1.8;
+      padding-left: 16px;
+    }
+    .compare-card li::marker { color: #CCC; }
+  </style>
+</head>
+<body>
+
+<h1>Voice Mode — Arcads Pattern Applied to Ours</h1>
+<p class="subtitle">How the Arcads actor-card + settings-panel pattern works when adapted for our Creator-centric model. Click the gear icons to toggle the right panel.</p>
+
+<!-- COMPARISON -->
+<div class="compare-box">
+  <div class="compare-card">
+    <h3>Arcads <span class="label" style="background:#F5F3FF;color:#7C3AED">Their pattern</span></h3>
+    <ul>
+      <li>Multiple stock actors per video — pick from 300+</li>
+      <li>Each actor has a generic voice with audio settings</li>
+      <li>Script box + inline emotion tags (<code>/curious</code>)</li>
+      <li>Actor cards below script — play, gear, trash</li>
+      <li>Gear on actor → per-actor Audio Settings (right panel)</li>
+      <li>Settings icon in toolbar → global Actors Settings (right panel)</li>
+      <li>Bottom bar: actor count, add emotions, char count, settings, send</li>
+    </ul>
+  </div>
+  <div class="compare-card">
+    <h3>Ours <span class="label" style="background:#F0FDF4;color:#15803D">Our adaptation</span></h3>
+    <ul>
+      <li>Active Creator auto-loaded — Sophia is always there</li>
+      <li>Each Creator has a persistent custom voice profile</li>
+      <li>Same script + emotion pattern works great</li>
+      <li>Creator cards replace actor cards — same play/gear/trash</li>
+      <li>Gear on Creator → per-Creator Voice Settings (right panel)</li>
+      <li>Settings icon → global Generation Settings (right panel)</li>
+      <li>Can add additional Creators for multi-person videos</li>
+      <li><strong>Bonus: AI can write the script for you</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- STATE 1: Voice mode, panel closed                  -->
+<!-- ================================================ -->
+<div class="section-title">1. Voice Mode — Default State</div>
+<div class="section-desc">Sophia is auto-loaded. Script area, Creator voice card, bottom toolbar. No right panel yet — it opens when you click gear icons.</div>
+
+<div class="workspace" id="ws1">
+  <div class="main-area">
+    <div class="workspace-label">
+      Voice Mode — Sophia auto-loaded
+      <span class="tag">Panel closed</span>
+    </div>
+    <div class="chat-area">
+      <div class="fake-msg">
+        <div class="fake-avatar bot">Ai</div>
+        <div class="fake-bubble">Voice mode. Sophia's voice is ready. Write a script or ask me to write one for you.</div>
+      </div>
+    </div>
+    <div class="mode-bar">
+      <button class="mode-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Chat
+      </button>
+      <button class="mode-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Image
+      </button>
+      <button class="mode-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Video
+      </button>
+      <button class="mode-pill active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+        Voice
+      </button>
+    </div>
+    <div class="input-area">
+      <div class="float-card">
+        <div class="script-area">
+          <textarea rows="3" placeholder="Write your script here, or ask the AI to write one...">Okay I need to talk about this because I see it all the time. People saying they'll work out "after work" and then just... never doing it.</textarea>
+        </div>
+        <div class="creator-voices">
+          <div class="voice-card selected">
+            <div class="vc-avatar">
+              S
+              <div class="vc-play"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+            </div>
+            <div class="vc-info">
+              <div class="vc-name">Sophia</div>
+              <div class="vc-time">0:00</div>
+            </div>
+            <div class="vc-actions">
+              <button class="vc-btn" onclick="togglePanel('ws1','audio')" title="Voice settings">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              </button>
+              <button class="vc-btn" title="Remove">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="input-toolbar">
+          <div class="toolbar-left">
+            <div class="creator-count">
+              <div class="avatars">
+                <div class="mini-av">S</div>
+              </div>
+              1 Creator
+            </div>
+            <button class="emotion-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              Add emotions
+            </button>
+          </div>
+          <div class="toolbar-right">
+            <span class="char-count">89 / 1,500</span>
+            <button class="icon-btn" onclick="togglePanel('ws1','global')" title="Generation settings">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            </button>
+            <button class="send-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Right panel: Per-Creator Audio Settings -->
+  <div class="settings-panel hidden" id="ws1-audio">
+    <div class="sp-header">
+      <h3>Voice Settings</h3>
+      <button class="sp-close" onclick="closePanel('ws1')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sp-body">
+      <div class="sp-creator">
+        <div class="sp-creator-av">S</div>
+        <div>
+          <div class="sp-creator-name">Sophia</div>
+          <div class="sp-creator-sub">Custom voice</div>
+        </div>
+        <div class="sp-creator-play">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label">
+          <span>Voice profile</span>
+        </div>
+        <select class="sp-select">
+          <option>Sophia — Default</option>
+          <option>Sophia — Energetic</option>
+          <option>Sophia — Calm</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label">
+          <span>Speed</span>
+          <span class="sp-value">1.10x</span>
+        </div>
+        <input type="range" min="0.5" max="2" step="0.05" value="1.1">
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label">
+          <span>Stability</span>
+          <span class="sp-value">0.50x</span>
+        </div>
+        <input type="range" min="0" max="1" step="0.05" value="0.5">
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label">
+          <span>Similarity</span>
+          <span class="sp-value">0.75x</span>
+        </div>
+        <input type="range" min="0" max="1" step="0.05" value="0.75">
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label">
+          <span>Style</span>
+          <span class="sp-value">0.00x</span>
+        </div>
+        <input type="range" min="0" max="1" step="0.05" value="0">
+      </div>
+    </div>
+  </div>
+  <!-- Right panel: Global Generation Settings -->
+  <div class="settings-panel hidden" id="ws1-global">
+    <div class="sp-header">
+      <h3>Generation Settings</h3>
+      <button class="sp-close" onclick="closePanel('ws1')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sp-body">
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Model</span></div>
+        <select class="sp-select">
+          <option>Auto (recommended)</option>
+          <option>OmniHuman 1.5 — Expressive</option>
+          <option>Sync 2 Pro — Accurate</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Audio</span></div>
+        <select class="sp-select">
+          <option>Text to Speech</option>
+          <option>Upload audio</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Emotion</span></div>
+        <select class="sp-select">
+          <option>Manually (inline tags)</option>
+          <option>Auto-detect from script</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Aspect ratio</span></div>
+        <select class="sp-select">
+          <option>9:16 — Story / Reel</option>
+          <option>1:1 — Square</option>
+          <option>16:9 — Landscape</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Quality</span></div>
+        <select class="sp-select">
+          <option>Standard</option>
+          <option>HD</option>
+          <option>4K (+1 cr)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- STATE 2: Two Creators, audio panel open             -->
+<!-- ================================================ -->
+<div class="section-title">2. Multi-Creator + Audio Settings Open</div>
+<div class="section-desc">Added a second Creator (Luna). Clicking Sophia's gear opens her per-Creator Voice Settings on the right. Like Arcads but with persistent custom voices.</div>
+
+<div class="workspace" id="ws2">
+  <div class="main-area">
+    <div class="workspace-label">
+      Two Creators loaded, Sophia's audio panel open
+      <span class="tag">Per-Creator settings</span>
+    </div>
+    <div class="chat-area" style="min-height:100px">
+      <div class="fake-msg">
+        <div class="fake-avatar bot">Ai</div>
+        <div class="fake-bubble">Two Creators loaded. They'll take turns in the video based on your script.</div>
+      </div>
+    </div>
+    <div class="mode-bar">
+      <button class="mode-pill">Chat</button>
+      <button class="mode-pill">Image</button>
+      <button class="mode-pill">Video</button>
+      <button class="mode-pill active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+        Voice
+      </button>
+    </div>
+    <div class="input-area">
+      <div class="float-card">
+        <div class="script-area">
+          <textarea rows="3">Okay I need to talk about this because I see it all the time. People saying they'll work out "after work" and then just... never doing it.</textarea>
+        </div>
+        <div class="creator-voices">
+          <div class="voice-card selected" style="border-color:#CCC">
+            <div class="vc-avatar">
+              S
+              <div class="vc-play"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+            </div>
+            <div class="vc-info">
+              <div class="vc-name">Sophia</div>
+              <div class="vc-time">0:00</div>
+            </div>
+            <div class="vc-actions">
+              <button class="vc-btn" style="color:#666">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              </button>
+              <button class="vc-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="voice-card">
+            <div class="vc-avatar">
+              L
+              <div class="vc-play"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+            </div>
+            <div class="vc-info">
+              <div class="vc-name">Luna</div>
+              <div class="vc-time">0:00</div>
+            </div>
+            <div class="vc-actions">
+              <button class="vc-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+              </button>
+              <button class="vc-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="input-toolbar">
+          <div class="toolbar-left">
+            <div class="creator-count">
+              <div class="avatars">
+                <div class="mini-av">S</div>
+                <div class="mini-av">L</div>
+              </div>
+              2 Creators
+            </div>
+            <button class="emotion-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              Add emotions
+            </button>
+          </div>
+          <div class="toolbar-right">
+            <span class="char-count">89 / 1,500</span>
+            <button class="icon-btn" title="Generation settings">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            </button>
+            <button class="send-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Right panel: Sophia's audio settings (visible) -->
+  <div class="settings-panel" id="ws2-audio">
+    <div class="sp-header">
+      <h3>Voice Settings</h3>
+      <button class="sp-close" onclick="this.closest('.settings-panel').classList.add('hidden')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sp-body">
+      <div class="sp-creator">
+        <div class="sp-creator-av">S</div>
+        <div>
+          <div class="sp-creator-name">Sophia</div>
+          <div class="sp-creator-sub">Custom voice</div>
+        </div>
+        <div class="sp-creator-play">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Voice profile</span></div>
+        <select class="sp-select">
+          <option>Sophia — Default</option>
+          <option>Sophia — Energetic</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label">
+          <span>Speed</span>
+          <span class="sp-value">1.10x</span>
+        </div>
+        <input type="range" min="0.5" max="2" step="0.05" value="1.1">
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label">
+          <span>Stability</span>
+          <span class="sp-value">0.50x</span>
+        </div>
+        <input type="range" min="0" max="1" step="0.05" value="0.5">
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label">
+          <span>Similarity</span>
+          <span class="sp-value">0.75x</span>
+        </div>
+        <input type="range" min="0" max="1" step="0.05" value="0.75">
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label">
+          <span>Style</span>
+          <span class="sp-value">0.00x</span>
+        </div>
+        <input type="range" min="0" max="1" step="0.05" value="0">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- STATE 3: Emotion tags in script                    -->
+<!-- ================================================ -->
+<div class="section-title">3. Inline Emotion Tags</div>
+<div class="section-desc">Same as Arcads — type <code>/emotion</code> or click "Add emotions" to insert colored tags inline in the script. These map to voice parameters during generation.</div>
+
+<div class="workspace" id="ws3">
+  <div class="main-area">
+    <div class="workspace-label">
+      Emotions tagged inline, global settings panel open
+      <span class="tag">Emotions + settings</span>
+    </div>
+    <div class="chat-area" style="min-height:80px">
+      <div class="fake-msg">
+        <div class="fake-avatar bot">Ai</div>
+        <div class="fake-bubble">Nice script! I tagged some emotions for you. Adjust or add more.</div>
+      </div>
+    </div>
+    <div class="mode-bar">
+      <button class="mode-pill">Chat</button>
+      <button class="mode-pill">Image</button>
+      <button class="mode-pill">Video</button>
+      <button class="mode-pill active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+        Voice
+      </button>
+    </div>
+    <div class="input-area">
+      <div class="float-card">
+        <div class="script-area">
+          <div style="font-size:14px;line-height:1.7;color:#111;min-height:60px">
+            <span style="display:inline-block;padding:2px 8px;border-radius:4px;background:#FFF7ED;color:#C2410C;font-size:11px;font-weight:600;margin-right:4px;vertical-align:middle">/fired-up</span>
+            Okay I need to talk about this because I see it all the time.
+            <span style="display:inline-block;padding:2px 8px;border-radius:4px;background:#EEF2FF;color:#4338CA;font-size:11px;font-weight:600;margin:0 4px;vertical-align:middle">/sarcastic</span>
+            People saying they'll work out "after work" and then just... never doing it.
+            <span style="display:inline-block;padding:2px 8px;border-radius:4px;background:#F0FDF4;color:#15803D;font-size:11px;font-weight:600;margin:0 4px;vertical-align:middle">/confident</span>
+            Morning workouts hit different. Alarm goes off, shoes on, go. Try it for a week.
+          </div>
+        </div>
+        <div class="creator-voices">
+          <div class="voice-card selected">
+            <div class="vc-avatar">S</div>
+            <div class="vc-info">
+              <div class="vc-name">Sophia</div>
+              <div class="vc-time">~0:15</div>
+            </div>
+            <div class="vc-actions">
+              <button class="vc-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+              <button class="vc-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="input-toolbar">
+          <div class="toolbar-left">
+            <div class="creator-count">
+              <div class="avatars"><div class="mini-av">S</div></div>
+              1 Creator
+            </div>
+            <button class="emotion-btn" style="color:#666;background:#FFF7ED;border-radius:6px;padding:4px 10px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              3 emotions
+            </button>
+          </div>
+          <div class="toolbar-right">
+            <span class="char-count">168 / 1,500</span>
+            <button class="icon-btn" style="color:#666">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            </button>
+            <button class="send-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Global settings panel -->
+  <div class="settings-panel" id="ws3-global">
+    <div class="sp-header">
+      <h3>Generation Settings</h3>
+      <button class="sp-close" onclick="this.closest('.settings-panel').classList.add('hidden')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sp-body">
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Lip sync model</span></div>
+        <select class="sp-select">
+          <option>Auto (recommended)</option>
+          <option>OmniHuman 1.5 — Expressive</option>
+          <option>Sync 2 Pro — Accurate</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Audio source</span></div>
+        <select class="sp-select">
+          <option>Text to Speech</option>
+          <option>Upload audio file</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Emotion mode</span></div>
+        <select class="sp-select">
+          <option>Manual (inline tags)</option>
+          <option>Auto-detect from script</option>
+          <option>Neutral</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Aspect ratio</span></div>
+        <select class="sp-select">
+          <option>9:16 — Story / Reel</option>
+          <option>1:1 — Square</option>
+          <option>16:9 — Landscape</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Quality</span></div>
+        <select class="sp-select">
+          <option>Standard</option>
+          <option>HD</option>
+        </select>
+      </div>
+      <div class="sp-field">
+        <div class="sp-field-label"><span>Metadata</span></div>
+        <select class="sp-select">
+          <option>Strip AI markers + iPhone EXIF</option>
+          <option>Strip AI markers only</option>
+          <option>Keep original</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KEY DIFFERENCES SUMMARY -->
+<div style="max-width:1000px;margin:32px auto 0;padding:24px;background:#fff;border:1px solid #EBEBEB;border-radius:12px">
+  <div style="font-size:15px;font-weight:600;margin-bottom:16px">Key Differences from Arcads</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:12px;line-height:1.7;color:#555">
+    <div>
+      <div style="font-weight:600;color:#111;margin-bottom:4px">Creator auto-loads</div>
+      Arcads makes you browse 300+ actors. We pre-load your active Creator. Sophia's voice is always ready — just write and go.
+    </div>
+    <div>
+      <div style="font-weight:600;color:#111;margin-bottom:4px">Persistent voice profiles</div>
+      Arcads actors have generic voices. Our Creators have custom voice profiles you set up once — consistent across every video.
+    </div>
+    <div>
+      <div style="font-weight:600;color:#111;margin-bottom:4px">AI writes scripts</div>
+      Arcads: you write the script yourself. Us: "write me a 30s script about morning workouts" in Chat mode, AI writes it, then switch to Voice to generate.
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePanel(wsId, type) {
+    const ws = document.getElementById(wsId);
+    const audio = ws.querySelector('[id$="-audio"]');
+    const global = ws.querySelector('[id$="-global"]');
+
+    if (type === 'audio' && audio) {
+      if (audio.classList.contains('hidden')) {
+        audio.classList.remove('hidden');
+        if (global) global.classList.add('hidden');
+      } else {
+        audio.classList.add('hidden');
+      }
+    }
+    if (type === 'global' && global) {
+      if (global.classList.contains('hidden')) {
+        global.classList.remove('hidden');
+        if (audio) audio.classList.add('hidden');
+      } else {
+        global.classList.add('hidden');
+      }
+    }
+  }
+
+  function closePanel(wsId) {
+    const ws = document.getElementById(wsId);
+    ws.querySelectorAll('.settings-panel').forEach(p => p.classList.add('hidden'));
+  }
+</script>
+
+</body>
+</html>

@@ -367,7 +367,7 @@ User
 | Video Generation | Kling API (if available), Runway, or Luma |
 | Voice/TTS | ElevenLabs | Voice cloning later |
 | Lip Sync | Sync Labs, Hedra API, or similar |
-| Storage | S3 / Cloudflare R2 | User media |
+| Storage | AWS S3 (`ai-creator-app-bucket-for-my-app`, us-east-1) | User media |
 | Auth | Clerk / Auth.js | |
 | Payments | Stripe | Subscriptions |
 | Posting | Meta API, TikTok API | Later phase |
@@ -423,14 +423,16 @@ User
 
 ---
 
-## Tech Stack Suggestion
+## Tech Stack
 
-- **Frontend:** Next.js + Tailwind + shadcn/ui
-- **Backend:** Next.js API routes or separate Node/Python service
-- **Database:** PostgreSQL (via Supabase or Railway)
-- **Storage:** Cloudflare R2 or S3
-- **Queue:** Inngest or BullMQ (for generation jobs)
-- **Realtime:** Pusher or Ably (for generation status)
+- **Frontend:** Next.js 14+ (App Router) + Tailwind + shadcn/ui
+- **Backend:** Next.js API routes + Server Actions
+- **Database:** PostgreSQL + Prisma
+- **Storage:** AWS S3 (`ai-creator-app-bucket-for-my-app`, us-east-1)
+- **Background Jobs:** Vercel Fluid Compute (up to 14min on Pro — covers all generation tasks)
+- **Hosting:** Vercel (Pro plan) — Edge Network, Git CD, Fluid Compute
+- **Auth:** Clerk
+- **Payments:** Stripe
 
 ---
 

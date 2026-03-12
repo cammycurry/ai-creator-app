@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Creator App — Style Picker</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      padding: 40px; line-height: 1.5;
+      transition: background 300ms, color 300ms;
+    }
+    body.page-dark { background: #0A0A0A; color: #fff; }
+    body.page-light { background: #F5F5F5; color: #111; }
+    h1 { font-size: 32px; font-weight: 600; margin-bottom: 8px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .subtitle { font-size: 15px; margin-bottom: 48px; }
+    body.page-dark .subtitle { color: #888; }
+    body.page-light .subtitle { color: #666; }
+    .page-toggle {
+      padding: 8px 20px; border-radius: 999px; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 200ms; border: none;
+    }
+    body.page-dark .page-toggle { background: #222; color: #fff; }
+    body.page-dark .page-toggle:hover { background: #333; }
+    body.page-light .page-toggle { background: #ddd; color: #111; }
+    body.page-light .page-toggle:hover { background: #ccc; }
+    .palette-grid { display: grid; grid-template-columns: 1fr; gap: 48px; }
+
+    /* Each palette card */
+    .palette {
+      border-radius: 20px; overflow: hidden;
+      transition: all 300ms ease;
+    }
+    body.page-dark .palette { border: 1px solid #222; }
+    body.page-light .palette { border: 1px solid #ddd; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .palette:hover { transform: translateY(-2px); }
+    body.page-dark .palette:hover { border-color: #555; }
+    body.page-light .palette:hover { border-color: #aaa; }
+    .palette.selected { box-shadow: 0 0 0 3px #8B5CF6; border-color: #8B5CF6 !important; }
+
+    .palette-top {
+      padding: 28px 32px 20px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .palette-name { font-size: 22px; font-weight: 600; }
+    .palette-tag {
+      font-size: 11px; padding: 4px 12px; border-radius: 999px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    body.page-dark .palette-tag { border: 1px solid #444; color: #999; }
+    body.page-light .palette-tag { border: 1px solid #ccc; color: #777; }
+    .palette-desc { padding: 0 32px 16px; font-size: 14px; max-width: 600px; }
+    body.page-dark .palette-desc { color: #999; }
+    body.page-light .palette-desc { color: #666; }
+    .palette-refs { padding: 0 32px 16px; font-size: 12px; }
+    body.page-dark .palette-refs { color: #555; }
+    body.page-light .palette-refs { color: #aaa; }
+    .palette-refs span { font-weight: 400; }
+    body.page-dark .palette-refs span { color: #777; }
+    body.page-light .palette-refs span { color: #888; }
+
+    /* Swatches */
+    .swatches-container { padding: 0 32px 20px; }
+    .swatches-label { font-size: 11px; font-weight: 500; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+    body.page-dark .swatches-label { color: #666; }
+    body.page-light .swatches-label { color: #999; }
+    .swatches-row { display: flex; gap: 24px; margin-bottom: 16px; }
+    .swatch-group-inline { display: flex; align-items: center; gap: 6px; }
+    .swatch-group-inline .swatch-role { font-size: 10px; width: 70px; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+    body.page-dark .swatch-role { color: #555; }
+    body.page-light .swatch-role { color: #aaa; }
+    .swatch-strip { display: flex; gap: 4px; }
+    .sw {
+      width: 36px; height: 36px; border-radius: 8px; position: relative;
+      transition: transform 150ms;
+    }
+    .sw:hover { transform: scale(1.1); }
+    .sw-border { border: 1px solid rgba(128,128,128,0.3); }
+    .sw-hex {
+      position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%);
+      font-size: 9px; font-family: monospace; white-space: nowrap; opacity: 0;
+      transition: opacity 150ms; pointer-events: none;
+    }
+    .sw:hover .sw-hex { opacity: 1; }
+    body.page-dark .sw-hex { color: #777; }
+    body.page-light .sw-hex { color: #999; }
+
+    /* Mode toggle on each palette */
+    .mode-toggle-row {
+      padding: 0 32px 20px; display: flex; align-items: center; gap: 8px;
+    }
+    .mode-toggle-btn {
+      padding: 6px 16px; border-radius: 999px; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all 200ms; border: 1px solid transparent;
+    }
+    .mode-toggle-btn.active-toggle { pointer-events: none; }
+
+    /* Mini mockup */
+    .mini-mockup {
+      display: flex; height: 420px; border-top: 1px solid;
+      transition: all 300ms;
+    }
+    body.page-dark .mini-mockup { border-color: #222; }
+    body.page-light .mini-mockup { border-color: #ddd; }
+    .mock-sidebar {
+      width: 220px; display: flex; flex-direction: column; border-right: 1px solid;
+      transition: all 300ms;
+    }
+    .mock-sidebar-header {
+      padding: 16px; display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid; font-size: 13px; font-weight: 500;
+      transition: all 300ms;
+    }
+    .mock-logo {
+      width: 28px; height: 28px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; transition: all 300ms;
+    }
+    .mock-creator-list { flex: 1; padding: 12px; overflow: hidden; }
+    .mock-creator {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 10px; margin-bottom: 4px;
+      font-size: 13px; font-weight: 400; transition: all 300ms;
+    }
+    .mock-avatar {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; transition: all 300ms;
+    }
+    .mock-creator-meta { font-size: 11px; opacity: 0.5; }
+    .mock-nav { border-top: 1px solid; padding: 12px; transition: all 300ms; }
+    .mock-nav-item {
+      padding: 8px 10px; border-radius: 8px; font-size: 13px;
+      margin-bottom: 2px; display: flex; align-items: center; gap: 8px;
+      transition: all 300ms;
+    }
+    .mock-nav-dot { width: 6px; height: 6px; border-radius: 50%; transition: all 300ms; }
+    .mock-main { flex: 1; display: flex; flex-direction: column; transition: all 300ms; }
+    .mock-chat { flex: 1; padding: 24px; overflow: hidden; }
+    .mock-msg {
+      padding: 14px 18px; border-radius: 14px; font-size: 13px;
+      max-width: 420px; margin-bottom: 12px; line-height: 1.5;
+      transition: all 300ms;
+    }
+    .mock-msg.user { margin-left: auto; }
+    .mock-images { display: flex; gap: 6px; margin-top: 10px; }
+    .mock-img { width: 80px; height: 100px; border-radius: 8px; }
+    .mock-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .mock-action-btn {
+      padding: 6px 12px; border-radius: 6px; font-size: 11px;
+      font-weight: 500; display: inline-flex; align-items: center; gap: 4px;
+      transition: all 300ms;
+    }
+    .mock-input-area { border-top: 1px solid; padding: 14px 20px; transition: all 300ms; }
+    .mock-mode-pills { display: flex; gap: 4px; margin-bottom: 10px; }
+    .mock-pill { padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 400; transition: all 300ms; }
+    .mock-input-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 10px; border: 1px solid;
+      transition: all 300ms;
+    }
+    .mock-input-text { flex: 1; font-size: 13px; opacity: 0.4; }
+    .mock-send {
+      width: 30px; height: 30px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; transition: all 300ms;
+    }
+
+    /* Vote bar */
+    .vote-bar {
+      padding: 20px 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    body.page-dark .vote-bar { border-top: 1px solid #222; }
+    body.page-light .vote-bar { border-top: 1px solid #ddd; }
+    .vote-note { font-size: 12px; }
+    body.page-dark .vote-note { color: #555; }
+    body.page-light .vote-note { color: #aaa; }
+    .vote-btn {
+      padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 200ms;
+    }
+    body.page-dark .vote-btn { border: 1px solid #333; background: transparent; color: #fff; }
+    body.page-dark .vote-btn:hover { background: #222; border-color: #555; }
+    body.page-light .vote-btn { border: 1px solid #ccc; background: transparent; color: #111; }
+    body.page-light .vote-btn:hover { background: #eee; border-color: #aaa; }
+    .palette.selected .vote-btn { background: #8B5CF6; color: #fff; border-color: #8B5CF6; }
+  </style>
+</head>
+<body class="page-dark">
+
+<div class="page-header">
+  <h1>Pick Your Style</h1>
+  <button class="page-toggle" onclick="togglePageMode()">Switch to Light Page</button>
+</div>
+<p class="subtitle">Each palette has a light + dark toggle on the mockup. Click the mode buttons to compare.</p>
+
+<div class="palette-grid">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- A. Midnight Studio                             -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="palette" onclick="selectPalette(this)">
+  <div class="palette-top">
+    <div class="palette-name" style="font-family:'Space Grotesk'">A. Midnight Studio</div>
+    <span class="palette-tag">Dark + Electric</span>
+  </div>
+  <div class="palette-desc">Dark workspace with electric violet accent. Professional, modern, techy. Content pops against the dark canvas.</div>
+  <div class="palette-refs">Vibes: <span>Linear, Vercel, Arc Browser, Raycast</span></div>
+  <div class="swatches-container">
+    <div class="swatches-row">
+      <div class="swatch-group-inline"><span class="swatch-role">Bg</span><div class="swatch-strip"><div class="sw sw-border" style="background:#09090B"><span class="sw-hex">#09090B</span></div><div class="sw" style="background:#111113"><span class="sw-hex">#111113</span></div><div class="sw" style="background:#1A1A1E"><span class="sw-hex">#1A1A1E</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Accent</span><div class="swatch-strip"><div class="sw" style="background:#8B5CF6"><span class="sw-hex">#8B5CF6</span></div><div class="sw" style="background:#A78BFA"><span class="sw-hex">#A78BFA</span></div><div class="sw" style="background:#6D28D9"><span class="sw-hex">#6D28D9</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Text</span><div class="swatch-strip"><div class="sw" style="background:#FAFAFA"><span class="sw-hex">#FAFAFA</span></div><div class="sw" style="background:#A1A1AA"><span class="sw-hex">#A1A1AA</span></div><div class="sw" style="background:#52525B"><span class="sw-hex">#52525B</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Surface</span><div class="swatch-strip"><div class="sw" style="background:#27272A"><span class="sw-hex">#27272A</span></div><div class="sw" style="background:#18181B"><span class="sw-hex">#18181B</span></div></div></div>
+    </div>
+  </div>
+  <div class="mode-toggle-row">
+    <button class="mode-toggle-btn active-toggle" style="background:#8B5CF6;color:#fff;border-color:#8B5CF6" onclick="event.stopPropagation();toggleMockup(this,'dark')">Dark</button>
+    <button class="mode-toggle-btn" style="background:transparent;color:#999;border-color:#333" onclick="event.stopPropagation();toggleMockup(this,'light')">Light</button>
+  </div>
+  <div class="mini-mockup" style="font-family:'Space Grotesk',sans-serif" data-palette="a" data-mode="dark">
+    <div class="mock-sidebar s-bg" style="background:#111113;border-color:#27272A">
+      <div class="mock-sidebar-header sh-border sh-text" style="border-color:#27272A;color:#FAFAFA">
+        <div class="mock-logo ml-bg ml-text" style="background:#8B5CF6;color:#fff">Ai</div>
+        <span class="brand-text">Creator App</span>
+      </div>
+      <div class="mock-creator-list">
+        <div class="mock-creator mc-active" style="background:#8B5CF6;color:#fff">
+          <div class="mock-avatar" style="background:#6D28D9;color:#fff">S</div>
+          <div><div>Sophia</div><div class="mock-creator-meta" style="color:#C4B5FD">Fitness</div></div>
+        </div>
+        <div class="mock-creator mc-inactive" style="color:#A1A1AA">
+          <div class="mock-avatar" style="background:#27272A;color:#A1A1AA">L</div>
+          <div><div>Luna</div><div class="mock-creator-meta">Lifestyle</div></div>
+        </div>
+      </div>
+      <div class="mock-nav mn-border" style="border-color:#27272A">
+        <div class="mock-nav-item ni-active" style="background:#1A1A1E;color:#FAFAFA"><div class="mock-nav-dot" style="background:#8B5CF6"></div>Chat</div>
+        <div class="mock-nav-item ni-inactive" style="color:#52525B"><div class="mock-nav-dot" style="background:#3F3F46"></div>Library</div>
+        <div class="mock-nav-item ni-inactive" style="color:#52525B"><div class="mock-nav-dot" style="background:#3F3F46"></div>Workflows</div>
+      </div>
+    </div>
+    <div class="mock-main mm-bg" style="background:#09090B">
+      <div class="mock-chat">
+        <div class="mock-msg bot mb-bot" style="background:#18181B;color:#FAFAFA;border:1px solid #27272A">
+          <strong>Hey!</strong> Ready to create for Sophia. What are we making?
+          <div class="mock-images">
+            <div class="mock-img" style="background:linear-gradient(135deg,#6D28D9,#8B5CF6)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#8B5CF6,#A78BFA)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#A78BFA,#C4B5FD)"></div>
+          </div>
+          <div class="mock-actions">
+            <div class="mock-action-btn ma-secondary" style="background:#27272A;color:#A1A1AA">Download</div>
+            <div class="mock-action-btn ma-secondary" style="background:#27272A;color:#A1A1AA">Make Video</div>
+            <div class="mock-action-btn ma-primary" style="background:#8B5CF6;color:#fff">Upscale</div>
+          </div>
+        </div>
+        <div class="mock-msg user mb-user" style="background:#8B5CF6;color:#fff">gym mirror selfie, lavender set</div>
+      </div>
+      <div class="mock-input-area mia-bg mia-border" style="border-color:#27272A;background:#111113">
+        <div class="mock-mode-pills">
+          <div class="mock-pill mp-active" style="background:#8B5CF6;color:#fff">Chat</div>
+          <div class="mock-pill mp-inactive" style="color:#52525B">Image</div>
+          <div class="mock-pill mp-inactive" style="color:#52525B">Video</div>
+          <div class="mock-pill mp-inactive" style="color:#52525B">Talking Head</div>
+        </div>
+        <div class="mock-input-row mir-bg mir-border" style="background:#18181B;border-color:#27272A">
+          <div class="mock-input-text" style="color:#52525B">What do you want to create?</div>
+          <div class="mock-send ms-bg ms-text" style="background:#8B5CF6;color:#fff">↑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="vote-bar"><span class="vote-note">Font: Space Grotesk / Accent: Violet</span><button class="vote-btn" onclick="event.stopPropagation()">Select This Style</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- B. Clean Slate                                 -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="palette" onclick="selectPalette(this)">
+  <div class="palette-top">
+    <div class="palette-name" style="font-family:'Inter'">B. Clean Slate</div>
+    <span class="palette-tag">Neutral + Minimal</span>
+  </div>
+  <div class="palette-desc">Content-forward. White canvas, subtle gray structure, one blue accent. The generated content IS the color. Clean, trustworthy, premium without trying.</div>
+  <div class="palette-refs">Vibes: <span>Notion, Stripe, Linear light mode, Figma</span></div>
+  <div class="swatches-container">
+    <div class="swatches-row">
+      <div class="swatch-group-inline"><span class="swatch-role">Bg</span><div class="swatch-strip"><div class="sw sw-border" style="background:#FFFFFF"><span class="sw-hex">#FFFFFF</span></div><div class="sw sw-border" style="background:#F9FAFB"><span class="sw-hex">#F9FAFB</span></div><div class="sw sw-border" style="background:#F3F4F6"><span class="sw-hex">#F3F4F6</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Accent</span><div class="swatch-strip"><div class="sw" style="background:#2563EB"><span class="sw-hex">#2563EB</span></div><div class="sw" style="background:#3B82F6"><span class="sw-hex">#3B82F6</span></div><div class="sw" style="background:#1D4ED8"><span class="sw-hex">#1D4ED8</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Text</span><div class="swatch-strip"><div class="sw" style="background:#111827"><span class="sw-hex">#111827</span></div><div class="sw" style="background:#6B7280"><span class="sw-hex">#6B7280</span></div><div class="sw" style="background:#9CA3AF"><span class="sw-hex">#9CA3AF</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Surface</span><div class="swatch-strip"><div class="sw sw-border" style="background:#FFFFFF"><span class="sw-hex">#FFF</span></div><div class="sw" style="background:#E5E7EB"><span class="sw-hex">#E5E7EB</span></div></div></div>
+    </div>
+  </div>
+  <div class="mode-toggle-row">
+    <button class="mode-toggle-btn" style="background:transparent;color:#999;border-color:#333" onclick="event.stopPropagation();toggleMockup(this,'dark')">Dark</button>
+    <button class="mode-toggle-btn active-toggle" style="background:#2563EB;color:#fff;border-color:#2563EB" onclick="event.stopPropagation();toggleMockup(this,'light')">Light</button>
+  </div>
+  <div class="mini-mockup" style="font-family:'Inter',sans-serif" data-palette="b" data-mode="light">
+    <div class="mock-sidebar s-bg" style="background:#F9FAFB;border-color:#E5E7EB">
+      <div class="mock-sidebar-header sh-border sh-text" style="border-color:#E5E7EB;color:#111827">
+        <div class="mock-logo ml-bg ml-text" style="background:#111827;color:#fff">Ai</div>
+        <span class="brand-text">Creator App</span>
+      </div>
+      <div class="mock-creator-list">
+        <div class="mock-creator mc-active" style="background:#2563EB;color:#fff">
+          <div class="mock-avatar" style="background:#1D4ED8;color:#fff">S</div>
+          <div><div>Sophia</div><div class="mock-creator-meta" style="color:#BFDBFE">Fitness</div></div>
+        </div>
+        <div class="mock-creator mc-inactive" style="color:#6B7280">
+          <div class="mock-avatar" style="background:#E5E7EB;color:#6B7280">L</div>
+          <div><div style="color:#111827">Luna</div><div class="mock-creator-meta">Lifestyle</div></div>
+        </div>
+      </div>
+      <div class="mock-nav mn-border" style="border-color:#E5E7EB">
+        <div class="mock-nav-item ni-active" style="background:#EFF6FF;color:#2563EB;font-weight:500"><div class="mock-nav-dot" style="background:#2563EB"></div>Chat</div>
+        <div class="mock-nav-item ni-inactive" style="color:#6B7280"><div class="mock-nav-dot" style="background:#D1D5DB"></div>Library</div>
+        <div class="mock-nav-item ni-inactive" style="color:#6B7280"><div class="mock-nav-dot" style="background:#D1D5DB"></div>Workflows</div>
+      </div>
+    </div>
+    <div class="mock-main mm-bg" style="background:#FFFFFF">
+      <div class="mock-chat">
+        <div class="mock-msg bot mb-bot" style="background:#F9FAFB;color:#111827;border:1px solid #E5E7EB">
+          <strong>Hey!</strong> Ready to create for Sophia. What are we making?
+          <div class="mock-images">
+            <div class="mock-img" style="background:linear-gradient(135deg,#DBEAFE,#93C5FD)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#E0E7FF,#A5B4FC)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#F3E8FF,#C4B5FD)"></div>
+          </div>
+          <div class="mock-actions">
+            <div class="mock-action-btn ma-secondary" style="background:#F3F4F6;color:#374151">Download</div>
+            <div class="mock-action-btn ma-secondary" style="background:#F3F4F6;color:#374151">Make Video</div>
+            <div class="mock-action-btn ma-primary" style="background:#2563EB;color:#fff">Upscale</div>
+          </div>
+        </div>
+        <div class="mock-msg user mb-user" style="background:#111827;color:#fff">gym mirror selfie, lavender set</div>
+      </div>
+      <div class="mock-input-area mia-bg mia-border" style="border-color:#E5E7EB;background:#FFFFFF">
+        <div class="mock-mode-pills">
+          <div class="mock-pill mp-active" style="background:#111827;color:#fff">Chat</div>
+          <div class="mock-pill mp-inactive" style="color:#9CA3AF;border:1px solid #E5E7EB">Image</div>
+          <div class="mock-pill mp-inactive" style="color:#9CA3AF;border:1px solid #E5E7EB">Video</div>
+          <div class="mock-pill mp-inactive" style="color:#9CA3AF;border:1px solid #E5E7EB">Talking Head</div>
+        </div>
+        <div class="mock-input-row mir-bg mir-border" style="background:#F9FAFB;border-color:#E5E7EB">
+          <div class="mock-input-text" style="color:#9CA3AF">What do you want to create?</div>
+          <div class="mock-send ms-bg ms-text" style="background:#111827;color:#fff">↑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="vote-bar"><span class="vote-note">Font: Inter / Accent: Blue</span><button class="vote-btn" onclick="event.stopPropagation()">Select This Style</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- C. Electric Coral                              -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="palette" onclick="selectPalette(this)">
+  <div class="palette-top">
+    <div class="palette-name" style="font-family:'Sora'">C. Electric Coral</div>
+    <span class="palette-tag">Bold + Energetic</span>
+  </div>
+  <div class="palette-desc">Hot coral/orange accent that demands attention. Social-media-native, creator-culture energy. Feels like the tool influencers would actually use.</div>
+  <div class="palette-refs">Vibes: <span>Framer, Superhuman, Instagram dark, TikTok energy</span></div>
+  <div class="swatches-container">
+    <div class="swatches-row">
+      <div class="swatch-group-inline"><span class="swatch-role">Bg</span><div class="swatch-strip"><div class="sw sw-border" style="background:#0C0C0C"><span class="sw-hex">#0C0C0C</span></div><div class="sw" style="background:#141414"><span class="sw-hex">#141414</span></div><div class="sw" style="background:#1C1C1C"><span class="sw-hex">#1C1C1C</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Accent</span><div class="swatch-strip"><div class="sw" style="background:#FF6B35"><span class="sw-hex">#FF6B35</span></div><div class="sw" style="background:#FF8C5A"><span class="sw-hex">#FF8C5A</span></div><div class="sw" style="background:#E85D26"><span class="sw-hex">#E85D26</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Text</span><div class="swatch-strip"><div class="sw" style="background:#F5F5F5"><span class="sw-hex">#F5F5F5</span></div><div class="sw" style="background:#A3A3A3"><span class="sw-hex">#A3A3A3</span></div><div class="sw" style="background:#525252"><span class="sw-hex">#525252</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Surface</span><div class="swatch-strip"><div class="sw" style="background:#262626"><span class="sw-hex">#262626</span></div><div class="sw" style="background:#1A1A1A"><span class="sw-hex">#1A1A1A</span></div></div></div>
+    </div>
+  </div>
+  <div class="mode-toggle-row">
+    <button class="mode-toggle-btn active-toggle" style="background:#FF6B35;color:#fff;border-color:#FF6B35" onclick="event.stopPropagation();toggleMockup(this,'dark')">Dark</button>
+    <button class="mode-toggle-btn" style="background:transparent;color:#999;border-color:#333" onclick="event.stopPropagation();toggleMockup(this,'light')">Light</button>
+  </div>
+  <div class="mini-mockup" style="font-family:'Sora',sans-serif" data-palette="c" data-mode="dark">
+    <div class="mock-sidebar s-bg" style="background:#141414;border-color:#262626">
+      <div class="mock-sidebar-header sh-border sh-text" style="border-color:#262626;color:#F5F5F5">
+        <div class="mock-logo ml-bg ml-text" style="background:#FF6B35;color:#fff">Ai</div>
+        <span class="brand-text">Creator App</span>
+      </div>
+      <div class="mock-creator-list">
+        <div class="mock-creator mc-active" style="background:#FF6B35;color:#fff">
+          <div class="mock-avatar" style="background:#E85D26;color:#fff">S</div>
+          <div><div>Sophia</div><div class="mock-creator-meta" style="color:#FFB899">Fitness</div></div>
+        </div>
+        <div class="mock-creator mc-inactive" style="color:#A3A3A3">
+          <div class="mock-avatar" style="background:#262626;color:#A3A3A3">L</div>
+          <div><div>Luna</div><div class="mock-creator-meta">Lifestyle</div></div>
+        </div>
+      </div>
+      <div class="mock-nav mn-border" style="border-color:#262626">
+        <div class="mock-nav-item ni-active" style="background:#1C1C1C;color:#F5F5F5"><div class="mock-nav-dot" style="background:#FF6B35"></div>Chat</div>
+        <div class="mock-nav-item ni-inactive" style="color:#525252"><div class="mock-nav-dot" style="background:#404040"></div>Library</div>
+        <div class="mock-nav-item ni-inactive" style="color:#525252"><div class="mock-nav-dot" style="background:#404040"></div>Workflows</div>
+      </div>
+    </div>
+    <div class="mock-main mm-bg" style="background:#0C0C0C">
+      <div class="mock-chat">
+        <div class="mock-msg bot mb-bot" style="background:#1A1A1A;color:#F5F5F5;border:1px solid #262626">
+          <strong>Hey!</strong> Ready to create for Sophia. What are we making?
+          <div class="mock-images">
+            <div class="mock-img" style="background:linear-gradient(135deg,#E85D26,#FF6B35)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#FF6B35,#FF8C5A)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#FF8C5A,#FFB899)"></div>
+          </div>
+          <div class="mock-actions">
+            <div class="mock-action-btn ma-secondary" style="background:#262626;color:#A3A3A3">Download</div>
+            <div class="mock-action-btn ma-secondary" style="background:#262626;color:#A3A3A3">Make Video</div>
+            <div class="mock-action-btn ma-primary" style="background:#FF6B35;color:#fff">Upscale</div>
+          </div>
+        </div>
+        <div class="mock-msg user mb-user" style="background:#FF6B35;color:#fff">gym mirror selfie, lavender set</div>
+      </div>
+      <div class="mock-input-area mia-bg mia-border" style="border-color:#262626;background:#141414">
+        <div class="mock-mode-pills">
+          <div class="mock-pill mp-active" style="background:#FF6B35;color:#fff">Chat</div>
+          <div class="mock-pill mp-inactive" style="color:#525252">Image</div>
+          <div class="mock-pill mp-inactive" style="color:#525252">Video</div>
+          <div class="mock-pill mp-inactive" style="color:#525252">Talking Head</div>
+        </div>
+        <div class="mock-input-row mir-bg mir-border" style="background:#1A1A1A;border-color:#262626">
+          <div class="mock-input-text" style="color:#525252">What do you want to create?</div>
+          <div class="mock-send ms-bg ms-text" style="background:#FF6B35;color:#fff">↑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="vote-bar"><span class="vote-note">Font: Sora / Accent: Coral</span><button class="vote-btn" onclick="event.stopPropagation()">Select This Style</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- D. Warm Noir                                   -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="palette" onclick="selectPalette(this)">
+  <div class="palette-top">
+    <div class="palette-name" style="font-family:'Plus Jakarta Sans'">D. Warm Noir</div>
+    <span class="palette-tag">Dark + Warm + Luxe</span>
+  </div>
+  <div class="palette-desc">Deep warm grays (not cold black) with gold/amber accent. Premium, grown-up, luxe. Like the VIP section of a creative tool.</div>
+  <div class="palette-refs">Vibes: <span>Craft, Things 3, Bear app, premium SaaS</span></div>
+  <div class="swatches-container">
+    <div class="swatches-row">
+      <div class="swatch-group-inline"><span class="swatch-role">Bg</span><div class="swatch-strip"><div class="sw sw-border" style="background:#121110"><span class="sw-hex">#121110</span></div><div class="sw" style="background:#1A1918"><span class="sw-hex">#1A1918</span></div><div class="sw" style="background:#231F1E"><span class="sw-hex">#231F1E</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Accent</span><div class="swatch-strip"><div class="sw" style="background:#D4A843"><span class="sw-hex">#D4A843</span></div><div class="sw" style="background:#E8C468"><span class="sw-hex">#E8C468</span></div><div class="sw" style="background:#B8912E"><span class="sw-hex">#B8912E</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Text</span><div class="swatch-strip"><div class="sw" style="background:#F5F0EB"><span class="sw-hex">#F5F0EB</span></div><div class="sw" style="background:#A39E98"><span class="sw-hex">#A39E98</span></div><div class="sw" style="background:#5C5753"><span class="sw-hex">#5C5753</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Surface</span><div class="swatch-strip"><div class="sw" style="background:#2A2725"><span class="sw-hex">#2A2725</span></div><div class="sw" style="background:#1F1D1B"><span class="sw-hex">#1F1D1B</span></div></div></div>
+    </div>
+  </div>
+  <div class="mode-toggle-row">
+    <button class="mode-toggle-btn active-toggle" style="background:#D4A843;color:#121110;border-color:#D4A843" onclick="event.stopPropagation();toggleMockup(this,'dark')">Dark</button>
+    <button class="mode-toggle-btn" style="background:transparent;color:#999;border-color:#333" onclick="event.stopPropagation();toggleMockup(this,'light')">Light</button>
+  </div>
+  <div class="mini-mockup" style="font-family:'Plus Jakarta Sans',sans-serif" data-palette="d" data-mode="dark">
+    <div class="mock-sidebar s-bg" style="background:#1A1918;border-color:#2A2725">
+      <div class="mock-sidebar-header sh-border sh-text" style="border-color:#2A2725;color:#F5F0EB">
+        <div class="mock-logo ml-bg ml-text" style="background:#D4A843;color:#121110;font-weight:700">Ai</div>
+        <span class="brand-text">Creator App</span>
+      </div>
+      <div class="mock-creator-list">
+        <div class="mock-creator mc-active" style="background:#2A2725;color:#F5F0EB;border:1px solid #D4A843;border-radius:10px">
+          <div class="mock-avatar" style="background:linear-gradient(135deg,#D4A843,#E8C468);color:#121110;font-weight:600">S</div>
+          <div><div>Sophia</div><div class="mock-creator-meta" style="color:#A39E98">Fitness</div></div>
+        </div>
+        <div class="mock-creator mc-inactive" style="color:#A39E98">
+          <div class="mock-avatar" style="background:#2A2725;color:#A39E98">L</div>
+          <div><div style="color:#F5F0EB">Luna</div><div class="mock-creator-meta">Lifestyle</div></div>
+        </div>
+      </div>
+      <div class="mock-nav mn-border" style="border-color:#2A2725">
+        <div class="mock-nav-item ni-active" style="background:#231F1E;color:#F5F0EB"><div class="mock-nav-dot" style="background:#D4A843"></div>Chat</div>
+        <div class="mock-nav-item ni-inactive" style="color:#5C5753"><div class="mock-nav-dot" style="background:#3D3936"></div>Library</div>
+        <div class="mock-nav-item ni-inactive" style="color:#5C5753"><div class="mock-nav-dot" style="background:#3D3936"></div>Workflows</div>
+      </div>
+    </div>
+    <div class="mock-main mm-bg" style="background:#121110">
+      <div class="mock-chat">
+        <div class="mock-msg bot mb-bot" style="background:#1F1D1B;color:#F5F0EB;border:1px solid #2A2725">
+          <strong>Hey!</strong> Ready to create for Sophia. What are we making?
+          <div class="mock-images">
+            <div class="mock-img" style="background:linear-gradient(135deg,#B8912E,#D4A843)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#D4A843,#E8C468)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#E8C468,#F5E6B8)"></div>
+          </div>
+          <div class="mock-actions">
+            <div class="mock-action-btn ma-secondary" style="background:#2A2725;color:#A39E98">Download</div>
+            <div class="mock-action-btn ma-secondary" style="background:#2A2725;color:#A39E98">Make Video</div>
+            <div class="mock-action-btn ma-primary" style="background:#D4A843;color:#121110;font-weight:500">Upscale</div>
+          </div>
+        </div>
+        <div class="mock-msg user mb-user" style="background:#D4A843;color:#121110;font-weight:500">gym mirror selfie, lavender set</div>
+      </div>
+      <div class="mock-input-area mia-bg mia-border" style="border-color:#2A2725;background:#1A1918">
+        <div class="mock-mode-pills">
+          <div class="mock-pill mp-active" style="background:#D4A843;color:#121110;font-weight:500">Chat</div>
+          <div class="mock-pill mp-inactive" style="color:#5C5753">Image</div>
+          <div class="mock-pill mp-inactive" style="color:#5C5753">Video</div>
+          <div class="mock-pill mp-inactive" style="color:#5C5753">Talking Head</div>
+        </div>
+        <div class="mock-input-row mir-bg mir-border" style="background:#1F1D1B;border-color:#2A2725">
+          <div class="mock-input-text" style="color:#5C5753">What do you want to create?</div>
+          <div class="mock-send ms-bg ms-text" style="background:#D4A843;color:#121110;font-weight:700">↑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="vote-bar"><span class="vote-note">Font: Plus Jakarta Sans / Accent: Gold</span><button class="vote-btn" onclick="event.stopPropagation()">Select This Style</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- E. Ghost                                       -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="palette" onclick="selectPalette(this)">
+  <div class="palette-top">
+    <div class="palette-name" style="font-family:'Outfit'">E. Ghost</div>
+    <span class="palette-tag">Monochrome + Editorial</span>
+  </div>
+  <div class="palette-desc">Pure black and white. Zero color accent. The generated content IS the only color. Maximum focus on the work. Like a darkroom for AI content.</div>
+  <div class="palette-refs">Vibes: <span>Apple, Nothing Phone, Teenage Engineering, editorial</span></div>
+  <div class="swatches-container">
+    <div class="swatches-row">
+      <div class="swatch-group-inline"><span class="swatch-role">Bg</span><div class="swatch-strip"><div class="sw sw-border" style="background:#000000"><span class="sw-hex">#000000</span></div><div class="sw" style="background:#0A0A0A"><span class="sw-hex">#0A0A0A</span></div><div class="sw" style="background:#171717"><span class="sw-hex">#171717</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Accent</span><div class="swatch-strip"><div class="sw" style="background:#FFFFFF"><span class="sw-hex">#FFFFFF</span></div><div class="sw" style="background:#E5E5E5"><span class="sw-hex">#E5E5E5</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Text</span><div class="swatch-strip"><div class="sw" style="background:#FAFAFA"><span class="sw-hex">#FAFAFA</span></div><div class="sw" style="background:#737373"><span class="sw-hex">#737373</span></div><div class="sw" style="background:#404040"><span class="sw-hex">#404040</span></div></div></div>
+      <div class="swatch-group-inline"><span class="swatch-role">Surface</span><div class="swatch-strip"><div class="sw" style="background:#1C1C1C"><span class="sw-hex">#1C1C1C</span></div><div class="sw" style="background:#141414"><span class="sw-hex">#141414</span></div></div></div>
+    </div>
+  </div>
+  <div class="mode-toggle-row">
+    <button class="mode-toggle-btn active-toggle" style="background:#fff;color:#000;border-color:#fff" onclick="event.stopPropagation();toggleMockup(this,'dark')">Dark</button>
+    <button class="mode-toggle-btn" style="background:transparent;color:#999;border-color:#333" onclick="event.stopPropagation();toggleMockup(this,'light')">Light</button>
+  </div>
+  <div class="mini-mockup" style="font-family:'Outfit',sans-serif" data-palette="e" data-mode="dark">
+    <div class="mock-sidebar s-bg" style="background:#0A0A0A;border-color:#1C1C1C">
+      <div class="mock-sidebar-header sh-border sh-text" style="border-color:#1C1C1C;color:#FAFAFA">
+        <div class="mock-logo ml-bg ml-text" style="background:#FFFFFF;color:#000;font-weight:700">Ai</div>
+        <span class="brand-text">Creator App</span>
+      </div>
+      <div class="mock-creator-list">
+        <div class="mock-creator mc-active" style="background:#FFFFFF;color:#000;font-weight:500;border-radius:10px">
+          <div class="mock-avatar" style="background:#E5E5E5;color:#000;font-weight:600">S</div>
+          <div><div>Sophia</div><div class="mock-creator-meta" style="color:#737373">Fitness</div></div>
+        </div>
+        <div class="mock-creator mc-inactive" style="color:#737373">
+          <div class="mock-avatar" style="background:#1C1C1C;color:#737373">L</div>
+          <div><div style="color:#D4D4D4">Luna</div><div class="mock-creator-meta">Lifestyle</div></div>
+        </div>
+      </div>
+      <div class="mock-nav mn-border" style="border-color:#1C1C1C">
+        <div class="mock-nav-item ni-active" style="background:#171717;color:#FAFAFA"><div class="mock-nav-dot" style="background:#FFFFFF"></div>Chat</div>
+        <div class="mock-nav-item ni-inactive" style="color:#404040"><div class="mock-nav-dot" style="background:#292929"></div>Library</div>
+        <div class="mock-nav-item ni-inactive" style="color:#404040"><div class="mock-nav-dot" style="background:#292929"></div>Workflows</div>
+      </div>
+    </div>
+    <div class="mock-main mm-bg" style="background:#000000">
+      <div class="mock-chat">
+        <div class="mock-msg bot mb-bot" style="background:#141414;color:#FAFAFA;border:1px solid #1C1C1C">
+          <strong>Hey!</strong> Ready to create for Sophia. What are we making?
+          <div class="mock-images">
+            <div class="mock-img" style="background:linear-gradient(135deg,#FF6B6B,#FFE66D)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#4ECDC4,#556270)"></div>
+            <div class="mock-img" style="background:linear-gradient(135deg,#C084FC,#818CF8)"></div>
+          </div>
+          <div class="mock-actions">
+            <div class="mock-action-btn ma-secondary" style="background:#1C1C1C;color:#737373;border:1px solid #292929">Download</div>
+            <div class="mock-action-btn ma-secondary" style="background:#1C1C1C;color:#737373;border:1px solid #292929">Make Video</div>
+            <div class="mock-action-btn ma-primary" style="background:#FFFFFF;color:#000;font-weight:500">Upscale</div>
+          </div>
+        </div>
+        <div class="mock-msg user mb-user" style="background:#FFFFFF;color:#000;font-weight:500">gym mirror selfie, lavender set</div>
+      </div>
+      <div class="mock-input-area mia-bg mia-border" style="border-color:#1C1C1C;background:#0A0A0A">
+        <div class="mock-mode-pills">
+          <div class="mock-pill mp-active" style="background:#FFFFFF;color:#000;font-weight:500">Chat</div>
+          <div class="mock-pill mp-inactive" style="color:#404040">Image</div>
+          <div class="mock-pill mp-inactive" style="color:#404040">Video</div>
+          <div class="mock-pill mp-inactive" style="color:#404040">Talking Head</div>
+        </div>
+        <div class="mock-input-row mir-bg mir-border" style="background:#141414;border-color:#1C1C1C">
+          <div class="mock-input-text" style="color:#404040">What do you want to create?</div>
+          <div class="mock-send ms-bg ms-text" style="background:#FFFFFF;color:#000;font-weight:700">↑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="vote-bar"><span class="vote-note">Font: Outfit / Accent: White (monochrome)</span><button class="vote-btn" onclick="event.stopPropagation()">Select This Style</button></div>
+</div>
+
+</div><!-- palette-grid -->
+
+<script>
+// Light mode variants for each palette
+const lightModes = {
+  a: { // Midnight Studio light
+    sidebar: { bg:'#F8F7FF', border:'#E8E5F5' },
+    header: { border:'#E8E5F5', text:'#1a1a2e' },
+    logo: { bg:'#8B5CF6', text:'#fff' },
+    creatorActive: { bg:'#8B5CF6', text:'#fff', avatar:'#6D28D9', avatarText:'#fff', meta:'#C4B5FD' },
+    creatorInactive: { text:'#6B7280', avatar:'#F3F0FF', avatarText:'#8B5CF6', name:'#1a1a2e' },
+    navBorder: '#E8E5F5',
+    navActive: { bg:'#F3F0FF', text:'#7C3AED' },
+    navDotActive: '#8B5CF6',
+    navInactive: { text:'#9CA3AF' },
+    navDotInactive: '#D6D3E5',
+    main: '#FFFFFF',
+    botMsg: { bg:'#F8F7FF', text:'#1a1a2e', border:'#E8E5F5' },
+    userMsg: { bg:'#8B5CF6', text:'#fff' },
+    actionSecondary: { bg:'#F3F0FF', text:'#4C1D95' },
+    actionPrimary: { bg:'#8B5CF6', text:'#fff' },
+    inputArea: { bg:'#FFFFFF', border:'#E8E5F5' },
+    pillActive: { bg:'#8B5CF6', text:'#fff' },
+    pillInactive: { text:'#9CA3AF', border:'#E8E5F5' },
+    inputRow: { bg:'#F8F7FF', border:'#E8E5F5' },
+    inputText: '#9CA3AF',
+    send: { bg:'#8B5CF6', text:'#fff' },
+  },
+  b: { // Clean Slate dark
+    sidebar: { bg:'#111827', border:'#1F2937' },
+    header: { border:'#1F2937', text:'#F9FAFB' },
+    logo: { bg:'#2563EB', text:'#fff' },
+    creatorActive: { bg:'#2563EB', text:'#fff', avatar:'#1D4ED8', avatarText:'#fff', meta:'#93C5FD' },
+    creatorInactive: { text:'#9CA3AF', avatar:'#1F2937', avatarText:'#9CA3AF', name:'#F9FAFB' },
+    navBorder: '#1F2937',
+    navActive: { bg:'#1E293B', text:'#60A5FA' },
+    navDotActive: '#2563EB',
+    navInactive: { text:'#6B7280' },
+    navDotInactive: '#374151',
+    main: '#0F172A',
+    botMsg: { bg:'#1E293B', text:'#F9FAFB', border:'#1F2937' },
+    userMsg: { bg:'#2563EB', text:'#fff' },
+    actionSecondary: { bg:'#1F2937', text:'#9CA3AF' },
+    actionPrimary: { bg:'#2563EB', text:'#fff' },
+    inputArea: { bg:'#111827', border:'#1F2937' },
+    pillActive: { bg:'#2563EB', text:'#fff' },
+    pillInactive: { text:'#6B7280', border:'transparent' },
+    inputRow: { bg:'#1E293B', border:'#1F2937' },
+    inputText: '#6B7280',
+    send: { bg:'#2563EB', text:'#fff' },
+  },
+  c: { // Electric Coral light
+    sidebar: { bg:'#FFF7F3', border:'#FFE8DE' },
+    header: { border:'#FFE8DE', text:'#1a1a1a' },
+    logo: { bg:'#FF6B35', text:'#fff' },
+    creatorActive: { bg:'#FF6B35', text:'#fff', avatar:'#E85D26', avatarText:'#fff', meta:'#FFB899' },
+    creatorInactive: { text:'#6B7280', avatar:'#FFF0EA', avatarText:'#FF6B35', name:'#1a1a1a' },
+    navBorder: '#FFE8DE',
+    navActive: { bg:'#FFF0EA', text:'#E85D26' },
+    navDotActive: '#FF6B35',
+    navInactive: { text:'#9CA3AF' },
+    navDotInactive: '#FFD6C7',
+    main: '#FFFFFF',
+    botMsg: { bg:'#FFF7F3', text:'#1a1a1a', border:'#FFE8DE' },
+    userMsg: { bg:'#FF6B35', text:'#fff' },
+    actionSecondary: { bg:'#FFF0EA', text:'#9A3412' },
+    actionPrimary: { bg:'#FF6B35', text:'#fff' },
+    inputArea: { bg:'#FFFFFF', border:'#FFE8DE' },
+    pillActive: { bg:'#FF6B35', text:'#fff' },
+    pillInactive: { text:'#9CA3AF', border:'#FFE8DE' },
+    inputRow: { bg:'#FFF7F3', border:'#FFE8DE' },
+    inputText: '#9CA3AF',
+    send: { bg:'#FF6B35', text:'#fff' },
+  },
+  d: { // Warm Noir light
+    sidebar: { bg:'#FAF8F6', border:'#EDE8E3' },
+    header: { border:'#EDE8E3', text:'#2A2725' },
+    logo: { bg:'#D4A843', text:'#121110' },
+    creatorActive: { bg:'#FAF3E0', text:'#2A2725', avatar:'linear-gradient(135deg,#D4A843,#E8C468)', avatarText:'#121110', meta:'#A39E98', borderColor:'#D4A843' },
+    creatorInactive: { text:'#A39E98', avatar:'#F0ECE6', avatarText:'#A39E98', name:'#2A2725' },
+    navBorder: '#EDE8E3',
+    navActive: { bg:'#FAF3E0', text:'#8B6914' },
+    navDotActive: '#D4A843',
+    navInactive: { text:'#A39E98' },
+    navDotInactive: '#DDD7CF',
+    main: '#FFFFFF',
+    botMsg: { bg:'#FAF8F6', text:'#2A2725', border:'#EDE8E3' },
+    userMsg: { bg:'#D4A843', text:'#121110' },
+    actionSecondary: { bg:'#FAF3E0', text:'#6B5E2E' },
+    actionPrimary: { bg:'#D4A843', text:'#121110' },
+    inputArea: { bg:'#FFFFFF', border:'#EDE8E3' },
+    pillActive: { bg:'#D4A843', text:'#121110' },
+    pillInactive: { text:'#A39E98', border:'#EDE8E3' },
+    inputRow: { bg:'#FAF8F6', border:'#EDE8E3' },
+    inputText: '#A39E98',
+    send: { bg:'#D4A843', text:'#121110' },
+  },
+  e: { // Ghost light
+    sidebar: { bg:'#FAFAFA', border:'#E5E5E5' },
+    header: { border:'#E5E5E5', text:'#0A0A0A' },
+    logo: { bg:'#000000', text:'#fff' },
+    creatorActive: { bg:'#000000', text:'#fff', avatar:'#262626', avatarText:'#fff', meta:'#A3A3A3' },
+    creatorInactive: { text:'#737373', avatar:'#F5F5F5', avatarText:'#737373', name:'#0A0A0A' },
+    navBorder: '#E5E5E5',
+    navActive: { bg:'#F5F5F5', text:'#0A0A0A' },
+    navDotActive: '#000000',
+    navInactive: { text:'#A3A3A3' },
+    navDotInactive: '#D4D4D4',
+    main: '#FFFFFF',
+    botMsg: { bg:'#FAFAFA', text:'#0A0A0A', border:'#E5E5E5' },
+    userMsg: { bg:'#000000', text:'#fff' },
+    actionSecondary: { bg:'#F5F5F5', text:'#525252' },
+    actionPrimary: { bg:'#000000', text:'#fff' },
+    inputArea: { bg:'#FFFFFF', border:'#E5E5E5' },
+    pillActive: { bg:'#000000', text:'#fff' },
+    pillInactive: { text:'#A3A3A3', border:'#E5E5E5' },
+    inputRow: { bg:'#FAFAFA', border:'#E5E5E5' },
+    inputText: '#A3A3A3',
+    send: { bg:'#000000', text:'#fff' },
+  },
+};
+
+// Original dark modes (captured from inline styles at load)
+const darkModes = {};
+document.querySelectorAll('.mini-mockup').forEach(m => {
+  darkModes[m.dataset.palette] = m.innerHTML;
+});
+
+function toggleMockup(btn, mode) {
+  const row = btn.parentElement;
+  const mockup = row.nextElementSibling;
+  const palette = mockup.dataset.palette;
+  row.querySelectorAll('.mode-toggle-btn').forEach(b => {
+    b.classList.remove('active-toggle');
+    b.style.background = 'transparent';
+    b.style.color = '#999';
+    b.style.borderColor = '#333';
+  });
+  btn.classList.add('active-toggle');
+
+  if (mode === 'dark') {
+    mockup.innerHTML = darkModes[palette];
+    mockup.dataset.mode = 'dark';
+    // Restore accent color on button
+    const accent = {a:'#8B5CF6',b:'#2563EB',c:'#FF6B35',d:'#D4A843',e:'#fff'}[palette];
+    const textC = palette === 'e' ? '#000' : (palette === 'd' ? '#121110' : '#fff');
+    btn.style.background = accent;
+    btn.style.color = textC;
+    btn.style.borderColor = accent;
+  } else {
+    applyLightMode(mockup, palette);
+    mockup.dataset.mode = 'light';
+    const accent = {a:'#8B5CF6',b:'#2563EB',c:'#FF6B35',d:'#D4A843',e:'#000'}[palette];
+    const textC = (palette === 'd' || palette === 'e') ? '#fff' : '#fff';
+    btn.style.background = accent;
+    btn.style.color = textC;
+    btn.style.borderColor = accent;
+  }
+}
+
+function applyLightMode(mockup, pid) {
+  const L = lightModes[pid];
+  const sb = mockup.querySelector('.mock-sidebar');
+  sb.style.background = L.sidebar.bg;
+  sb.style.borderColor = L.sidebar.border;
+  const sh = mockup.querySelector('.mock-sidebar-header');
+  sh.style.borderColor = L.header.border;
+  sh.style.color = L.header.text;
+  const ml = mockup.querySelector('.mock-logo');
+  ml.style.background = L.logo.bg;
+  ml.style.color = L.logo.text;
+  const creators = mockup.querySelectorAll('.mock-creator');
+  if (creators[0]) {
+    creators[0].style.background = L.creatorActive.bg;
+    creators[0].style.color = L.creatorActive.text;
+    if (L.creatorActive.borderColor) { creators[0].style.border = '1px solid ' + L.creatorActive.borderColor; }
+    const av0 = creators[0].querySelector('.mock-avatar');
+    if (L.creatorActive.avatar.startsWith('linear')) { av0.style.background = L.creatorActive.avatar; } else { av0.style.background = L.creatorActive.avatar; }
+    av0.style.color = L.creatorActive.avatarText;
+    const meta0 = creators[0].querySelector('.mock-creator-meta');
+    if (meta0) meta0.style.color = L.creatorActive.meta;
+  }
+  if (creators[1]) {
+    creators[1].style.background = 'transparent';
+    creators[1].style.color = L.creatorInactive.text;
+    creators[1].style.border = 'none';
+    const av1 = creators[1].querySelector('.mock-avatar');
+    av1.style.background = L.creatorInactive.avatar;
+    av1.style.color = L.creatorInactive.avatarText;
+    const nameEl = creators[1].querySelector('div > div:first-child');
+    if (nameEl) nameEl.style.color = L.creatorInactive.name;
+  }
+  const nav = mockup.querySelector('.mock-nav');
+  nav.style.borderColor = L.navBorder;
+  const navItems = mockup.querySelectorAll('.mock-nav-item');
+  if (navItems[0]) { navItems[0].style.background = L.navActive.bg; navItems[0].style.color = L.navActive.text; navItems[0].querySelector('.mock-nav-dot').style.background = L.navDotActive; }
+  if (navItems[1]) { navItems[1].style.background = 'transparent'; navItems[1].style.color = L.navInactive.text; navItems[1].querySelector('.mock-nav-dot').style.background = L.navDotInactive; }
+  if (navItems[2]) { navItems[2].style.background = 'transparent'; navItems[2].style.color = L.navInactive.text; navItems[2].querySelector('.mock-nav-dot').style.background = L.navDotInactive; }
+  mockup.querySelector('.mock-main').style.background = L.main;
+  const botMsg = mockup.querySelector('.mock-msg.bot');
+  botMsg.style.background = L.botMsg.bg;
+  botMsg.style.color = L.botMsg.text;
+  botMsg.style.border = '1px solid ' + L.botMsg.border;
+  const userMsg = mockup.querySelector('.mock-msg.user');
+  userMsg.style.background = L.userMsg.bg;
+  userMsg.style.color = L.userMsg.text;
+  const actions = mockup.querySelectorAll('.mock-action-btn');
+  actions.forEach((a, i) => {
+    if (i < actions.length - 1) { a.style.background = L.actionSecondary.bg; a.style.color = L.actionSecondary.text; a.style.border = 'none'; }
+    else { a.style.background = L.actionPrimary.bg; a.style.color = L.actionPrimary.text; }
+  });
+  const inputArea = mockup.querySelector('.mock-input-area');
+  inputArea.style.background = L.inputArea.bg;
+  inputArea.style.borderColor = L.inputArea.border;
+  const pills = mockup.querySelectorAll('.mock-pill');
+  pills.forEach((p, i) => {
+    if (i === 0) { p.style.background = L.pillActive.bg; p.style.color = L.pillActive.text; p.style.border = 'none'; }
+    else { p.style.background = 'transparent'; p.style.color = L.pillInactive.text; p.style.border = L.pillInactive.border ? '1px solid ' + L.pillInactive.border : 'none'; }
+  });
+  const inputRow = mockup.querySelector('.mock-input-row');
+  inputRow.style.background = L.inputRow.bg;
+  inputRow.style.borderColor = L.inputRow.border;
+  mockup.querySelector('.mock-input-text').style.color = L.inputText;
+  const send = mockup.querySelector('.mock-send');
+  send.style.background = L.send.bg;
+  send.style.color = L.send.text;
+}
+
+function selectPalette(el) {
+  document.querySelectorAll('.palette').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function togglePageMode() {
+  const body = document.body;
+  const btn = document.querySelector('.page-toggle');
+  if (body.classList.contains('page-dark')) {
+    body.classList.remove('page-dark');
+    body.classList.add('page-light');
+    btn.textContent = 'Switch to Dark Page';
+  } else {
+    body.classList.remove('page-light');
+    body.classList.add('page-dark');
+    btn.textContent = 'Switch to Light Page';
+  }
+}
+</script>
+
+</body>
+</html>

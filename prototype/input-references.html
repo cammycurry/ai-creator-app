@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Input Bar — References & Mentions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #F5F5F5;
+      color: #111;
+      padding: 40px 24px 80px;
+    }
+    h1 { font-size: 28px; font-weight: 600; text-align: center; margin-bottom: 6px; }
+    .subtitle { font-size: 14px; color: #888; text-align: center; margin-bottom: 12px; }
+    .explainer {
+      max-width: 680px; margin: 0 auto 48px; padding: 20px 24px;
+      background: #fff; border: 1px solid #EBEBEB; border-radius: 12px;
+      font-size: 13px; line-height: 1.7; color: #555;
+    }
+    .explainer strong { color: #111; }
+    .explainer code {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      background: #F5F5F5; padding: 2px 6px; border-radius: 4px; color: #111;
+    }
+
+    .section-title {
+      max-width: 800px; margin: 0 auto 16px;
+      font-size: 18px; font-weight: 600;
+    }
+    .section-desc {
+      max-width: 800px; margin: 0 auto 24px;
+      font-size: 13px; color: #888;
+    }
+
+    .variation {
+      max-width: 800px;
+      margin: 0 auto 48px;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border: 1px solid #EBEBEB;
+    }
+    .variation-label {
+      padding: 14px 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #111;
+      border-bottom: 1px solid #EBEBEB;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .variation-label .tag {
+      font-size: 10px; font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 4px;
+      background: #F5F5F5; color: #888;
+    }
+
+    .fake-chat {
+      background: #FAFAFA;
+      padding: 24px 32px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 14px;
+    }
+    .fake-msg { display: flex; gap: 10px; max-width: 560px; }
+    .fake-msg.user { flex-direction: row-reverse; align-self: flex-end; }
+    .fake-avatar {
+      width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 600;
+    }
+    .fake-avatar.bot { background: #111; color: #fff; }
+    .fake-avatar.human { background: #F0F0F0; color: #888; }
+    .fake-bubble { padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.55; }
+    .fake-msg:not(.user) .fake-bubble { background: #fff; border: 1px solid #EBEBEB; }
+    .fake-msg.user .fake-bubble { background: #111; color: #fff; }
+
+    svg { flex-shrink: 0; }
+    button { cursor: pointer; font-family: 'Inter', sans-serif; border: none; background: none; color: #111; }
+
+    /* ================================================ */
+    /* SHARED COMPONENTS                                 */
+    /* ================================================ */
+
+    /* Reference chips that appear above or inside input */
+    .ref-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500;
+      background: #F3F3F3; color: #555;
+      white-space: nowrap;
+    }
+    .ref-chip .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .ref-chip .remove {
+      width: 14px; height: 14px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #BBB; cursor: pointer; margin-left: 2px;
+      transition: color 150ms;
+    }
+    .ref-chip .remove:hover { color: #666; }
+    .ref-chip.template { background: #EEF2FF; color: #4338CA; }
+    .ref-chip.template .dot { background: #4338CA; }
+    .ref-chip.emotion { background: #FFF7ED; color: #C2410C; }
+    .ref-chip.emotion .dot { background: #C2410C; }
+    .ref-chip.model { background: #F0FDF4; color: #15803D; }
+    .ref-chip.model .dot { background: #15803D; }
+    .ref-chip.image { background: #FDF2F8; color: #BE185D; }
+    .ref-chip.image .dot { background: #BE185D; }
+    .ref-chip.style { background: #F5F3FF; color: #7C3AED; }
+    .ref-chip.style .dot { background: #7C3AED; }
+
+    /* Slash command dropdown */
+    .slash-menu {
+      background: #fff;
+      border: 1px solid #E0E0E0;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 6px;
+      width: 280px;
+    }
+    .slash-menu-header {
+      font-size: 10px; font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: #BBB; padding: 6px 10px 4px;
+    }
+    .slash-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px;
+      cursor: pointer; transition: background 100ms;
+    }
+    .slash-item:hover { background: #F5F5F5; }
+    .slash-item.highlighted { background: #F5F5F5; }
+    .slash-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+    }
+    .slash-item-text { flex: 1; }
+    .slash-item-name { font-size: 13px; font-weight: 500; }
+    .slash-item-desc { font-size: 11px; color: #999; }
+    .slash-item .shortcut {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: #CCC;
+    }
+
+    /* ================================================ */
+    /* STATE 1: Empty input with / hint                 */
+    /* ================================================ */
+    .input-empty {
+      padding: 16px 24px 20px;
+      background: #FAFAFA;
+    }
+    .input-empty .float-card {
+      background: #fff;
+      border: 1px solid #E0E0E0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .input-empty .compose {
+      display: flex; align-items: flex-end; gap: 8px;
+    }
+    .input-empty textarea {
+      flex: 1; resize: none; border: none; outline: none;
+      font-size: 14px; font-family: 'Inter', sans-serif; color: #111;
+      line-height: 1.5; min-height: 22px; background: transparent;
+    }
+    .input-empty textarea::placeholder { color: #ccc; }
+    .input-empty .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid #F5F5F5;
+    }
+    .input-empty .tool-left, .input-empty .tool-right {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .input-empty .icon-btn {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; color: #CCC; transition: all 150ms;
+    }
+    .input-empty .icon-btn:hover { color: #666; background: #F8F8F8; }
+    .input-empty .mode-chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #BBB; cursor: pointer; transition: all 150ms;
+    }
+    .input-empty .mode-chip:hover { color: #666; background: #F8F8F8; }
+    .input-empty .mode-chip.active { color: #111; background: #F0F0F0; }
+    .input-empty .send-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: #E0E0E0; color: #999;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .input-empty .slash-hint {
+      font-size: 11px; color: #CCC;
+      font-family: 'JetBrains Mono', monospace;
+      margin-left: 4px;
+    }
+
+    /* ================================================ */
+    /* STATE 2: Slash menu open                          */
+    /* ================================================ */
+    .input-slash {
+      padding: 16px 24px 20px;
+      background: #FAFAFA;
+      position: relative;
+    }
+    .input-slash .float-card {
+      background: #fff;
+      border: 1px solid #E0E0E0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      position: relative;
+    }
+    .input-slash .compose {
+      display: flex; align-items: flex-end; gap: 8px;
+    }
+    .input-slash textarea {
+      flex: 1; resize: none; border: none; outline: none;
+      font-size: 14px; font-family: 'Inter', sans-serif; color: #111;
+      line-height: 1.5; min-height: 22px; background: transparent;
+    }
+    .input-slash .send-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: #E0E0E0; color: #999;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .input-slash .slash-menu {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 16px;
+    }
+    .input-slash .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid #F5F5F5;
+    }
+    .input-slash .tool-left, .input-slash .tool-right {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .input-slash .icon-btn {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; color: #CCC; transition: all 150ms;
+    }
+    .input-slash .mode-chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #BBB; cursor: pointer;
+    }
+    .input-slash .mode-chip.active { color: #111; background: #F0F0F0; }
+
+    /* ================================================ */
+    /* STATE 3: Chips attached + composing               */
+    /* ================================================ */
+    .input-chips {
+      padding: 16px 24px 20px;
+      background: #FAFAFA;
+    }
+    .input-chips .float-card {
+      background: #fff;
+      border: 1px solid #D0D0D0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .input-chips .chip-row {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-bottom: 10px;
+    }
+    .input-chips .compose {
+      display: flex; align-items: flex-end; gap: 8px;
+    }
+    .input-chips textarea {
+      flex: 1; resize: none; border: none; outline: none;
+      font-size: 14px; font-family: 'Inter', sans-serif; color: #111;
+      line-height: 1.5; min-height: 22px; background: transparent;
+    }
+    .input-chips textarea::placeholder { color: #ccc; }
+    .input-chips .send-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: #111; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .input-chips .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid #F5F5F5;
+    }
+    .input-chips .tool-left, .input-chips .tool-right {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .input-chips .icon-btn {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; color: #CCC; transition: all 150ms;
+    }
+    .input-chips .icon-btn:hover { color: #666; background: #F8F8F8; }
+    .input-chips .mode-chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #BBB; cursor: pointer;
+    }
+    .input-chips .mode-chip:hover { color: #666; background: #F8F8F8; }
+    .input-chips .mode-chip.active { color: #111; background: #F0F0F0; }
+
+    /* ================================================ */
+    /* STATE 4: Talking Head mode (transformed input)    */
+    /* ================================================ */
+    .input-th {
+      padding: 16px 24px 20px;
+      background: #FAFAFA;
+    }
+    .input-th .float-card {
+      background: #fff;
+      border: 1px solid #E0E0E0;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .input-th .script-area {
+      padding: 14px 16px 10px;
+    }
+    .input-th .script-area textarea {
+      width: 100%; resize: none; border: none; outline: none;
+      font-size: 14px; font-family: 'Inter', sans-serif; color: #111;
+      line-height: 1.6; min-height: 60px; max-height: 160px; background: transparent;
+    }
+    .input-th .script-area textarea::placeholder { color: #ccc; }
+    .input-th .voice-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px;
+      background: #FAFAFA;
+      border-top: 1px solid #F0F0F0;
+    }
+    .input-th .voice-play {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #111; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; cursor: pointer;
+    }
+    .input-th .voice-info { flex: 1; }
+    .input-th .voice-name { font-size: 12px; font-weight: 500; }
+    .input-th .voice-sub { font-size: 10px; color: #999; }
+    .input-th .voice-change {
+      font-size: 11px; color: #999; cursor: pointer;
+      text-decoration: underline; text-underline-offset: 2px;
+    }
+    .input-th .voice-change:hover { color: #555; }
+    .input-th .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 16px 10px;
+      border-top: 1px solid #F0F0F0;
+    }
+    .input-th .tool-left {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .input-th .tool-right {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .input-th .emotion-btn {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #999;
+      border: 1px solid #E8E8E8; cursor: pointer; transition: all 150ms;
+    }
+    .input-th .emotion-btn:hover { border-color: #CCC; color: #666; }
+    .input-th .char-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: #CCC;
+    }
+    .input-th .icon-btn {
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; color: #CCC; transition: all 150ms;
+    }
+    .input-th .icon-btn:hover { color: #666; }
+    .input-th .send-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: #111; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .input-th .mode-chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #BBB; cursor: pointer;
+    }
+    .input-th .mode-chip.active { color: #111; background: #F0F0F0; }
+
+    /* ================================================ */
+    /* STATE 5: Image mode with ref images               */
+    /* ================================================ */
+    .input-img {
+      padding: 16px 24px 20px;
+      background: #FAFAFA;
+    }
+    .input-img .float-card {
+      background: #fff;
+      border: 1px solid #E0E0E0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .input-img .refs-row {
+      display: flex; gap: 8px; margin-bottom: 10px;
+      align-items: flex-end;
+    }
+    .input-img .ref-thumb {
+      width: 48px; height: 48px; border-radius: 8px;
+      background: #EBEBEB; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; color: #999;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .input-img .ref-thumb .x {
+      position: absolute; top: -4px; right: -4px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #fff; border: 1px solid #DDD;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: #999; cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .input-img .ref-add {
+      width: 48px; height: 48px; border-radius: 8px;
+      border: 1px dashed #DDD;
+      display: flex; align-items: center; justify-content: center;
+      color: #CCC; cursor: pointer; transition: all 150ms;
+    }
+    .input-img .ref-add:hover { border-color: #999; color: #999; }
+    .input-img .compose {
+      display: flex; align-items: flex-end; gap: 8px;
+    }
+    .input-img textarea {
+      flex: 1; resize: none; border: none; outline: none;
+      font-size: 14px; font-family: 'Inter', sans-serif; color: #111;
+      line-height: 1.5; min-height: 22px; background: transparent;
+    }
+    .input-img textarea::placeholder { color: #ccc; }
+    .input-img .send-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: #111; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .input-img .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid #F5F5F5;
+    }
+    .input-img .tool-left, .input-img .tool-right {
+      display: flex; align-items: center; gap: 4px;
+    }
+    .input-img .icon-btn {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; color: #CCC; transition: all 150ms;
+    }
+    .input-img .icon-btn:hover { color: #666; background: #F8F8F8; }
+    .input-img .mode-chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #BBB; cursor: pointer;
+    }
+    .input-img .mode-chip:hover { color: #666; background: #F8F8F8; }
+    .input-img .mode-chip.active { color: #111; background: #F0F0F0; }
+    .input-img .setting-chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #999;
+      background: #F8F8F8; cursor: pointer;
+    }
+    .input-img .setting-chip:hover { background: #F0F0F0; color: #666; }
+
+    /* ================================================ */
+    /* STATE 6: @ mention inline                         */
+    /* ================================================ */
+    .input-at {
+      padding: 16px 24px 20px;
+      background: #FAFAFA;
+      position: relative;
+    }
+    .input-at .float-card {
+      background: #fff;
+      border: 1px solid #D0D0D0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      position: relative;
+    }
+    .input-at .compose {
+      display: flex; align-items: flex-end; gap: 8px;
+    }
+    .input-at .typed-text {
+      flex: 1;
+      font-size: 14px; font-family: 'Inter', sans-serif; color: #111;
+      line-height: 1.5; min-height: 22px;
+    }
+    .input-at .typed-text .at-highlight {
+      color: #4338CA; font-weight: 500;
+    }
+    .input-at .send-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: #E0E0E0; color: #999;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .input-at .at-menu {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 16px;
+    }
+    .input-at .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid #F5F5F5;
+    }
+    .input-at .tool-left, .input-at .tool-right {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .input-at .icon-btn {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; color: #CCC;
+    }
+    .input-at .mode-chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: #BBB;
+    }
+    .input-at .mode-chip.active { color: #111; background: #F0F0F0; }
+  </style>
+</head>
+<body>
+
+<h1>Input Bar — References & Mentions</h1>
+<p class="subtitle">How the floating input handles templates, emotions, models, images, and more</p>
+
+<div class="explainer">
+  <strong>Two trigger patterns:</strong><br>
+  <code>/</code> — Slash commands for actions: <code>/template</code> <code>/model</code> <code>/emotion</code> <code>/style</code><br>
+  <code>@</code> — Mentions for referencing things: <code>@sophia</code> <code>@gym-selfie</code> <code>@previous</code><br><br>
+  <strong>How it works:</strong> Type <code>/</code> or <code>@</code> and a floating menu appears with suggestions. Pick one and it becomes a colored chip in the input. The AI knows what you referenced and uses it in generation.
+</div>
+
+<!-- ================================================ -->
+<!-- STATE 1: Empty input (resting state)               -->
+<!-- ================================================ -->
+<div class="section-title">1. Resting State</div>
+<div class="section-desc">The input at rest. Subtle hint that / and @ are available.</div>
+
+<div class="variation">
+  <div class="variation-label">Empty — ready for input<span class="tag">Resting</span></div>
+  <div class="fake-chat">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Ready to create content for Sophia. What are we making today?</div>
+    </div>
+  </div>
+  <div class="input-empty">
+    <div class="float-card">
+      <div class="compose">
+        <textarea rows="1" placeholder="Message, or type / for commands..."></textarea>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="tool-left">
+          <button class="icon-btn" title="Attach file">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <button class="icon-btn" title="Add image reference">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </button>
+          <button class="icon-btn" title="Settings">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
+        </div>
+        <div class="tool-right">
+          <button class="mode-chip active">Chat</button>
+          <button class="mode-chip">Image</button>
+          <button class="mode-chip">Video</button>
+          <button class="mode-chip">Voice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- STATE 2: Slash command menu open                   -->
+<!-- ================================================ -->
+<div class="section-title">2. Slash Command Menu</div>
+<div class="section-desc">User types <code>/</code> — a floating menu appears above the input with available commands.</div>
+
+<div class="variation">
+  <div class="variation-label">Typing / — command palette appears<span class="tag">Slash menu</span></div>
+  <div class="fake-chat" style="min-height:80px">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Ready to create. What are we making?</div>
+    </div>
+  </div>
+  <div class="input-slash">
+    <div class="float-card">
+      <div class="slash-menu">
+        <div class="slash-menu-header">Commands</div>
+        <div class="slash-item highlighted">
+          <div class="slash-icon" style="background:#EEF2FF;color:#4338CA">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          </div>
+          <div class="slash-item-text">
+            <div class="slash-item-name">/template</div>
+            <div class="slash-item-desc">Load a content template</div>
+          </div>
+          <span class="shortcut">/t</span>
+        </div>
+        <div class="slash-item">
+          <div class="slash-icon" style="background:#F0FDF4;color:#15803D">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <div class="slash-item-text">
+            <div class="slash-item-name">/model</div>
+            <div class="slash-item-desc">Switch generation model</div>
+          </div>
+          <span class="shortcut">/m</span>
+        </div>
+        <div class="slash-item">
+          <div class="slash-icon" style="background:#FFF7ED;color:#C2410C">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <div class="slash-item-text">
+            <div class="slash-item-name">/emotion</div>
+            <div class="slash-item-desc">Set emotion for voice</div>
+          </div>
+          <span class="shortcut">/e</span>
+        </div>
+        <div class="slash-item">
+          <div class="slash-icon" style="background:#F5F3FF;color:#7C3AED">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <div class="slash-item-text">
+            <div class="slash-item-name">/style</div>
+            <div class="slash-item-desc">Set aesthetic / vibe</div>
+          </div>
+          <span class="shortcut">/s</span>
+        </div>
+        <div class="slash-item">
+          <div class="slash-icon" style="background:#FDF2F8;color:#BE185D">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </div>
+          <div class="slash-item-text">
+            <div class="slash-item-name">/ref</div>
+            <div class="slash-item-desc">Attach reference image</div>
+          </div>
+          <span class="shortcut">/r</span>
+        </div>
+      </div>
+      <div class="compose">
+        <textarea rows="1" style="color:#111">/</textarea>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="tool-left">
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+        </div>
+        <div class="tool-right">
+          <button class="mode-chip active">Chat</button>
+          <button class="mode-chip">Image</button>
+          <button class="mode-chip">Video</button>
+          <button class="mode-chip">Voice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- STATE 3: @ mention mid-type                        -->
+<!-- ================================================ -->
+<div class="section-title">3. @ Mention</div>
+<div class="section-desc">User types <code>@</code> mid-sentence — a contextual menu of referenceable things pops up.</div>
+
+<div class="variation">
+  <div class="variation-label">Typing @ inline — mention picker<span class="tag">@ mention</span></div>
+  <div class="fake-chat" style="min-height:80px">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Ready to create. What are we making?</div>
+    </div>
+  </div>
+  <div class="input-at">
+    <div class="float-card">
+      <div class="slash-menu at-menu">
+        <div class="slash-menu-header">References</div>
+        <div class="slash-item highlighted">
+          <div class="slash-icon" style="background:#EEF2FF;color:#4338CA">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          </div>
+          <div class="slash-item-text">
+            <div class="slash-item-name">Gym Mirror Selfie</div>
+            <div class="slash-item-desc">Template &middot; Fitness</div>
+          </div>
+        </div>
+        <div class="slash-item">
+          <div class="slash-icon" style="background:#EEF2FF;color:#4338CA">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          </div>
+          <div class="slash-item-text">
+            <div class="slash-item-name">Golden Hour Portrait</div>
+            <div class="slash-item-desc">Template &middot; Lifestyle</div>
+          </div>
+        </div>
+        <div class="slash-item">
+          <div class="slash-icon" style="background:#FDF2F8;color:#BE185D">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </div>
+          <div class="slash-item-text">
+            <div class="slash-item-name">Gym Selfie (Mar 2)</div>
+            <div class="slash-item-desc">Previous generation</div>
+          </div>
+        </div>
+      </div>
+      <div class="compose">
+        <div class="typed-text">do something like <span class="at-highlight">@gym</span><span style="border-right:2px solid #111;animation:blink 1s infinite">&nbsp;</span></div>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="tool-left">
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+        </div>
+        <div class="tool-right">
+          <button class="mode-chip active">Chat</button>
+          <button class="mode-chip">Image</button>
+          <button class="mode-chip">Video</button>
+          <button class="mode-chip">Voice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>@keyframes blink { 0%,50% { opacity:1; } 51%,100% { opacity:0; } }</style>
+
+<!-- ================================================ -->
+<!-- STATE 4: Chips attached — ready to send            -->
+<!-- ================================================ -->
+<div class="section-title">4. References Attached</div>
+<div class="section-desc">After selecting from / or @, colored chips appear above the text. The AI knows what you referenced.</div>
+
+<div class="variation">
+  <div class="variation-label">Chips attached — composing with context<span class="tag">Ready to send</span></div>
+  <div class="fake-chat" style="min-height:80px">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">What are we making today?</div>
+    </div>
+  </div>
+  <div class="input-chips">
+    <div class="float-card">
+      <div class="chip-row">
+        <span class="ref-chip template">
+          <span class="dot"></span>
+          Gym Mirror Selfie
+          <span class="remove">&times;</span>
+        </span>
+        <span class="ref-chip model">
+          <span class="dot"></span>
+          Gemini Pro
+          <span class="remove">&times;</span>
+        </span>
+        <span class="ref-chip style">
+          <span class="dot"></span>
+          Golden hour
+          <span class="remove">&times;</span>
+        </span>
+      </div>
+      <div class="compose">
+        <textarea rows="1" placeholder="Add details...">but make it post-leg day, lavender matching set, sweaty</textarea>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="tool-left">
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+        </div>
+        <div class="tool-right">
+          <button class="mode-chip active">Chat</button>
+          <button class="mode-chip">Image</button>
+          <button class="mode-chip">Video</button>
+          <button class="mode-chip">Voice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- STATE 5: Image mode with ref thumbnails            -->
+<!-- ================================================ -->
+<div class="section-title">5. Image Mode — Reference Photos</div>
+<div class="section-desc">Switching to Image mode shows reference thumbnails from the Creator's library. Attach specific refs for the AI to match.</div>
+
+<div class="variation">
+  <div class="variation-label">Image mode — reference images attached<span class="tag">Image mode</span></div>
+  <div class="fake-chat" style="min-height:80px">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Image mode. Sophia's face refs loaded automatically. Add more or just describe what you want.</div>
+    </div>
+  </div>
+  <div class="input-img">
+    <div class="float-card">
+      <div class="refs-row">
+        <div class="ref-thumb">
+          REF 1
+          <div class="x">&times;</div>
+        </div>
+        <div class="ref-thumb">
+          REF 2
+          <div class="x">&times;</div>
+        </div>
+        <div class="ref-thumb">
+          REF 3
+          <div class="x">&times;</div>
+        </div>
+        <button class="ref-add">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+      <div class="compose">
+        <textarea rows="1" placeholder="Describe the image...">gym mirror selfie, post-leg day, lavender matching set</textarea>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="tool-left">
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
+          <span class="setting-chip">9:16</span>
+          <span class="setting-chip">x3</span>
+          <button class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+        </div>
+        <div class="tool-right">
+          <button class="mode-chip">Chat</button>
+          <button class="mode-chip active">Image</button>
+          <button class="mode-chip">Video</button>
+          <button class="mode-chip">Voice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- STATE 6: Voice mode (Talking Head)                 -->
+<!-- ================================================ -->
+<div class="section-title">6. Voice Mode — Script + Emotions</div>
+<div class="section-desc">The input transforms into a script editor with voice card and emotion tagging. The floating card stretches to accommodate.</div>
+
+<div class="variation">
+  <div class="variation-label">Voice mode — script + voice + emotions<span class="tag">Talking Head</span></div>
+  <div class="fake-chat" style="min-height:60px">
+    <div class="fake-msg">
+      <div class="fake-avatar bot">Ai</div>
+      <div class="fake-bubble">Voice mode. Write a script or ask me to write one for you.</div>
+    </div>
+  </div>
+  <div class="input-th">
+    <div class="float-card">
+      <div class="script-area">
+        <textarea rows="3" placeholder="Write your script...">Okay I need to talk about this because I see it all the time. People saying they'll work out "after work" and then just... never doing it.</textarea>
+      </div>
+      <div class="voice-row">
+        <div class="voice-play">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="voice-info">
+          <div class="voice-name">Sophia &middot; Default Voice</div>
+          <div class="voice-sub">ElevenLabs v3 &middot; 0:00</div>
+        </div>
+        <span class="voice-change">Change</span>
+      </div>
+      <div class="toolbar">
+        <div class="tool-left">
+          <button class="emotion-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            Add emotion
+          </button>
+          <span class="char-count">89 / 1,500</span>
+        </div>
+        <div class="tool-right">
+          <button class="mode-chip">Chat</button>
+          <button class="mode-chip">Image</button>
+          <button class="mode-chip">Video</button>
+          <button class="mode-chip active">Voice</button>
+          <button class="icon-btn" style="margin-left:4px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
+          <button class="send-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- SUMMARY                                            -->
+<!-- ================================================ -->
+<div style="max-width:680px;margin:48px auto 0;padding:24px;background:#fff;border:1px solid #EBEBEB;border-radius:12px">
+  <div style="font-size:15px;font-weight:600;margin-bottom:12px">Reference System Summary</div>
+  <div style="font-size:13px;line-height:1.7;color:#555">
+    <strong style="color:#111">One floating card</strong> that shapeshifts based on mode and context:<br><br>
+    <strong>Chat mode</strong> — simple text + chips from / and @ commands<br>
+    <strong>Image mode</strong> — reference thumbnails above + aspect ratio/count chips in toolbar<br>
+    <strong>Video mode</strong> — similar to image but with duration chip<br>
+    <strong>Voice mode</strong> — script editor + voice card + emotion tagger<br><br>
+    <strong style="color:#111">The toolbar stays consistent</strong> — left side has tools/context, right side has mode chips + send. This anchors the UI no matter how the top of the card transforms.<br><br>
+    <strong style="color:#4338CA">/template</strong> &nbsp;
+    <strong style="color:#15803D">/model</strong> &nbsp;
+    <strong style="color:#C2410C">/emotion</strong> &nbsp;
+    <strong style="color:#7C3AED">/style</strong> &nbsp;
+    <strong style="color:#BE185D">/ref</strong> — color-coded by type so you can scan at a glance.
+  </div>
+</div>
+
+</body>
+</html>

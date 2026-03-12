@@ -1,0 +1,2311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Creator App — Interactive Prototype</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════════════ */
+    /* BRAND TOKENS                                       */
+    /* ═══════════════════════════════════════════════════ */
+    :root {
+      /* Clean Terracotta — light by default */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --font-display: 'Inter', -apple-system, sans-serif;
+      --font-body: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Light theme (default) */
+      --bg: #FAFAFA;
+      --sidebar-bg: #F3F3F3;
+      --surface: #FFFFFF;
+      --card: #F5F5F5;
+      --accent: #C4603A;
+      --accent-light: #D8845F;
+      --text-primary: #111111;
+      --text-secondary: #888888;
+      --text-muted: #BBBBBB;
+      --border: #EBEBEB;
+      --stone: #888888;
+      --mist: #BBBBBB;
+      --light-line: #EBEBEB;
+    }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* RESET & BASE                                       */
+    /* ═══════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: var(--font-body);
+      font-weight: 400;
+      color: var(--text-primary);
+      background: var(--bg);
+      line-height: 1.6;
+      overflow: hidden;
+      height: 100vh;
+    }
+    h1, h2, h3 { font-family: var(--font-display); font-weight: 500; color: var(--text-primary); }
+    button { cursor: pointer; font-family: var(--font-body); border: none; background: none; color: var(--text-primary); }
+    input, textarea { font-family: var(--font-body); border: none; outline: none; color: var(--text-primary); }
+    img { display: block; max-width: 100%; }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* UTILITIES                                          */
+    /* ═══════════════════════════════════════════════════ */
+    .mono { font-family: var(--font-mono); font-size: 11px; font-weight: 300; letter-spacing: 0.05em; text-transform: uppercase; color: var(--stone); }
+    .text-muted { color: var(--stone); }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: var(--font-mono); font-size: 10px; font-weight: 400;
+      padding: 2px 8px; border-radius: 999px;
+      background: var(--card); color: var(--text-secondary);
+    }
+    .badge-cost { background: var(--card); color: var(--text-primary); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* BUTTONS                                            */
+    /* ═══════════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px; border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 500;
+      transition: all 200ms ease;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-light); }
+    .btn-secondary { background: var(--card); color: var(--text-primary); }
+    .btn-secondary:hover { background: #EBEBEB; }
+    .btn-outline { border: 1px solid var(--border); color: var(--text-primary); background: transparent; }
+    .btn-outline:hover { background: var(--card); }
+    .btn-ghost { color: var(--text-secondary); padding: 8px 12px; }
+    .btn-ghost:hover { background: var(--card); }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+    .btn-icon {
+      width: 36px; height: 36px; padding: 0;
+      border-radius: var(--radius-sm);
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--text-secondary);
+    }
+    .btn-icon:hover { background: var(--card); color: var(--text-primary); }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* APP SHELL                                          */
+    /* ═══════════════════════════════════════════════════ */
+    .app-shell {
+      display: flex; height: 100vh; width: 100vw;
+    }
+
+    /* ── Sidebar ───────────────────────────────────── */
+    .sidebar {
+      width: 260px; min-width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      height: 100vh;
+    }
+    .sidebar-header {
+      padding: 20px 20px 16px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-mark {
+      width: 32px; height: 32px; background: var(--text-primary); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 14px; color: var(--bg); font-weight: 600;
+    }
+    .sidebar-title {
+      font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--text-primary);
+    }
+    .credits-header {
+      margin-left: auto;
+      font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);
+      background: var(--card); padding: 4px 10px; border-radius: 999px;
+    }
+
+    /* Creator list */
+    .creator-section {
+      padding: 16px 12px; flex: 1; overflow-y: auto;
+    }
+    .creator-section-label {
+      font-family: var(--font-mono); font-size: 10px; font-weight: 400;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--mist);
+      padding: 0 8px 8px;
+    }
+    .creator-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      transition: all 150ms ease; cursor: pointer;
+      margin-bottom: 4px;
+    }
+    .creator-card:hover { background: var(--surface); }
+    .creator-card.active { background: var(--card); color: var(--text-primary); }
+    .creator-card.active .creator-niche { color: var(--text-secondary); }
+    .creator-avatar {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--card); display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0; overflow: hidden;
+    }
+    .creator-card.active .creator-avatar { background: var(--surface); }
+    .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .creator-name { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+    .creator-niche { font-size: 12px; color: var(--text-secondary); }
+
+    .creator-actions { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+    .creator-action-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      font-size: 13px; color: var(--text-secondary); font-weight: 400;
+      transition: all 150ms ease; cursor: pointer; width: 100%;
+    }
+    .creator-action-btn:hover { background: var(--surface); color: var(--text-primary); }
+    .creator-action-btn svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
+
+    /* Nav */
+    .sidebar-nav {
+      border-top: 1px solid var(--border);
+      padding: 12px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      font-size: 14px; color: var(--text-secondary); font-weight: 400;
+      transition: all 150ms ease; cursor: pointer; width: 100%;
+    }
+    .nav-item:hover { background: var(--surface); color: var(--text-primary); }
+    .nav-item.active { background: var(--surface); color: var(--text-primary); font-weight: 500; }
+    .nav-item svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
+    .nav-item.active svg { color: var(--text-primary); }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .credits-display { display: flex; align-items: center; gap: 8px; }
+    .credits-dot { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; }
+    .credits-text { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+
+    /* ── Main Canvas ──────────────────────────────── */
+    .main-canvas {
+      flex: 1; display: flex;
+      height: 100vh; overflow: hidden;
+    }
+    .main-area {
+      flex: 1; display: flex; flex-direction: column;
+      overflow: hidden; background: var(--bg); position: relative;
+    }
+
+    /* View container — switches between chat/library/templates/etc */
+    .view { display: none; flex-direction: column; height: 100%; }
+    .view.active { display: flex; }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* CHAT VIEW                                          */
+    /* ═══════════════════════════════════════════════════ */
+    .chat-messages {
+      flex: 1; overflow-y: auto; padding: 24px 32px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .chat-msg {
+      display: flex; gap: 12px; max-width: 720px;
+      animation: fadeUp 300ms ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chat-msg.user { flex-direction: row-reverse; align-self: flex-end; }
+    .msg-avatar {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .msg-avatar.bot { background: var(--text-primary); color: var(--bg); font-family: var(--font-display); font-size: 12px; }
+    .msg-avatar.human { background: var(--card); color: var(--text-primary); }
+    .msg-bubble {
+      padding: 16px 20px; border-radius: var(--radius-lg);
+      font-size: 14px; line-height: 1.65;
+    }
+    .chat-msg:not(.user) .msg-bubble { background: var(--surface); border: 1px solid var(--border); color: var(--text-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+    .chat-msg.user .msg-bubble { background: var(--text-primary); color: var(--bg); }
+    .msg-bubble p + p { margin-top: 12px; }
+    .msg-bubble strong { font-weight: 500; }
+
+    /* Suggestions */
+    .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .suggestion-chip {
+      padding: 8px 16px; border-radius: 999px;
+      background: var(--card); color: var(--text-primary);
+      font-size: 13px; font-weight: 400;
+      transition: all 150ms ease; cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .suggestion-chip:hover { border-color: var(--border); background: var(--surface); }
+
+    /* Inline images */
+    .gen-images {
+      display: grid; gap: 8px; margin-top: 14px;
+    }
+    .gen-images.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .gen-images.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .gen-images.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .gen-image {
+      aspect-ratio: 3/4; border-radius: var(--radius-md);
+      overflow: hidden; cursor: pointer;
+      transition: all 200ms ease; position: relative;
+      border: 1px solid var(--border);
+    }
+    .gen-image:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+    .gen-image-inner {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--stone);
+    }
+    .gen-image-inner.img-1 { background: #F0F0F0; }
+    .gen-image-inner.img-2 { background: #ECECEC; }
+    .gen-image-inner.img-3 { background: #F0F0F0; }
+    .gen-image-inner.img-4 { background: #ECECEC; }
+
+    /* Action buttons after generation */
+    .msg-actions {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+    }
+    .action-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: var(--radius-sm);
+      background: var(--card); color: var(--text-secondary);
+      font-size: 12px; font-weight: 500;
+      transition: all 150ms ease; cursor: pointer;
+    }
+    .action-btn:hover { background: #EBEBEB; color: var(--text-primary); }
+    .action-btn .cost { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-left: 2px; }
+    .action-btn svg { width: 14px; height: 14px; }
+
+    /* Credits inline */
+    .msg-credits {
+      font-family: var(--font-mono); font-size: 11px; color: var(--stone);
+      margin-top: 4px;
+    }
+
+    /* ── Floating Input Bar ─────────────────────── */
+    .floating-input {
+      padding: 12px 24px 20px;
+      background: var(--bg);
+      position: relative;
+    }
+    .float-card {
+      background: var(--surface);
+      border: 1px solid #E0E0E0;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .chip-row {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      padding: 12px 16px 0;
+    }
+    .compose-area {
+      padding: 14px 16px 10px;
+      display: flex; align-items: flex-end; gap: 8px;
+    }
+    .compose-area textarea {
+      flex: 1; resize: none; border: none; outline: none;
+      font-size: 14px; line-height: 1.5;
+      min-height: 22px; max-height: 120px;
+      background: transparent; color: var(--text-primary);
+      font-family: var(--font-body);
+    }
+    .compose-area textarea::placeholder { color: var(--text-muted); }
+    .send-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--text-primary); color: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: opacity 150ms;
+    }
+    .send-btn:hover { opacity: 0.8; }
+    .input-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 14px 10px;
+      border-top: 1px solid #F5F5F5;
+    }
+    .tool-left, .tool-right {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .tool-right { gap: 4px; }
+    .icon-btn {
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; color: var(--text-muted); transition: all 150ms;
+    }
+    .icon-btn:hover { color: var(--text-secondary); background: var(--card); }
+    .slash-hint {
+      font-size: 11px; color: var(--text-muted);
+      font-family: var(--font-mono); margin-left: 4px;
+    }
+    .mode-chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all 150ms;
+    }
+    .mode-chip:hover { color: var(--text-secondary); background: var(--card); }
+    .mode-chip.active { color: var(--text-primary); background: var(--card); }
+    .mode-chip svg { width: 12px; height: 12px; }
+
+    /* ── Voice Mode (inside floating input) ──── */
+    .script-area { padding: 14px 16px 8px; }
+    .script-area textarea {
+      width: 100%; resize: none; border: none; outline: none;
+      font-size: 14px; font-family: var(--font-body);
+      color: var(--text-primary); line-height: 1.6;
+      min-height: 52px; max-height: 160px; background: transparent;
+    }
+    .script-area textarea::placeholder { color: var(--text-muted); }
+    .char-hint {
+      font-size: 11px; color: var(--text-muted); margin-top: 2px;
+      font-family: var(--font-mono);
+    }
+    .creator-voices { display: flex; gap: 8px; padding: 8px 16px 12px; }
+    .voice-card {
+      flex: 1; display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 10px;
+      cursor: pointer; transition: all 150ms;
+    }
+    .voice-card:hover { border-color: #DDD; }
+    .voice-card.selected { border-color: #CCC; background: #F5F5F5; }
+    .vc-avatar {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: #EBEBEB; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; color: #999; position: relative;
+    }
+    .vc-play {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.4); border-radius: 8px;
+      opacity: 0; transition: opacity 150ms;
+    }
+    .voice-card:hover .vc-play { opacity: 1; }
+    .vc-play svg { color: #fff; }
+    .vc-info { flex: 1; min-width: 0; }
+    .vc-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .vc-time { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+    .vc-actions { display: flex; align-items: center; gap: 2px; }
+    .vc-btn {
+      width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      border-radius: 4px; color: #CCC; transition: all 150ms;
+    }
+    .vc-btn:hover { color: #666; background: #EBEBEB; }
+    .voice-toolbar-left { display: flex; align-items: center; gap: 6px; }
+    .voice-toolbar-right { display: flex; align-items: center; gap: 6px; }
+    .creator-count {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 10px 4px 4px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: var(--text-secondary);
+      background: var(--card); cursor: pointer; transition: all 150ms;
+    }
+    .creator-count:hover { background: #EBEBEB; }
+    .creator-count .avatars { display: flex; }
+    .creator-count .mini-av {
+      width: 20px; height: 20px; border-radius: 5px;
+      background: #DDD; border: 1.5px solid var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 600; color: #999;
+    }
+    .creator-count .mini-av + .mini-av { margin-left: -6px; }
+    .emotion-btn {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all 150ms;
+    }
+    .emotion-btn:hover { color: var(--text-secondary); background: var(--card); }
+    .emotion-btn svg { width: 13px; height: 13px; }
+    .char-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+
+    /* ── Reference Chips ───────────────────────── */
+    .ref-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 500;
+    }
+    .ref-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .ref-chip .remove {
+      width: 14px; height: 14px; cursor: pointer; color: inherit; opacity: 0.5;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ref-chip .remove:hover { opacity: 1; }
+    .ref-chip.template { background: #EEF2FF; color: #4338CA; }
+    .ref-chip.template .dot { background: #4338CA; }
+    .ref-chip.model { background: #F0FDF4; color: #15803D; }
+    .ref-chip.model .dot { background: #15803D; }
+    .ref-chip.emotion { background: #FFF7ED; color: #C2410C; }
+    .ref-chip.emotion .dot { background: #C2410C; }
+    .ref-chip.style { background: #F5F3FF; color: #7C3AED; }
+    .ref-chip.style .dot { background: #7C3AED; }
+    .ref-chip.image { background: #FDF2F8; color: #BE185D; }
+    .ref-chip.image .dot { background: #BE185D; }
+
+    /* ── Slash Command Menu ────────────────────── */
+    .slash-menu {
+      position: absolute; bottom: calc(100% + 8px); left: 16px;
+      background: var(--surface); border: 1px solid #E0E0E0;
+      border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 6px; width: 280px; z-index: 10;
+    }
+    .slash-menu-header {
+      font-size: 10px; font-weight: 600; font-family: var(--font-mono);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-muted); padding: 6px 10px 4px;
+    }
+    .slash-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px;
+      cursor: pointer; transition: background 100ms;
+    }
+    .slash-item:hover { background: var(--card); }
+    .slash-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+    }
+    .slash-item-text { flex: 1; }
+    .slash-item-name { font-size: 13px; font-weight: 500; }
+    .slash-item-desc { font-size: 11px; color: var(--text-secondary); }
+
+    /* ── Right Settings Panel ──────────────────── */
+    .settings-panel {
+      width: 280px; border-left: 1px solid var(--border);
+      background: var(--surface); display: none; flex-direction: column;
+    }
+    .settings-panel.open { display: flex; }
+    .sp-header {
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .sp-header h3 { font-size: 14px; font-weight: 600; }
+    .sp-close {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); transition: all 150ms;
+    }
+    .sp-close:hover { background: var(--card); color: var(--text-primary); }
+    .sp-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+    .sp-creator {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px; padding-bottom: 16px;
+      border-bottom: 1px dashed var(--border);
+    }
+    .sp-creator-av {
+      width: 44px; height: 44px; border-radius: 10px; background: #EBEBEB;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 600; color: #999;
+    }
+    .sp-creator-name { font-size: 14px; font-weight: 500; }
+    .sp-creator-sub { font-size: 11px; color: var(--text-secondary); }
+    .sp-creator-play {
+      margin-left: auto; width: 32px; height: 32px; border-radius: 50%;
+      background: var(--text-primary); color: var(--bg);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .sp-field { margin-bottom: 18px; }
+    .sp-field-label {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+    }
+    .sp-field-label span:first-child { font-size: 13px; color: var(--text-secondary); }
+    .sp-field-label .sp-value {
+      font-size: 12px; font-weight: 500; color: var(--text-primary); font-family: var(--font-mono);
+    }
+    .sp-select {
+      width: 100%; padding: 8px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-family: var(--font-body); color: var(--text-primary);
+      background: var(--bg); cursor: pointer;
+    }
+    .sp-select:focus { border-color: #CCC; outline: none; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 4px;
+      border-radius: 2px; background: #E0E0E0; outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 14px; height: 14px;
+      border-radius: 50%; background: var(--text-primary); cursor: pointer;
+    }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* LIBRARY VIEW                                       */
+    /* ═══════════════════════════════════════════════════ */
+    .library-header {
+      padding: 24px 32px 0;
+    }
+    .library-header h2 { font-size: 24px; margin-bottom: 4px; }
+    .library-meta { font-size: 13px; color: var(--stone); margin-bottom: 16px; }
+    .library-filters {
+      display: flex; gap: 4px; margin-bottom: 0;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--light-line);
+    }
+    .filter-tab {
+      padding: 6px 16px; border-radius: 999px;
+      font-size: 13px; color: var(--stone);
+      transition: all 150ms; cursor: pointer;
+    }
+    .filter-tab:hover { background: var(--card); color: var(--text-primary); }
+    .filter-tab.active { background: var(--text-primary); color: #fff; }
+    .library-grid {
+      flex: 1; overflow-y: auto; padding: 24px 32px;
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+    }
+    .library-item {
+      cursor: pointer; transition: all 200ms ease;
+    }
+    .library-item:hover { transform: translateY(-2px); }
+    .library-thumb {
+      aspect-ratio: 3/4; border-radius: var(--radius-md);
+      overflow: hidden; margin-bottom: 8px; position: relative;
+    }
+    .library-thumb-inner {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 10px; color: var(--stone);
+    }
+    .library-type-badge {
+      position: absolute; top: 8px; right: 8px;
+    }
+    .library-label { font-size: 13px; font-weight: 500; }
+    .library-date { font-size: 11px; color: var(--stone); }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* TEMPLATES VIEW                                     */
+    /* ═══════════════════════════════════════════════════ */
+    .templates-header {
+      padding: 24px 32px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .templates-header h2 { font-size: 24px; }
+    .templates-scroll {
+      flex: 1; overflow-y: auto; padding: 0 32px 32px;
+    }
+    .template-category {
+      margin-bottom: 32px;
+    }
+    .template-category-label {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 400;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--stone);
+      margin-bottom: 12px;
+    }
+    .template-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    }
+    .template-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px;
+      cursor: pointer; transition: all 200ms ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .template-card:hover { border-color: var(--border); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .template-icon {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 12px;
+    }
+    .template-card-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+    .template-card-meta {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--stone);
+    }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* CREATOR PROFILE VIEW                               */
+    /* ═══════════════════════════════════════════════════ */
+    .profile-scroll { flex: 1; overflow-y: auto; padding: 32px; }
+    .profile-header-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 28px;
+      display: flex; align-items: center; gap: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .profile-avatar {
+      width: 80px; height: 80px; border-radius: var(--radius-md);
+      overflow: hidden; flex-shrink: 0;
+    }
+    .profile-avatar-inner {
+      width: 100%; height: 100%;
+      background: #EBEBEB;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 28px; color: #999;
+    }
+    .profile-info h2 { font-size: 24px; margin-bottom: 2px; }
+    .profile-info .niche { font-size: 14px; color: var(--stone); margin-bottom: 8px; }
+    .profile-info .meta { font-family: var(--font-mono); font-size: 11px; color: var(--mist); }
+    .profile-actions { margin-left: auto; display: flex; gap: 8px; }
+    .profile-section { margin-bottom: 32px; }
+    .profile-section-title {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 400;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--stone);
+      margin-bottom: 16px;
+    }
+    .ref-images-grid {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+    }
+    .ref-image {
+      aspect-ratio: 3/4; border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .ref-image-inner {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 10px; color: var(--stone);
+    }
+    .profile-field { margin-bottom: 16px; }
+    .profile-field label {
+      display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;
+    }
+    .profile-field input {
+      width: 100%; max-width: 320px; padding: 10px 14px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 14px; background: var(--surface); color: var(--text-primary);
+      transition: border-color 200ms;
+    }
+    .profile-field input:focus { border-color: #444; }
+    .profile-niche-tags { display: flex; gap: 8px; }
+    .niche-tag {
+      padding: 6px 14px; border-radius: 999px;
+      font-size: 13px; border: 1px solid var(--light-line);
+      cursor: pointer; transition: all 150ms;
+    }
+    .niche-tag.selected { background: var(--text-primary); color: #fff; border-color: var(--text-primary); }
+    .niche-tag:not(.selected):hover { border-color: var(--border); }
+    .profile-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 20px; text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .stat-number { font-family: var(--font-display); font-size: 32px; }
+    .stat-label { font-size: 12px; color: var(--stone); margin-top: 4px; }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* PRE-MADE LIBRARY VIEW                              */
+    /* ═══════════════════════════════════════════════════ */
+    .premade-header {
+      padding: 24px 32px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .premade-header h2 { font-size: 24px; }
+    .premade-search {
+      padding: 10px 16px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 14px;
+      width: 240px; background: var(--surface); color: var(--text-primary);
+    }
+    .premade-search:focus { border-color: #444; }
+    .premade-filters {
+      padding: 0 32px 16px;
+      display: flex; gap: 4px;
+    }
+    .premade-grid {
+      flex: 1; overflow-y: auto; padding: 0 32px 32px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .premade-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+      cursor: pointer; transition: all 200ms ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .premade-card:hover { border-color: var(--border); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .premade-card-avatar {
+      height: 200px; display: flex; align-items: center; justify-content: center;
+    }
+    .premade-card-avatar-inner {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 40px; color: var(--text-secondary);
+    }
+    .premade-card-body { padding: 20px; }
+    .premade-card-name { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+    .premade-card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .premade-tag {
+      font-size: 11px; padding: 3px 10px; border-radius: 999px;
+      background: var(--card); color: var(--text-secondary);
+    }
+    .premade-card-actions { display: flex; gap: 8px; }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* WIZARD VIEW                                        */
+    /* ═══════════════════════════════════════════════════ */
+    .wizard-choices {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+    }
+    .wizard-choice {
+      padding: 10px 18px; border-radius: var(--radius-sm);
+      background: var(--card); color: var(--text-primary);
+      font-size: 14px; font-weight: 400;
+      border: 1px solid transparent;
+      transition: all 150ms ease; cursor: pointer;
+    }
+    .wizard-choice:hover { border-color: var(--border); background: var(--surface); }
+    .wizard-choice.selected { background: var(--text-primary); color: #fff; border-color: var(--text-primary); }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* SETTINGS PANEL (SHEET)                             */
+    /* ═══════════════════════════════════════════════════ */
+    .sheet-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+      z-index: 40; display: none;
+      animation: fadeIn 200ms;
+    }
+    .sheet-overlay.open { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .sheet {
+      position: fixed; top: 0; right: -360px; width: 360px; height: 100vh;
+      background: var(--sidebar-bg); z-index: 50;
+      transition: right 300ms ease;
+      display: flex; flex-direction: column;
+      border-left: 1px solid var(--border);
+    }
+    .sheet.open { right: 0; }
+    .sheet-header {
+      padding: 20px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--light-line);
+    }
+    .sheet-header h3 { font-size: 16px; font-weight: 500; font-family: var(--font-body); }
+    .sheet-body { flex: 1; overflow-y: auto; padding: 24px; }
+    .setting-group { margin-bottom: 24px; }
+    .setting-label {
+      font-size: 13px; font-weight: 500; margin-bottom: 8px;
+    }
+    .setting-select {
+      width: 100%; padding: 10px 14px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 14px; font-family: var(--font-body);
+      background: var(--surface); color: var(--text-primary);
+      cursor: pointer;
+    }
+    .setting-pills { display: flex; gap: 4px; }
+    .setting-pill {
+      padding: 8px 16px; border-radius: var(--radius-sm);
+      font-size: 13px; border: 1px solid var(--light-line);
+      cursor: pointer; transition: all 150ms;
+    }
+    .setting-pill:hover { border-color: var(--border); }
+    .setting-pill.active { background: var(--text-primary); color: #fff; border-color: var(--text-primary); }
+    .setting-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0;
+    }
+    .toggle-track {
+      width: 40px; height: 22px; border-radius: 11px;
+      background: var(--text-primary); position: relative; cursor: pointer;
+      transition: background 200ms;
+    }
+    .toggle-track.off { background: var(--light-line); }
+    .toggle-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; position: absolute;
+      top: 2px; left: 20px; transition: left 200ms;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .toggle-track.off .toggle-thumb { left: 2px; }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* ONBOARDING VIEW                                    */
+    /* ═══════════════════════════════════════════════════ */
+    .onboarding-view {
+      display: none; align-items: center; justify-content: center;
+      height: 100vh; background: var(--bg); flex-direction: column;
+    }
+    .onboarding-view.active { display: flex; }
+    .onboarding-logo {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 40px;
+    }
+    .onboarding-logo .logo-mark { width: 44px; height: 44px; font-size: 18px; border-radius: 12px; }
+    .onboarding-logo-text { font-family: var(--font-display); font-size: 22px; }
+    .onboarding-title { font-size: 32px; text-align: center; margin-bottom: 8px; }
+    .onboarding-sub { font-size: 15px; color: var(--stone); text-align: center; margin-bottom: 40px; }
+    .onboarding-cards { display: flex; gap: 20px; }
+    .onboarding-card {
+      width: 280px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 32px 28px;
+      text-align: center; cursor: pointer; transition: all 200ms ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .onboarding-card:hover { border-color: var(--border); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .onboarding-card-icon {
+      width: 56px; height: 56px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px; font-size: 24px;
+    }
+    .onboarding-card-title { font-size: 17px; font-weight: 500; margin-bottom: 8px; }
+    .onboarding-card-desc { font-size: 13px; color: var(--stone); margin-bottom: 16px; line-height: 1.5; }
+    .onboarding-card-detail {
+      font-family: var(--font-mono); font-size: 11px; color: var(--mist);
+    }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* SCREEN NAV (PROTOTYPE META-NAV)                    */
+    /* ═══════════════════════════════════════════════════ */
+    .proto-nav {
+      position: fixed; top: 12px; right: 12px;
+      z-index: 100; background: #fff; color: var(--text-primary);
+      border-radius: 999px; padding: 4px 6px;
+      display: flex; gap: 2px; font-size: 11px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+    .proto-nav button {
+      padding: 5px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 500; color: var(--text-muted);
+      transition: all 150ms;
+    }
+    .proto-nav button:hover { color: var(--text-primary); }
+    .proto-nav button.active { background: var(--text-primary); color: #fff; }
+
+    /* SVG icon helper */
+    svg { flex-shrink: 0; }
+
+    /* ═══════════════════════════════════════════════════ */
+    /* DARK THEME (toggle)                                */
+    /* ═══════════════════════════════════════════════════ */
+    [data-theme="dark"] {
+      --bg: #0C0C0C;
+      --sidebar-bg: #141414;
+      --surface: #1D1D1D;
+      --card: #272727;
+      --accent: #C4603A;
+      --accent-light: #D8845F;
+      --text-primary: #F0F0F0;
+      --text-secondary: #888888;
+      --text-muted: #505050;
+      --border: #2A2A2A;
+      --stone: #888888;
+      --mist: #555555;
+      --light-line: #2A2A2A;
+    }
+    [data-theme="dark"] .btn-secondary:hover { background: #333; }
+    [data-theme="dark"] .action-btn:hover { background: #333; }
+    [data-theme="dark"] .proto-nav { background: var(--card); box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+    [data-theme="dark"] .toggle-thumb { background: #ccc; }
+    [data-theme="dark"] .float-card { border-color: #333; }
+    [data-theme="dark"] .input-toolbar { border-top-color: #2A2A2A; }
+    [data-theme="dark"] .voice-card { background: #252525; border-color: #333; }
+    [data-theme="dark"] .voice-card.selected { background: #2A2A2A; border-color: #444; }
+    [data-theme="dark"] .vc-avatar { background: #333; }
+    [data-theme="dark"] .vc-btn:hover { background: #333; color: #999; }
+    [data-theme="dark"] .slash-menu { background: var(--surface); border-color: #333; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    [data-theme="dark"] .slash-item:hover { background: #252525; }
+    [data-theme="dark"] .ref-chip.template { background: #1E1B4B; color: #818CF8; }
+    [data-theme="dark"] .ref-chip.model { background: #052E16; color: #4ADE80; }
+    [data-theme="dark"] .ref-chip.emotion { background: #431407; color: #FB923C; }
+    [data-theme="dark"] .ref-chip.style { background: #2E1065; color: #A78BFA; }
+    [data-theme="dark"] .ref-chip.image { background: #500724; color: #F472B6; }
+    [data-theme="dark"] .settings-panel { background: var(--sidebar-bg); }
+    [data-theme="dark"] .sp-header { border-bottom-color: #2A2A2A; }
+    [data-theme="dark"] .sp-creator { border-bottom-color: #333; }
+    [data-theme="dark"] .sp-creator-av { background: #333; }
+    [data-theme="dark"] .sp-select { background: var(--surface); border-color: #333; }
+    [data-theme="dark"] .creator-count { background: #252525; }
+    [data-theme="dark"] .creator-count:hover { background: #333; }
+    [data-theme="dark"] input[type="range"] { background: #333; }
+    [data-theme="dark"] .gen-image-inner.img-1 { background: #252525 !important; }
+    [data-theme="dark"] .gen-image-inner.img-2 { background: #2A2A2A !important; }
+    [data-theme="dark"] .gen-image-inner.img-3 { background: #252525 !important; }
+    [data-theme="dark"] .gen-image-inner.img-4 { background: #2A2A2A !important; }
+    [data-theme="dark"] .creator-avatar div,
+    [data-theme="dark"] .premade-card-avatar-inner,
+    [data-theme="dark"] .ref-image-inner,
+    [data-theme="dark"] .library-thumb-inner,
+    [data-theme="dark"] .profile-avatar-inner {
+      background: #2A2A2A !important;
+      color: #666 !important;
+    }
+    [data-theme="dark"] .template-icon { background: #252525 !important; }
+    [data-theme="dark"] .onboarding-card-icon { background: #252525 !important; }
+    [data-theme="dark"] .gen-image { border-color: #333 !important; }
+    [data-theme="dark"] .setting-select { background: var(--surface); }
+    [data-theme="dark"] .sheet { background: var(--sidebar-bg); }
+
+    /* Theme toggle button */
+    .theme-toggle {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 150ms;
+      background: transparent; color: var(--text-secondary);
+    }
+    .theme-toggle:hover { background: var(--card); color: var(--text-primary); }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- PROTOTYPE META-NAV (bottom bar to switch screens)  -->
+<!-- ════════════════════════════════════════════════════ -->
+<nav class="proto-nav">
+  <button class="active" onclick="showScreen('workspace')">Workspace</button>
+  <button onclick="showScreen('onboarding')">Onboarding</button>
+  <button onclick="showScreen('wizard')">Creator Wizard</button>
+  <button onclick="showScreen('premade')">Pre-Made</button>
+  <button onclick="showScreen('talking-head')">Talking Head</button>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+    <svg id="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    <svg id="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
+</nav>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- SCREEN: ONBOARDING                                  -->
+<!-- ════════════════════════════════════════════════════ -->
+<div id="screen-onboarding" class="onboarding-view">
+  <div class="onboarding-logo">
+    <div class="logo-mark">Ai</div>
+    <div class="onboarding-logo-text">AI Influencer Academy</div>
+  </div>
+  <h1 class="onboarding-title">Welcome! Let's get you started.</h1>
+  <p class="onboarding-sub">Create your first AI influencer in minutes.</p>
+  <div class="onboarding-cards">
+    <div class="onboarding-card" onclick="showScreen('wizard')">
+      <div class="onboarding-card-icon" style="background: #EEEDEB;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 8v8M8 12h8"/></svg>
+      </div>
+      <div class="onboarding-card-title">Build Your Own</div>
+      <div class="onboarding-card-desc">Create a unique AI influencer from scratch through a guided conversation</div>
+      <div class="onboarding-card-detail">5 credits &middot; ~2 minutes</div>
+    </div>
+    <div class="onboarding-card" onclick="showScreen('premade')">
+      <div class="onboarding-card-icon" style="background: #EEEDEB;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      </div>
+      <div class="onboarding-card-title">Pick a Pre-Made</div>
+      <div class="onboarding-card-desc">Browse 30+ ready-to-go AI influencers and start generating instantly</div>
+      <div class="onboarding-card-detail">Free &middot; ~30 seconds</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- SCREEN: MAIN WORKSPACE                              -->
+<!-- ════════════════════════════════════════════════════ -->
+<div id="screen-workspace" class="app-shell" style="display:flex;">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-mark">Ai</div>
+      <span class="sidebar-title">AI Creator App</span>
+      <span class="credits-header">73 cr</span>
+    </div>
+
+    <div class="creator-section">
+      <div class="creator-section-label">Creators</div>
+
+      <div class="creator-card active" onclick="switchCreator('sophia', this)">
+        <div class="creator-avatar">
+          <div style="width:100%;height:100%;background:#EBEBEB;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:16px;color:#999">S</div>
+        </div>
+        <div>
+          <div class="creator-name">Sophia</div>
+          <div class="creator-niche">Fitness &amp; Lifestyle</div>
+        </div>
+      </div>
+
+      <div class="creator-card" onclick="switchCreator('luna', this)">
+        <div class="creator-avatar">
+          <div style="width:100%;height:100%;background:#E5E5E5;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:16px;color:#999">L</div>
+        </div>
+        <div>
+          <div class="creator-name">Luna</div>
+          <div class="creator-niche">Lifestyle &amp; Travel</div>
+        </div>
+      </div>
+
+      <div class="creator-card" onclick="switchCreator('kai', this)">
+        <div class="creator-avatar">
+          <div style="width:100%;height:100%;background:#E8E8E8;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:16px;color:#999">K</div>
+        </div>
+        <div>
+          <div class="creator-name">Kai</div>
+          <div class="creator-niche">Tech &amp; Minimal</div>
+        </div>
+      </div>
+
+      <div class="creator-actions">
+        <button class="creator-action-btn" onclick="showScreen('premade')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Browse Pre-Made
+        </button>
+        <button class="creator-action-btn" onclick="showScreen('wizard')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+          New Creator
+        </button>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="switchView('chat', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Chat
+      </button>
+      <button class="nav-item" onclick="switchView('library', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Library
+      </button>
+      <button class="nav-item" onclick="switchView('templates', this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        Templates
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="credits-display">
+        <div class="credits-dot"></div>
+        <span class="credits-text">73 credits</span>
+      </div>
+      <button class="btn-icon" onclick="openSettings()" aria-label="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Canvas -->
+  <main class="main-canvas">
+    <div class="main-area">
+
+    <!-- ── CHAT VIEW ─────────────────────────── -->
+    <div id="view-chat" class="view active">
+      <div class="chat-messages" id="chatMessages">
+
+        <!-- AI welcome -->
+        <div class="chat-msg">
+          <div class="msg-avatar bot">Ai</div>
+          <div class="msg-bubble">
+            <p><strong>Hey!</strong> I'm ready to create content for Sophia. What are we making today?</p>
+            <div class="suggestions">
+              <button class="suggestion-chip" onclick="sendSuggestion('Gym mirror selfie, post-workout glow')">Gym mirror selfie</button>
+              <button class="suggestion-chip" onclick="sendSuggestion('Morning smoothie prep, kitchen lifestyle')">Morning smoothie prep</button>
+              <button class="suggestion-chip" onclick="sendSuggestion('Athleisure outfit check, full body')">Athleisure outfit check</button>
+              <button class="suggestion-chip" onclick="sendSuggestion('Story time talking head')">Story time talking head</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- User message -->
+        <div class="chat-msg user">
+          <div class="msg-avatar human">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="msg-bubble">
+            gym mirror selfie, she just finished a heavy leg day, wearing a matching lavender set
+          </div>
+        </div>
+
+        <!-- AI response with images -->
+        <div class="chat-msg">
+          <div class="msg-avatar bot">Ai</div>
+          <div class="msg-bubble">
+            <p>Love it. Generating 3 images &mdash; gym mirror selfie, post-leg day, lavender matching set.</p>
+            <div class="msg-credits">2 credits</div>
+            <div class="gen-images cols-3">
+              <div class="gen-image">
+                <div class="gen-image-inner img-1">IMG 1</div>
+              </div>
+              <div class="gen-image">
+                <div class="gen-image-inner img-2">IMG 2</div>
+              </div>
+              <div class="gen-image">
+                <div class="gen-image-inner img-3">IMG 3</div>
+              </div>
+            </div>
+            <p style="margin-top:14px">What next?</p>
+            <div class="msg-actions">
+              <button class="action-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Download
+              </button>
+              <button class="action-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                Make Video <span class="cost">3 cr</span>
+              </button>
+              <button class="action-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Upscale <span class="cost">1 cr</span>
+              </button>
+              <button class="action-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+                Add Voice <span class="cost">2 cr</span>
+              </button>
+              <button class="action-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                Regenerate <span class="cost">2 cr</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Floating Input -->
+      <div class="floating-input" id="mainInput">
+        <div class="float-card">
+          <!-- Chip row (hidden by default, shown when refs attached) -->
+          <div class="chip-row" id="chipRow" style="display:none"></div>
+
+          <!-- Chat/Image/Video compose area (default) -->
+          <div id="chatComposeArea">
+            <div class="compose-area">
+              <textarea rows="1" placeholder="Message, or type / for commands..." id="chatInput" onkeydown="handleInputKeydown(event)"></textarea>
+              <button class="send-btn" onclick="sendMessage()" aria-label="Send message">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Voice compose area (hidden by default) -->
+          <div id="voiceComposeArea" style="display:none">
+            <div class="script-area">
+              <textarea rows="3" placeholder="Write your script here, or ask the AI to write one..." id="scriptInput">Okay I need to talk about this because I see it all the time. People saying they'll work out "after work" and then just... never doing it.</textarea>
+              <div class="char-hint"><span id="charCount">89</span> / 1,500</div>
+            </div>
+            <div class="creator-voices">
+              <div class="voice-card selected">
+                <div class="vc-avatar">
+                  S
+                  <div class="vc-play"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+                </div>
+                <div class="vc-info">
+                  <div class="vc-name">Sophia</div>
+                  <div class="vc-time">0:00</div>
+                </div>
+                <div class="vc-actions">
+                  <button class="vc-btn" onclick="togglePanel('voice')" title="Voice settings">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                  </button>
+                  <button class="vc-btn" title="Remove">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Toolbar -->
+          <div class="input-toolbar" id="inputToolbar">
+            <!-- Chat/Image/Video toolbar -->
+            <div class="tool-left" id="toolbarChatLeft">
+              <button class="icon-btn" title="Attach">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <button class="icon-btn" title="Image reference">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              </button>
+              <span class="slash-hint">Type / for commands</span>
+            </div>
+            <!-- Voice toolbar (hidden by default) -->
+            <div class="voice-toolbar-left" id="toolbarVoiceLeft" style="display:none">
+              <div class="creator-count">
+                <div class="avatars"><div class="mini-av">S</div></div>
+                1 Creator
+              </div>
+              <button class="emotion-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                Add emotions
+              </button>
+            </div>
+            <!-- Right side: mode chips (always visible) or voice tools -->
+            <div class="tool-right" id="toolbarRight">
+              <button class="mode-chip active" data-mode="chat" onclick="switchMode('chat')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                Chat
+              </button>
+              <button class="mode-chip" data-mode="image" onclick="switchMode('image')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                Image
+              </button>
+              <button class="mode-chip" data-mode="video" onclick="switchMode('video')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                Video
+              </button>
+              <button class="mode-chip" data-mode="voice" onclick="switchMode('voice')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+                Voice
+              </button>
+            </div>
+            <!-- Voice right tools (hidden by default) -->
+            <div class="voice-toolbar-right" id="toolbarVoiceRight" style="display:none">
+              <span class="char-count"><span id="charCountToolbar">89</span> / 1,500</span>
+              <button class="icon-btn" onclick="togglePanel('generation')" title="Generation settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              </button>
+              <button class="send-btn" onclick="sendMessage()" aria-label="Generate">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slash menu (hidden, positioned above float-card) -->
+        <div class="slash-menu" id="slashMenu" style="display:none">
+          <div class="slash-menu-header">Commands</div>
+          <div class="slash-item" onclick="selectSlashCommand('template', 'Gym Mirror Selfie')">
+            <div class="slash-icon" style="background:#EEF2FF">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4338CA" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <div class="slash-item-text">
+              <div class="slash-item-name">/template</div>
+              <div class="slash-item-desc">Load a content template</div>
+            </div>
+          </div>
+          <div class="slash-item" onclick="selectSlashCommand('model', 'Flux Pro')">
+            <div class="slash-icon" style="background:#F0FDF4">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <div class="slash-item-text">
+              <div class="slash-item-name">/model</div>
+              <div class="slash-item-desc">Switch AI model</div>
+            </div>
+          </div>
+          <div class="slash-item" onclick="selectSlashCommand('style', 'Golden Hour')">
+            <div class="slash-icon" style="background:#F5F3FF">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <div class="slash-item-text">
+              <div class="slash-item-name">/style</div>
+              <div class="slash-item-desc">Apply a visual style</div>
+            </div>
+          </div>
+          <div class="slash-item" onclick="selectSlashCommand('emotion', 'Confident')">
+            <div class="slash-icon" style="background:#FFF7ED">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div class="slash-item-text">
+              <div class="slash-item-name">/emotion</div>
+              <div class="slash-item-desc">Set expression mood</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LIBRARY VIEW ──────────────────────── -->
+    <div id="view-library" class="view">
+      <div class="library-header">
+        <h2>Sophia's Content</h2>
+        <div class="library-meta">47 pieces &middot; Fitness &amp; Lifestyle</div>
+        <div class="library-filters">
+          <button class="filter-tab active">All</button>
+          <button class="filter-tab">Photos</button>
+          <button class="filter-tab">Videos</button>
+          <button class="filter-tab">Talking Head</button>
+        </div>
+      </div>
+      <div class="library-grid">
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#F0F0F0">Gym Selfie</div><div class="library-type-badge"><span class="badge">Photo</span></div></div><div class="library-label">Gym Selfie</div><div class="library-date">Mar 2</div></div>
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#ECECEC">Coffee Run</div></div><div class="library-label">Coffee Run</div><div class="library-date">Mar 1</div></div>
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#EDEDED">Talk Head</div><div class="library-type-badge"><span class="badge">Video</span></div></div><div class="library-label">Morning Workout Talk</div><div class="library-date">Feb 28</div></div>
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#EEEEEE">GRWM</div></div><div class="library-label">GRWM Set</div><div class="library-date">Feb 27</div></div>
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#EBEBEB">Beach Walk</div></div><div class="library-label">Beach Walk</div><div class="library-date">Feb 26</div></div>
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#EFEFEF">Protein</div></div><div class="library-label">Protein Shake</div><div class="library-date">Feb 25</div></div>
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#EDEDED">Outfit</div></div><div class="library-label">Outfit Check</div><div class="library-date">Feb 24</div></div>
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#EEEEEE">Yoga Pose</div></div><div class="library-label">Yoga Pose</div><div class="library-date">Feb 23</div></div>
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#EFEFEF">Mirror</div></div><div class="library-label">Mirror Selfie</div><div class="library-date">Feb 22</div></div>
+        <div class="library-item"><div class="library-thumb"><div class="library-thumb-inner" style="background:#EFEFEF">Smoothie</div></div><div class="library-label">Smoothie</div><div class="library-date">Feb 21</div></div>
+      </div>
+    </div>
+
+    <!-- ── TEMPLATES VIEW ────────────────────── -->
+    <div id="view-templates" class="view">
+      <div class="templates-header">
+        <h2>Templates for Sophia</h2>
+        <div style="display:flex;gap:4px">
+          <button class="filter-tab active">Trending</button>
+          <button class="filter-tab">All</button>
+        </div>
+      </div>
+      <div class="templates-scroll">
+        <div class="template-category">
+          <div class="template-category-label">Fitness</div>
+          <div class="template-row">
+            <div class="template-card" onclick="loadTemplate('gym-selfie')">
+              <div class="template-icon" style="background:#EEEDEB">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"><path d="M6.5 6.5h11M6.5 6.5V17.5M17.5 6.5V17.5M4 10h3M17 10h3M4 14h3M17 14h3"/></svg>
+              </div>
+              <div class="template-card-name">Gym Mirror Selfie</div>
+              <div class="template-card-meta">
+                <span class="badge">Photo</span>
+                <span>2 cr</span>
+              </div>
+            </div>
+            <div class="template-card">
+              <div class="template-icon" style="background:#EEEDEB">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              </div>
+              <div class="template-card-name">Workout Clip</div>
+              <div class="template-card-meta">
+                <span class="badge">Video</span>
+                <span>3 cr</span>
+              </div>
+            </div>
+            <div class="template-card">
+              <div class="template-icon" style="background:#EEEDEB">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"><path d="M17 8h1a4 4 0 110 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>
+              </div>
+              <div class="template-card-name">Protein Shake Prep</div>
+              <div class="template-card-meta">
+                <span class="badge">Photo</span>
+                <span>2 cr</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="template-category">
+          <div class="template-category-label">Lifestyle</div>
+          <div class="template-row">
+            <div class="template-card">
+              <div class="template-icon" style="background:#EEEDEB">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"><path d="M17 8h1a4 4 0 110 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>
+              </div>
+              <div class="template-card-name">Morning Coffee Run</div>
+              <div class="template-card-meta">
+                <span class="badge">Photo</span>
+                <span>2 cr</span>
+              </div>
+            </div>
+            <div class="template-card">
+              <div class="template-icon" style="background:#EEEDEB">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"><path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46A2 2 0 002 5.37v11.09C2 18.4 3.6 20 5.54 20.5l6.46 2 6.46-2A4 4 0 0022 16.46V5.37a2 2 0 00-1.62-1.91z"/></svg>
+              </div>
+              <div class="template-card-name">Outfit of the Day</div>
+              <div class="template-card-meta">
+                <span class="badge">Photo</span>
+                <span>2 cr</span>
+              </div>
+            </div>
+            <div class="template-card">
+              <div class="template-icon" style="background:#EEEDEB">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              </div>
+              <div class="template-card-name">Golden Hour Portrait</div>
+              <div class="template-card-meta">
+                <span class="badge">Photo + Video</span>
+                <span>5 cr</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="template-category">
+          <div class="template-category-label">Talking Head</div>
+          <div class="template-row">
+            <div class="template-card">
+              <div class="template-icon" style="background:#EEEDEB">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+              </div>
+              <div class="template-card-name">Storytime</div>
+              <div class="template-card-meta">
+                <span class="badge">Voice</span>
+                <span>8 cr</span>
+              </div>
+            </div>
+            <div class="template-card">
+              <div class="template-icon" style="background:#EEEDEB">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              </div>
+              <div class="template-card-name">Hot Take</div>
+              <div class="template-card-meta">
+                <span class="badge">Voice</span>
+                <span>8 cr</span>
+              </div>
+            </div>
+            <div class="template-card">
+              <div class="template-icon" style="background:#EEEDEB">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+              </div>
+              <div class="template-card-name">Product Review</div>
+              <div class="template-card-meta">
+                <span class="badge">Voice</span>
+                <span>10 cr</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CREATOR PROFILE VIEW ──────────────── -->
+    <div id="view-profile" class="view">
+      <div class="profile-scroll">
+        <div class="profile-header-card">
+          <div class="profile-avatar">
+            <div class="profile-avatar-inner">S</div>
+          </div>
+          <div class="profile-info">
+            <h2>Sophia</h2>
+            <div class="niche">Fitness &amp; Lifestyle</div>
+            <div class="meta">Created Feb 15 &middot; 47 posts</div>
+          </div>
+          <div class="profile-actions">
+            <button class="btn btn-sm btn-outline">Edit Look</button>
+            <button class="btn btn-sm btn-outline">Change Voice</button>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-section-title">Reference Images</div>
+          <div class="ref-images-grid">
+            <div class="ref-image"><div class="ref-image-inner" style="background:#F0F0F0">Base</div></div>
+            <div class="ref-image"><div class="ref-image-inner" style="background:#ECECEC">Side</div></div>
+            <div class="ref-image"><div class="ref-image-inner" style="background:#EDEDED">3/4</div></div>
+            <div class="ref-image"><div class="ref-image-inner" style="background:#EEEEEE">Outdoor</div></div>
+            <div class="ref-image"><div class="ref-image-inner" style="background:#EBEBEB">Close Up</div></div>
+            <div class="ref-image"><div class="ref-image-inner" style="background:#EFEFEF">Diff Outfit</div></div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-section-title">Settings</div>
+          <div class="profile-field">
+            <label>Name</label>
+            <input type="text" value="Sophia" />
+          </div>
+          <div class="profile-field">
+            <label>Niche</label>
+            <div class="profile-niche-tags">
+              <button class="niche-tag selected">Fitness</button>
+              <button class="niche-tag selected">Lifestyle</button>
+              <button class="niche-tag">Beauty</button>
+              <button class="niche-tag">Fashion</button>
+              <button class="niche-tag">Tech</button>
+              <button class="niche-tag">Travel</button>
+            </div>
+          </div>
+          <div class="profile-field">
+            <label>Voice</label>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="font-size:14px">ElevenLabs &mdash; "Sophia Voice 1"</span>
+              <button class="btn btn-sm btn-ghost" style="padding:4px 8px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Preview
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-section-title">Stats</div>
+          <div class="profile-stats">
+            <div class="stat-card"><div class="stat-number">47</div><div class="stat-label">Images</div></div>
+            <div class="stat-card"><div class="stat-number">12</div><div class="stat-label">Videos</div></div>
+            <div class="stat-card"><div class="stat-number">3</div><div class="stat-label">Talking Heads</div></div>
+          </div>
+        </div>
+
+        <div style="padding-top:16px;border-top:1px solid var(--light-line)">
+          <button class="btn btn-sm" style="color:#dc2626">Delete Creator</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WIZARD VIEW ───────────────────────── -->
+    <div id="view-wizard" class="view">
+      <div class="chat-messages" id="wizardMessages">
+        <div class="chat-msg">
+          <div class="msg-avatar bot">Ai</div>
+          <div class="msg-bubble">
+            <p><strong>Let's build your new AI influencer!</strong> I'll ask a few questions to get the look right.</p>
+            <p>First &mdash; what gender?</p>
+            <div class="wizard-choices">
+              <button class="wizard-choice" onclick="wizardStep(1, 'Female', this)">Female</button>
+              <button class="wizard-choice" onclick="wizardStep(1, 'Male', this)">Male</button>
+              <button class="wizard-choice" onclick="wizardStep(1, 'Non-binary', this)">Non-binary</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="floating-input">
+        <div class="float-card">
+          <div class="compose-area">
+            <textarea rows="1" placeholder="Or type your answer..."></textarea>
+            <button class="send-btn" aria-label="Send">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRE-MADE VIEW ─────────────────────── -->
+    <div id="view-premade" class="view">
+      <div class="premade-header">
+        <h2>Pre-Made Creators</h2>
+        <input type="text" class="premade-search" placeholder="Search creators...">
+      </div>
+      <div class="premade-filters">
+        <button class="filter-tab active">All</button>
+        <button class="filter-tab">Fitness</button>
+        <button class="filter-tab">Lifestyle</button>
+        <button class="filter-tab">Beauty</button>
+        <button class="filter-tab">Fashion</button>
+        <button class="filter-tab">Tech</button>
+      </div>
+      <div class="premade-grid">
+        <div class="premade-card">
+          <div class="premade-card-avatar"><div class="premade-card-avatar-inner" style="background:#F0F0F0">J</div></div>
+          <div class="premade-card-body">
+            <div class="premade-card-name">Jessica</div>
+            <div class="premade-card-tags">
+              <span class="premade-tag">Fitness</span>
+              <span class="premade-tag">Athletic</span>
+              <span class="premade-tag">Energetic</span>
+            </div>
+            <div class="premade-card-actions">
+              <button class="btn btn-sm btn-outline">Preview</button>
+              <button class="btn btn-sm btn-primary">Use &middot; Free</button>
+            </div>
+          </div>
+        </div>
+        <div class="premade-card">
+          <div class="premade-card-avatar"><div class="premade-card-avatar-inner" style="background:#ECECEC">M</div></div>
+          <div class="premade-card-body">
+            <div class="premade-card-name">Marcus</div>
+            <div class="premade-card-tags">
+              <span class="premade-tag">Fitness</span>
+              <span class="premade-tag">Muscular</span>
+              <span class="premade-tag">Motivational</span>
+            </div>
+            <div class="premade-card-actions">
+              <button class="btn btn-sm btn-outline">Preview</button>
+              <button class="btn btn-sm btn-primary">Use &middot; Free</button>
+            </div>
+          </div>
+        </div>
+        <div class="premade-card">
+          <div class="premade-card-avatar"><div class="premade-card-avatar-inner" style="background:#EDEDED">A</div></div>
+          <div class="premade-card-body">
+            <div class="premade-card-name">Aria</div>
+            <div class="premade-card-tags">
+              <span class="premade-tag">Lifestyle</span>
+              <span class="premade-tag">Soft glam</span>
+              <span class="premade-tag">Cozy vibes</span>
+            </div>
+            <div class="premade-card-actions">
+              <button class="btn btn-sm btn-outline">Preview</button>
+              <button class="btn btn-sm btn-primary">Use &middot; Free</button>
+            </div>
+          </div>
+        </div>
+        <div class="premade-card">
+          <div class="premade-card-avatar"><div class="premade-card-avatar-inner" style="background:#EEEEEE">K</div></div>
+          <div class="premade-card-body">
+            <div class="premade-card-name">Kai</div>
+            <div class="premade-card-tags">
+              <span class="premade-tag">Tech</span>
+              <span class="premade-tag">Clean</span>
+              <span class="premade-tag">Minimal</span>
+            </div>
+            <div class="premade-card-actions">
+              <button class="btn btn-sm btn-outline">Preview</button>
+              <button class="btn btn-sm btn-primary">Use &middot; Free</button>
+            </div>
+          </div>
+        </div>
+        <div class="premade-card">
+          <div class="premade-card-avatar"><div class="premade-card-avatar-inner" style="background:#EBEBEB">Z</div></div>
+          <div class="premade-card-body">
+            <div class="premade-card-name">Zara</div>
+            <div class="premade-card-tags">
+              <span class="premade-tag">Beauty</span>
+              <span class="premade-tag">Glamorous</span>
+              <span class="premade-tag">Bold</span>
+            </div>
+            <div class="premade-card-actions">
+              <button class="btn btn-sm btn-outline">Preview</button>
+              <button class="btn btn-sm btn-primary">Use &middot; Free</button>
+            </div>
+          </div>
+        </div>
+        <div class="premade-card">
+          <div class="premade-card-avatar"><div class="premade-card-avatar-inner" style="background:#EFEFEF">O</div></div>
+          <div class="premade-card-body">
+            <div class="premade-card-name">Olivia</div>
+            <div class="premade-card-tags">
+              <span class="premade-tag">Fashion</span>
+              <span class="premade-tag">Street style</span>
+              <span class="premade-tag">Edgy</span>
+            </div>
+            <div class="premade-card-actions">
+              <button class="btn btn-sm btn-outline">Preview</button>
+              <button class="btn btn-sm btn-primary">Use &middot; Free</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /main-area -->
+
+    <!-- Right Settings Panel (inline, hidden by default) -->
+    <div class="settings-panel" id="settingsPanel">
+      <!-- Voice Settings (default panel content) -->
+      <div id="panelVoice">
+        <div class="sp-header">
+          <h3>Voice Settings</h3>
+          <button class="sp-close" onclick="closePanel()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="sp-body">
+          <div class="sp-creator">
+            <div class="sp-creator-av">S</div>
+            <div>
+              <div class="sp-creator-name">Sophia</div>
+              <div class="sp-creator-sub">Custom voice</div>
+            </div>
+            <div class="sp-creator-play">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          <div class="sp-field">
+            <div class="sp-field-label"><span>Voice profile</span></div>
+            <select class="sp-select">
+              <option>Sophia Voice 1 (Custom)</option>
+              <option>ElevenLabs — Rachel</option>
+              <option>ElevenLabs — Domi</option>
+            </select>
+          </div>
+          <div class="sp-field">
+            <div class="sp-field-label"><span>Speed</span><span class="sp-value">1.0x</span></div>
+            <input type="range" min="0.5" max="2" step="0.1" value="1">
+          </div>
+          <div class="sp-field">
+            <div class="sp-field-label"><span>Pitch</span><span class="sp-value">0</span></div>
+            <input type="range" min="-10" max="10" step="1" value="0">
+          </div>
+          <div class="sp-field">
+            <div class="sp-field-label"><span>Stability</span><span class="sp-value">0.5</span></div>
+            <input type="range" min="0" max="1" step="0.1" value="0.5">
+          </div>
+        </div>
+      </div>
+
+      <!-- Generation Settings (hidden by default) -->
+      <div id="panelGeneration" style="display:none">
+        <div class="sp-header">
+          <h3>Generation Settings</h3>
+          <button class="sp-close" onclick="closePanel()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="sp-body">
+          <div class="sp-field">
+            <div class="sp-field-label"><span>Video model</span></div>
+            <select class="sp-select">
+              <option>Auto (recommended)</option>
+              <option>Kling v2 — Smooth motion</option>
+              <option>Runway Gen-3 — Cinematic</option>
+            </select>
+          </div>
+          <div class="sp-field">
+            <div class="sp-field-label"><span>Duration</span><span class="sp-value">15s</span></div>
+            <input type="range" min="5" max="60" step="5" value="15">
+          </div>
+          <div class="sp-field">
+            <div class="sp-field-label"><span>Resolution</span></div>
+            <select class="sp-select">
+              <option>1080p (Standard)</option>
+              <option>4K (+2 credits)</option>
+            </select>
+          </div>
+          <div class="sp-field">
+            <div class="sp-field-label"><span>Aspect Ratio</span></div>
+            <select class="sp-select">
+              <option>9:16 Story</option>
+              <option>1:1 Square</option>
+              <option>16:9 Landscape</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- SETTINGS SHEET                                      -->
+<!-- ════════════════════════════════════════════════════ -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSettings()"></div>
+<div class="sheet" id="settingsSheet">
+  <div class="sheet-header">
+    <h3>Generation Settings</h3>
+    <button class="btn-icon" onclick="closeSettings()" aria-label="Close">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body">
+    <div class="setting-group">
+      <div class="setting-label">Model</div>
+      <select class="setting-select">
+        <option>Auto (recommended)</option>
+        <option disabled>── or pick manually ──</option>
+        <option>Gemini 3 Pro Image — "Pro Quality"</option>
+        <option>Gemini 3.1 Flash — "Standard"</option>
+        <option>Seedream 4.5 — "Realistic Skin"</option>
+        <option>Flux Pro — "Character Focus"</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <div class="setting-label">Aspect Ratio</div>
+      <div class="setting-pills">
+        <button class="setting-pill active">9:16 Story</button>
+        <button class="setting-pill">1:1</button>
+        <button class="setting-pill">4:5</button>
+        <button class="setting-pill">16:9</button>
+      </div>
+    </div>
+    <div class="setting-group">
+      <div class="setting-label">Quality</div>
+      <div class="setting-pills">
+        <button class="setting-pill active">Standard</button>
+        <button class="setting-pill">HD</button>
+        <button class="setting-pill">4K <span class="cost" style="font-family:var(--font-mono);font-size:10px;color:var(--stone)">+1 cr</span></button>
+      </div>
+    </div>
+    <div class="setting-group">
+      <div class="setting-label">Metadata</div>
+      <div class="setting-toggle">
+        <span style="font-size:14px">Strip AI markers</span>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </div>
+      <div class="setting-toggle">
+        <span style="font-size:14px">Inject iPhone EXIF</span>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </div>
+    </div>
+    <div class="setting-group">
+      <div class="setting-label">Device</div>
+      <select class="setting-select">
+        <option>iPhone 15 Pro</option>
+        <option>iPhone 15 Pro Max</option>
+        <option>iPhone 16 Pro</option>
+        <option>Samsung Galaxy S24</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT — Interactions                           -->
+<!-- ════════════════════════════════════════════════════ -->
+<script>
+  // ── Current state ──
+  let currentMode = 'chat';
+  let currentPanelType = null;
+
+  // ── Screen switching (prototype meta-nav) ──
+  function showScreen(screen) {
+    document.getElementById('screen-onboarding').classList.remove('active');
+    document.getElementById('screen-workspace').style.display = 'none';
+
+    document.querySelectorAll('.proto-nav button:not(.theme-toggle)').forEach(b => b.classList.remove('active'));
+    if (event && event.target) event.target.classList.add('active');
+
+    if (screen === 'onboarding') {
+      document.getElementById('screen-onboarding').classList.add('active');
+    } else if (screen === 'workspace') {
+      document.getElementById('screen-workspace').style.display = 'flex';
+      switchView('chat');
+    } else if (screen === 'wizard') {
+      document.getElementById('screen-workspace').style.display = 'flex';
+      switchViewDirect('wizard');
+    } else if (screen === 'premade') {
+      document.getElementById('screen-workspace').style.display = 'flex';
+      switchViewDirect('premade');
+    } else if (screen === 'talking-head') {
+      document.getElementById('screen-workspace').style.display = 'flex';
+      switchView('chat');
+      setTimeout(() => switchMode('voice'), 50);
+    }
+  }
+
+  // ── View switching (sidebar nav) ──
+  function switchView(view, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+
+    if (el) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+    } else {
+      document.querySelectorAll('.nav-item').forEach((n, i) => {
+        n.classList.remove('active');
+        if (i === 0 && view === 'chat') n.classList.add('active');
+        if (i === 1 && view === 'library') n.classList.add('active');
+        if (i === 2 && view === 'templates') n.classList.add('active');
+      });
+    }
+
+    // Reset to chat mode
+    switchMode('chat');
+    closePanel();
+  }
+
+  function switchViewDirect(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  }
+
+  // ── Creator switching ──
+  function switchCreator(id, el) {
+    document.querySelectorAll('.creator-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ── Mode switching (floating input transforms) ──
+  function switchMode(mode) {
+    currentMode = mode;
+
+    // Update mode chips
+    document.querySelectorAll('.mode-chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.mode === mode);
+    });
+
+    const chatCompose = document.getElementById('chatComposeArea');
+    const voiceCompose = document.getElementById('voiceComposeArea');
+    const toolbarChatLeft = document.getElementById('toolbarChatLeft');
+    const toolbarVoiceLeft = document.getElementById('toolbarVoiceLeft');
+    const toolbarRight = document.getElementById('toolbarRight');
+    const toolbarVoiceRight = document.getElementById('toolbarVoiceRight');
+
+    if (mode === 'voice') {
+      // Voice mode: show script + voice cards, hide chat compose
+      chatCompose.style.display = 'none';
+      voiceCompose.style.display = '';
+      toolbarChatLeft.style.display = 'none';
+      toolbarVoiceLeft.style.display = '';
+      toolbarRight.style.display = 'none';
+      toolbarVoiceRight.style.display = '';
+    } else {
+      // Chat/Image/Video mode: show normal compose
+      chatCompose.style.display = '';
+      voiceCompose.style.display = 'none';
+      toolbarChatLeft.style.display = '';
+      toolbarVoiceLeft.style.display = 'none';
+      toolbarRight.style.display = '';
+      toolbarVoiceRight.style.display = 'none';
+
+      const textarea = document.getElementById('chatInput');
+      if (mode === 'chat') textarea.placeholder = 'Message, or type / for commands...';
+      if (mode === 'image') textarea.placeholder = 'Describe image...';
+      if (mode === 'video') textarea.placeholder = 'Describe video or select an image to animate...';
+    }
+  }
+
+  // ── Right Settings Panel ──
+  function togglePanel(type) {
+    const panel = document.getElementById('settingsPanel');
+    const voicePanel = document.getElementById('panelVoice');
+    const genPanel = document.getElementById('panelGeneration');
+
+    if (currentPanelType === type && panel.classList.contains('open')) {
+      closePanel();
+      return;
+    }
+
+    currentPanelType = type;
+    panel.classList.add('open');
+    voicePanel.style.display = type === 'voice' ? '' : 'none';
+    genPanel.style.display = type === 'generation' ? '' : 'none';
+  }
+
+  function closePanel() {
+    document.getElementById('settingsPanel').classList.remove('open');
+    currentPanelType = null;
+  }
+
+  // ── Slash Menu ──
+  function toggleSlashMenu(show) {
+    document.getElementById('slashMenu').style.display = show ? '' : 'none';
+  }
+
+  function selectSlashCommand(type, label) {
+    addChip(type, label);
+    toggleSlashMenu(false);
+    const input = document.getElementById('chatInput');
+    input.value = input.value.replace(/\/\S*$/, '').trim();
+    input.focus();
+  }
+
+  // ── Reference Chips ──
+  function addChip(type, label) {
+    const row = document.getElementById('chipRow');
+    row.style.display = '';
+    const chip = document.createElement('span');
+    chip.className = 'ref-chip ' + type;
+    chip.innerHTML = '<span class="dot"></span>' + label +
+      '<span class="remove" onclick="removeChip(this)">&times;</span>';
+    row.appendChild(chip);
+  }
+
+  function removeChip(el) {
+    const chip = el.parentElement;
+    chip.remove();
+    const row = document.getElementById('chipRow');
+    if (row.children.length === 0) row.style.display = 'none';
+  }
+
+  // ── Input keyboard handler ──
+  function handleInputKeydown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+      return;
+    }
+    // Show slash menu on /
+    setTimeout(() => {
+      const val = e.target.value;
+      if (val.endsWith('/') || /\/\w*$/.test(val)) {
+        toggleSlashMenu(true);
+      } else {
+        toggleSlashMenu(false);
+      }
+    }, 0);
+  }
+
+  // Close slash menu on click outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.slash-menu') && !e.target.closest('#chatInput')) {
+      toggleSlashMenu(false);
+    }
+  });
+
+  // ── Script char count ──
+  const scriptInput = document.getElementById('scriptInput');
+  if (scriptInput) {
+    scriptInput.addEventListener('input', () => {
+      const len = scriptInput.value.length;
+      const countEl = document.getElementById('charCount');
+      const countToolbar = document.getElementById('charCountToolbar');
+      if (countEl) countEl.textContent = len;
+      if (countToolbar) countToolbar.textContent = len;
+    });
+  }
+
+  // ── Send message (mock) ──
+  function sendMessage() {
+    const isVoice = currentMode === 'voice';
+    const input = isVoice ? document.getElementById('scriptInput') : document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    addUserMessage(text);
+    if (!isVoice) input.value = '';
+
+    setTimeout(() => {
+      if (isVoice) {
+        addAIMessage('Generating talking head video with Sophia\'s voice. This will cost <strong>8 credits</strong>...');
+      } else {
+        addAIMessage('Great idea! Let me generate that for you. This will cost <strong>2 credits</strong> for 3 images...');
+      }
+    }, 800);
+  }
+
+  function sendSuggestion(text) {
+    addUserMessage(text);
+    setTimeout(() => {
+      addAIMessage('Love it! Generating ' + count + ' images...');
+      setTimeout(() => {
+        addAIImageResponse();
+      }, 600);
+    }, 600);
+  }
+
+  function addUserMessage(text) {
+    const el = document.createElement('div');
+    el.className = 'chat-msg user';
+    el.innerHTML = `
+      <div class="msg-avatar human"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="msg-bubble">${text}</div>
+    `;
+    document.getElementById('chatMessages').appendChild(el);
+    scrollChat();
+  }
+
+  function addAIMessage(text) {
+    const el = document.createElement('div');
+    el.className = 'chat-msg';
+    el.innerHTML = `
+      <div class="msg-avatar bot">Ai</div>
+      <div class="msg-bubble"><p>${text}</p></div>
+    `;
+    document.getElementById('chatMessages').appendChild(el);
+    scrollChat();
+  }
+
+  function addAIImageResponse() {
+    const el = document.createElement('div');
+    el.className = 'chat-msg';
+    el.innerHTML = `
+      <div class="msg-avatar bot">Ai</div>
+      <div class="msg-bubble">
+        <p>Here you go! Pick a favorite:</p>
+        <div class="msg-credits">2 credits</div>
+        <div class="gen-images cols-3">
+          <div class="gen-image"><div class="gen-image-inner img-1">1</div></div>
+          <div class="gen-image"><div class="gen-image-inner img-2">2</div></div>
+          <div class="gen-image"><div class="gen-image-inner img-3">3</div></div>
+        </div>
+        <div class="msg-actions" style="margin-top:14px">
+          <button class="action-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download</button>
+          <button class="action-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Make Video <span class="cost">3 cr</span></button>
+          <button class="action-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Upscale <span class="cost">1 cr</span></button>
+        </div>
+      </div>
+    `;
+    document.getElementById('chatMessages').appendChild(el);
+    scrollChat();
+  }
+
+  function scrollChat() {
+    const container = document.getElementById('chatMessages');
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // ── Wizard flow ──
+  const wizardSteps = [
+    null, // step 0 placeholder
+    {
+      question: 'Got it. What age range?',
+      choices: ['18-22', '23-27', '28-35', '35-45', '45+']
+    },
+    {
+      question: 'Now let\'s get specific. Tell me about her look — or I can ask you step by step. What do you prefer?',
+      choices: ['Guide me step by step', 'I\'ll describe her']
+    },
+    {
+      question: 'Love it. Here\'s what I\'m thinking:\n\n<strong>Hair:</strong> Long wavy blonde\n<strong>Eyes:</strong> Blue, almond-shaped\n<strong>Build:</strong> Athletic / toned\n<strong>Skin:</strong> Light/medium, warm undertone\n<strong>Vibe:</strong> California girl\n\nAnything to adjust? Or should I generate some options?\nThis will cost <strong>5 credits</strong>.',
+      choices: ['Generate!', 'Adjust something']
+    },
+    {
+      question: 'Here are 4 options. Pick your favorite:',
+      isImageStep: true,
+      choices: ['Pick 1', 'Pick 2', 'Pick 3', 'Pick 4', 'Regenerate']
+    },
+    {
+      question: 'Great choice! Let me validate her consistency. Generating test shots in different angles and settings...',
+      isValidation: true,
+      choices: ['Yes, she\'s perfect!', 'Not quite, let\'s adjust']
+    },
+    {
+      question: 'Awesome! Last step — what\'s her name and niche?',
+      isFinalize: true,
+      choices: ['Save Creator']
+    }
+  ];
+  let currentWizardStep = 0;
+
+  function wizardStep(step, answer, el) {
+    // Mark choice as selected
+    if (el) {
+      el.parentElement.querySelectorAll('.wizard-choice').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    // Add user response
+    setTimeout(() => {
+      const userMsg = document.createElement('div');
+      userMsg.className = 'chat-msg user';
+      userMsg.innerHTML = `
+        <div class="msg-avatar human"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="msg-bubble">${answer}</div>
+      `;
+      document.getElementById('wizardMessages').appendChild(userMsg);
+
+      currentWizardStep++;
+      const next = wizardSteps[currentWizardStep];
+      if (!next) return;
+
+      // Add AI response
+      setTimeout(() => {
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'chat-msg';
+
+        let extra = '';
+        if (next.isImageStep) {
+          extra = `<div class="gen-images cols-4" style="margin:14px 0">
+            <div class="gen-image"><div class="gen-image-inner img-1">1</div></div>
+            <div class="gen-image"><div class="gen-image-inner img-2">2</div></div>
+            <div class="gen-image"><div class="gen-image-inner img-3">3</div></div>
+            <div class="gen-image"><div class="gen-image-inner img-4">4</div></div>
+          </div>`;
+        }
+        if (next.isValidation) {
+          extra = `<div class="gen-images cols-3" style="margin:14px 0">
+            <div class="gen-image"><div class="gen-image-inner img-1">Side Profile</div></div>
+            <div class="gen-image"><div class="gen-image-inner img-2">3/4 Angle</div></div>
+            <div class="gen-image"><div class="gen-image-inner img-3">Outdoor</div></div>
+          </div>
+          <div class="gen-images cols-3" style="margin-top:8px">
+            <div class="gen-image"><div class="gen-image-inner img-4">Diff Outfit</div></div>
+            <div class="gen-image"><div class="gen-image-inner img-1">Close Up</div></div>
+            <div class="gen-image"><div class="gen-image-inner img-2">Casual Pose</div></div>
+          </div>
+          <p style="margin-top:14px">Does this look like the same person across all images?</p>`;
+        }
+        if (next.isFinalize) {
+          extra = `<div style="margin-top:14px">
+            <div class="profile-field"><label style="font-size:13px;font-weight:500;margin-bottom:6px;display:block">Name</label><input type="text" placeholder="e.g. Sophia" style="padding:10px 14px;border:1px solid var(--light-line);border-radius:var(--radius-sm);font-size:14px;width:100%;max-width:280px;font-family:var(--font-body)"></div>
+            <div style="margin-top:12px">
+              <label style="font-size:13px;font-weight:500;margin-bottom:6px;display:block">Niche</label>
+              <div class="wizard-choices">
+                <button class="wizard-choice">Fitness</button>
+                <button class="wizard-choice">Lifestyle</button>
+                <button class="wizard-choice">Beauty</button>
+                <button class="wizard-choice">Fashion</button>
+                <button class="wizard-choice">Tech</button>
+                <button class="wizard-choice">Travel</button>
+              </div>
+            </div>
+          </div>`;
+        }
+
+        let choicesHtml = '';
+        if (next.choices && !next.isFinalize) {
+          choicesHtml = '<div class="wizard-choices">' +
+            next.choices.map(c =>
+              `<button class="wizard-choice" onclick="wizardStep(${currentWizardStep}, '${c}', this)">${c}</button>`
+            ).join('') + '</div>';
+        } else if (next.isFinalize) {
+          choicesHtml = `<div style="margin-top:16px"><button class="btn btn-primary" onclick="wizardStep(${currentWizardStep}, 'Saved!', this)">Save Creator</button></div>`;
+        }
+
+        aiMsg.innerHTML = `
+          <div class="msg-avatar bot">Ai</div>
+          <div class="msg-bubble">
+            <p>${next.question.replace(/\n/g, '<br>')}</p>
+            ${extra}
+            ${choicesHtml}
+          </div>
+        `;
+        document.getElementById('wizardMessages').appendChild(aiMsg);
+
+        // Scroll
+        const container = document.getElementById('wizardMessages');
+        container.scrollTop = container.scrollHeight;
+      }, 500);
+
+      // Scroll
+      const container = document.getElementById('wizardMessages');
+      container.scrollTop = container.scrollHeight;
+    }, 200);
+  }
+
+  // ── Template loading ──
+  function loadTemplate(id) {
+    switchView('chat');
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'chat-msg';
+      el.innerHTML = `
+        <div class="msg-avatar bot">Ai</div>
+        <div class="msg-bubble">
+          <p><strong>Gym Mirror Selfie</strong> template loaded!</p>
+          <p><strong>Setting:</strong> Gym locker room with big mirror<br><strong>Sophia is:</strong> Post-workout, slightly sweaty, holding phone</p>
+          <p>Customize:</p>
+          <div style="margin-bottom:8px"><span class="text-muted" style="font-size:13px">Outfit?</span></div>
+          <div class="wizard-choices" style="margin-bottom:12px">
+            <button class="wizard-choice">Matching set</button>
+            <button class="wizard-choice">Sports bra + shorts</button>
+            <button class="wizard-choice">Tank + leggings</button>
+          </div>
+          <div style="margin-bottom:8px"><span class="text-muted" style="font-size:13px">Mood?</span></div>
+          <div class="wizard-choices" style="margin-bottom:12px">
+            <button class="wizard-choice">Confident</button>
+            <button class="wizard-choice">Exhausted but proud</button>
+            <button class="wizard-choice">Casual</button>
+          </div>
+          <p>Ready to generate? This will cost <strong>2 credits</strong> for 3 images.</p>
+          <div style="margin-top:8px"><button class="btn btn-primary btn-sm">Generate &middot; 2 cr</button></div>
+        </div>
+      `;
+      document.getElementById('chatMessages').appendChild(el);
+      scrollChat();
+    }, 100);
+  }
+
+  // ── Settings sheet ──
+  function openSettings() {
+    document.getElementById('sheetOverlay').classList.add('open');
+    document.getElementById('settingsSheet').classList.add('open');
+  }
+  function closeSettings() {
+    document.getElementById('sheetOverlay').classList.remove('open');
+    document.getElementById('settingsSheet').classList.remove('open');
+  }
+
+  // ── Setting pill toggles ──
+  document.querySelectorAll('.setting-pills').forEach(group => {
+    group.querySelectorAll('.setting-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        group.querySelectorAll('.setting-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+      });
+    });
+  });
+
+  // ── Filter tab toggles ──
+  document.querySelectorAll('.library-filters, .premade-filters').forEach(group => {
+    group.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        group.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  });
+
+  // ── Niche tag toggles ──
+  document.querySelectorAll('.niche-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      tag.classList.toggle('selected');
+    });
+  });
+
+  // ── Toggle tracks ──
+  document.querySelectorAll('.toggle-track').forEach(track => {
+    track.addEventListener('click', () => {
+      track.classList.toggle('off');
+    });
+  });
+
+  // ── Creator profile click (click active creator name) ──
+  document.querySelectorAll('.creator-card').forEach(card => {
+    card.addEventListener('dblclick', () => {
+      switchViewDirect('profile');
+    });
+  });
+
+  // ── Theme toggle ──
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      html.removeAttribute('data-theme');
+    } else {
+      html.setAttribute('data-theme', 'dark');
+    }
+    document.getElementById('theme-icon-moon').style.display = isDark ? '' : 'none';
+    document.getElementById('theme-icon-sun').style.display = isDark ? 'none' : '';
+  }
+</script>
+
+</body>
+</html>

@@ -379,8 +379,8 @@ Suggested captions:
   userId: "user_xyz",
   
   type: "video", // or "image"
-  url: "s3://...",
-  thumbnailUrl: "s3://...",
+  url: "s3://ai-creator-app-bucket-for-my-app/...",
+  thumbnailUrl: "s3://ai-creator-app-bucket-for-my-app/...",
   
   // How it was made
   source: "template", // or "prompt" or "steal"
