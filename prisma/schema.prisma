@@ -1,0 +1,257 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Users ───────────────────────────────────────────
+
+model User {
+  id       String  @id @default(cuid())
+  clerkId  String  @unique
+  email    String  @unique
+  name     String?
+  imageUrl String?
+
+  // Subscription
+  plan                 Plan   @default(FREE)
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  planCredits          Int    @default(10)
+  packCredits          Int    @default(0)
+
+  // Relations
+  creators           Creator[]
+  creditTransactions CreditTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  UNLIMITED
+}
+
+// ─── Creators ────────────────────────────────────────
+
+model Creator {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  niche     String[]
+  isPreMade Boolean @default(false)
+  preMadeId String?
+
+  // Base images
+  baseImageUrl         String?
+  baseImageUpscaledUrl String?
+
+  // All wizard inputs stored as JSON
+  settings Json @default("{}")
+
+  // Reference images for consistency
+  referenceImages Json @default("[]")
+
+  // Voice
+  voiceId       String?
+  voiceProvider String?
+
+  // Stats
+  contentCount Int       @default(0)
+  lastUsedAt   DateTime?
+
+  // Relations
+  content Content[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ─── Content ─────────────────────────────────────────
+
+model Content {
+  id        String @id @default(cuid())
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  type   ContentType
+  status ContentStatus @default(GENERATING)
+
+  // Output
+  url          String?
+  thumbnailUrl String?
+  outputs      Json @default("[]")
+
+  // How it was made
+  source     ContentSource
+  templateId String?
+  prompt     String?
+  userInput  String?
+
+  // Generation details
+  generationSettings Json    @default("{}")
+  modelUsed          String?
+  creditsCost        Int     @default(0)
+
+  // Metadata
+  caption String?
+  tags    String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([creatorId, type])
+}
+
+enum ContentType {
+  IMAGE
+  VIDEO
+  TALKING_HEAD
+}
+
+enum ContentStatus {
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+enum ContentSource {
+  TEMPLATE
+  FREEFORM
+  RECREATE
+  WIZARD
+}
+
+// ─── Credits ─────────────────────────────────────────
+
+model CreditTransaction {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        TransactionType
+  amount      Int
+  balance     Int
+  description String
+  contentId   String?
+  stripePaymentId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
+enum TransactionType {
+  PLAN_GRANT
+  PURCHASE
+  SPEND
+  REFUND
+  BONUS
+}
+
+// ─── Generation Jobs ─────────────────────────────────
+
+model GenerationJob {
+  id        String @id @default(cuid())
+  userId    String
+  contentId String?
+
+  type   String
+  status JobStatus @default(QUEUED)
+
+  // Provider tracking
+  provider      String
+  providerJobId String?
+  modelId       String
+
+  // Input/output
+  input  Json
+  output Json?
+
+  // Cost tracking
+  estimatedCost Float?
+  actualCost    Float?
+
+  // Timing
+  startedAt   DateTime?
+  completedAt DateTime?
+  error       String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, status])
+  @@index([providerJobId])
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ─── Reference Collection ────────────────────────────
+
+model ReferenceAccount {
+  id        String   @id @default(cuid())
+  handle    String   @unique
+  name      String?
+  bio       String?
+  followers Int?
+  following Int?
+  postCount Int?
+  profilePicUrl String?
+
+  niche     String[]
+  gender    String?
+  vibe      String?
+  quality   Int?
+  notes     String?
+
+  posts     ReferencePost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReferencePost {
+  id        String   @id @default(cuid())
+  accountId String
+  account   ReferenceAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  shortcode     String
+  postUrl       String
+  s3Key         String
+  mediaType     String  @default("image")
+  width         Int?
+  height        Int?
+  caption       String?
+  carouselIndex Int     @default(0)
+
+  pose          String?
+  setting       String?
+  outfit        String?
+  lighting      String?
+  composition   String?
+  quality       Int?
+  isGoodReference Boolean @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([shortcode, carouselIndex])
+  @@index([accountId])
+  @@index([shortcode])
+}
