@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "Reference Collector",
+  "version": "1.0.0",
+  "description": "Collect Instagram reference photos for AI creator library.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "downloads"
+  ],
+  "host_permissions": [
+    "https://*.instagram.com/*",
+    "https://*.cdninstagram.com/*",
+    "https://*.fbcdn.net/*",
+    "https://*.fna.fbcdn.net/*",
+    "http://localhost:3000/*",
+    "https://*.amazonaws.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.instagram.com/*"],
+      "js": ["injector-instagram.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://*.instagram.com/*"],
+      "js": ["content-instagram.js"],
+      "css": ["toast.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icons/icon48.png"
+    }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["interceptor-instagram.js"],
+      "matches": ["https://*.instagram.com/*"]
+    }
+  ],
+  "icons": {
+    "48": "icons/icon48.png",
+    "128": "icons/icon48.png"
+  }
+}
