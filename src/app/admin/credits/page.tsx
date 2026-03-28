@@ -8,15 +8,15 @@ export default async function CreditsPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl p-8">
+    <div className="px-10 py-10">
       <h1 className="text-2xl font-bold">Credits</h1>
-      <p className="mt-1 text-sm text-zinc-400">{credits.length} transactions</p>
+      <p className="mt-2 text-sm text-zinc-400">{credits.length} transactions</p>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <CreditGrantForm users={users.map((u) => ({ id: u.id, email: u.email }))} />
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-zinc-800">
+      <div className="mt-8 overflow-auto rounded-xl border border-zinc-800">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-zinc-800 bg-zinc-900/50">

@@ -29,8 +29,8 @@ export function CreditGrantForm({ users }: { users: { id: string; email: string 
   };
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+      <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">
         Grant Credits
       </h2>
       <div className="flex flex-wrap items-end gap-4">

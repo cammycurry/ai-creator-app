@@ -17,8 +17,8 @@ const KIND_ICONS: Record<string, typeof Users> = {
 
 export function ActivityFeed({ items }: { items: ActivityItem[] }) {
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900">
-      <div className="border-b border-zinc-800 px-4 py-3">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
+      <div className="border-b border-zinc-800 px-6 py-4">
         <h2 className="text-sm font-semibold text-zinc-100">Recent Activity</h2>
       </div>
       <div className="divide-y divide-zinc-800/50">
@@ -27,9 +27,9 @@ export function ActivityFeed({ items }: { items: ActivityItem[] }) {
           return (
             <div
               key={item.id}
-              className="flex items-center gap-3 px-5 py-3"
+              className="flex items-center gap-4 px-6 py-3.5"
             >
-              <Icon className="h-3.5 w-3.5 text-zinc-500" />
+              <Icon className="h-4 w-4 shrink-0 text-zinc-600" />
               <span className="flex-1 text-sm text-zinc-300">
                 {item.description}
               </span>
@@ -41,7 +41,7 @@ export function ActivityFeed({ items }: { items: ActivityItem[] }) {
           );
         })}
         {items.length === 0 && (
-          <div className="px-4 py-8 text-center text-sm text-zinc-600">
+          <div className="px-6 py-12 text-center text-sm text-zinc-600">
             No activity yet.
           </div>
         )}

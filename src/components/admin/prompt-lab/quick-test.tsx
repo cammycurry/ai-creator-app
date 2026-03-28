@@ -78,8 +78,8 @@ export function QuickTest({ initialRuns }: { initialRuns: TestRun[] }) {
 
   return (
     <div>
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">
           Quick Test
         </h2>
 

@@ -26,7 +26,7 @@ const CARDS = [
 
 export function StatsCards({ stats }: { stats: Stats }) {
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
       {CARDS.map((card) => {
         const Icon = card.icon;
         const value = stats[card.key as keyof Stats];
@@ -36,17 +36,17 @@ export function StatsCards({ stats }: { stats: Stats }) {
         return (
           <div
             key={card.key}
-            className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-5 py-4"
+            className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-6 py-5"
           >
             <div className="flex items-center gap-2 text-zinc-400">
               <Icon className="h-4 w-4" />
-              <span className="text-xs">{card.label}</span>
+              <span className="text-xs font-medium uppercase tracking-wide">{card.label}</span>
             </div>
-            <div className="mt-2 text-2xl font-bold text-zinc-100">
+            <div className="mt-3 text-3xl font-bold text-zinc-100">
               {formatted}
             </div>
             {sub && (
-              <div className="mt-1 text-xs text-zinc-500">{sub}</div>
+              <div className="mt-2 text-xs text-zinc-500">{sub}</div>
             )}
           </div>
         );

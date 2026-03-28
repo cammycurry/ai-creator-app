@@ -38,7 +38,7 @@ export function AdminSidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex flex-1 flex-col gap-1 p-3">
+      <nav className="flex flex-1 flex-col gap-0.5 p-4">
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.href === "/admin"
