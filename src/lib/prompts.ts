@@ -134,12 +134,14 @@ export function buildReferencePrompt(
   const isMale = traits.gender?.toLowerCase() === "male";
   const subject = isMale ? "man" : "woman";
 
-  // Build role descriptions for each uploaded reference
+  // Image 0 is always the silhouette composition template (handled by wrapWithSilhouetteAndRefs).
+  // User reference images start at index 1, so offset by +2 for human-readable numbering.
   const roleDescs: string[] = [];
   slots.forEach((slot, i) => {
-    if (slot === "face") roleDescs.push(`Reference image ${i + 1} shows the face to ${mode === "exact" ? "recreate" : "draw inspiration from"}.`);
-    if (slot === "body") roleDescs.push(`Reference image ${i + 1} shows the body type to match.`);
-    if (slot === "full") roleDescs.push(`Reference image ${i + 1} shows the full person to ${mode === "exact" ? "recreate" : "draw inspiration from"}.`);
+    const imgNum = i + 2; // image 1 = silhouette, image 2+ = user refs
+    if (slot === "face") roleDescs.push(`Image ${imgNum} shows the face to ${mode === "exact" ? "recreate" : "draw inspiration from"}.`);
+    if (slot === "body") roleDescs.push(`Image ${imgNum} shows the body type to match.`);
+    if (slot === "full") roleDescs.push(`Image ${imgNum} shows the full person to ${mode === "exact" ? "recreate" : "draw inspiration from"}.`);
   });
 
   const modeInstruction = mode === "exact"
@@ -153,12 +155,23 @@ export function buildReferencePrompt(
   const traitLine = !description?.trim() ? buildTraitSummary(traits) : "";
 
   return [
-    `Reference: ${roleDescs.join(" ")}`,
+    roleDescs.join(" "),
     modeInstruction,
     descLine,
     traitLine,
     `${CAMERA}. Visible pores, photorealistic.`,
   ].filter(Boolean).join("\n");
+}
+
+// Wraps a reference-based prompt with silhouette composition instructions.
+// Image 1 = silhouette template, Images 2+ = user reference photos.
+export function wrapWithSilhouetteAndRefs(refPrompt: string): string {
+  return [
+    "Composition: Image 1 is a layout template showing a gray featureless silhouette on a white background.",
+    "It defines the exact framing, body position, crop level, and pose.",
+    "Strictly match this composition — frame from head to hips only, crop at the hips.",
+    `Subject: Replace the silhouette with a real photorealistic person. ${refPrompt}`,
+  ].join("\n");
 }
 
 function buildTraitSummary(traits: StudioTraits): string {

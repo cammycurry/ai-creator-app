@@ -10,12 +10,15 @@ const SLOTS = [
 ];
 
 const MAX_SIZE = 1024;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 async function resizeImage(file: File): Promise<{ dataUrl: string; base64: string; mimeType: string }> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Failed to read image file"));
     reader.onload = () => {
+      img.onerror = () => reject(new Error("Invalid image file"));
       img.onload = () => {
         const canvas = document.createElement("canvas");
         let { width, height } = img;
@@ -49,8 +52,16 @@ function UploadSlot({ slot }: { slot: typeof SLOTS[number] }) {
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) return;
-    const { dataUrl, base64, mimeType } = await resizeImage(file);
-    addReferenceImage({ slot: slot.id, dataUrl, base64, mimeType });
+    if (file.size > MAX_FILE_SIZE) {
+      alert("Image must be under 10MB");
+      return;
+    }
+    try {
+      const { dataUrl, base64, mimeType } = await resizeImage(file);
+      addReferenceImage({ slot: slot.id, dataUrl, base64, mimeType });
+    } catch {
+      alert("Could not process this image. Try a different file.");
+    }
   }, [slot.id, addReferenceImage]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {

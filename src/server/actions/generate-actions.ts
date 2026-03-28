@@ -20,6 +20,7 @@ import {
   buildReferencePrompt,
   ENHANCE_SYSTEM_PROMPT,
   wrapWithSilhouette,
+  wrapWithSilhouetteAndRefs,
   softenPrompt,
   fallbackEnhance,
 } from "@/lib/prompts";
@@ -295,8 +296,8 @@ export async function generateCreatorImagesWithRef(
     ...referenceData.map((r) => ({ mimeType: r.mimeType, data: r.base64 })),
   ];
 
-  // Wrap prompt with silhouette instructions
-  const fullPrompt = wrapWithSilhouette(prompt);
+  // Wrap prompt with silhouette + reference image instructions
+  const fullPrompt = wrapWithSilhouetteAndRefs(prompt);
 
   try {
     const results = await Promise.all(

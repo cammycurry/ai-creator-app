@@ -44,7 +44,6 @@ export async function generateSampleContent(
 
   const gender = (creator.settings as Record<string, string>)?.gender ?? null;
   const prompts = buildSampleContentPrompts(gender);
-  const SCENE_LABELS = ["Coffee Shop", "Gym", "Going Out"];
 
   try {
     const results = await Promise.allSettled(
