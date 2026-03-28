@@ -19,3 +19,20 @@
 - Community presets / trending presets
 - Categorized: by niche (fitness, lifestyle, beauty), by ethnicity, by vibe
 - Preview thumbnails for each preset so users can see what they'll get
+
+## JSON-Based Generation Schema
+- Structured JSON to describe a person/creator — detailed fields for every attribute
+- Use as config format for generations (like YAML config files but for people)
+- "Image to JSON" — take any image and extract a structured person description
+- API endpoint: POST JSON → get images back
+- Makes it trivial for agents/bots to create and manage influencers programmatically
+- Example schema: `{ gender, age, ethnicity, build, hair: { color, length, texture }, face: { shape, expression }, body: { chest, hips }, vibes: [], clothing, scene, camera }`
+
+## Agent API & Automation
+- Public API for creating influencers + generating content via JSON
+- Agent-friendly: simple REST endpoints, clear docs, SDKs
+- Bulk operations: create 10 influencers, generate 50 posts
+- Webhook callbacks when generations complete
+- Target: AI agent platforms can sign up and manage influencer accounts programmatically
+- Discord bot integration for community management
+- Marketing: teach people how to build and monetize AI influencer accounts

@@ -10,6 +10,18 @@
 
 import type { StudioTraits } from "@/stores/studio-store";
 
+// ─── User Input Sanitization ────────────────────────
+// Custom user inputs (build, age, vibe) go into prompts.
+// Strip anything that looks like prompt injection or system instructions.
+function sanitizeUserInput(input: string): string {
+  return input
+    .replace(/[{}[\]<>]/g, "") // strip brackets that could be prompt syntax
+    .replace(/\b(system|ignore|override|instruction|prompt|forget)\b/gi, "") // strip injection keywords
+    .replace(/\s{2,}/g, " ")
+    .trim()
+    .slice(0, 100); // cap length
+}
+
 // ─── Realism Anchors ─────────────────────────────────
 // These go at the end of every generation prompt.
 // "Canon EOS R5" alone is enough — full lens spec doesn't help.
@@ -88,11 +100,13 @@ export function buildWizardPrompt(traits: StudioTraits): string {
   const ethnicity = traits.ethnicity ? `${traits.ethnicity} ` : "";
 
   // Vibe — always leads (tested: vibe-first > face-first)
+  // Sanitize custom vibes (user-typed, not from preset list)
   const vibeText = traits.vibes.length > 0
-    ? `${traits.vibes.join(", ")} `
+    ? `${traits.vibes.map(sanitizeUserInput).join(", ")} `
     : "Sexy confident ";
 
   // Body + clothing — map UI labels to prompt-safe descriptions
+  // Custom user inputs (not in map) are sanitized and used as-is
   const BUILD_MAP: Record<string, string> = {
     "slim": "slim",
     "athletic": "athletic",
@@ -101,7 +115,8 @@ export function buildWizardPrompt(traits: StudioTraits): string {
     "muscular": "muscular",
     "average": "average",
   };
-  const buildDesc = BUILD_MAP[traits.build?.toLowerCase() ?? "athletic"] ?? "athletic";
+  const rawBuild = traits.build?.toLowerCase() ?? "athletic";
+  const buildDesc = BUILD_MAP[rawBuild] ?? sanitizeUserInput(rawBuild);
   let bodyDesc = "";
   let clothingTight = "";
 

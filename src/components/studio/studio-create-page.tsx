@@ -18,31 +18,21 @@ const PRESETS = premadeCreators.map((c) => ({
 const ETHNICITIES = ["European", "Latina", "East Asian", "South Asian", "Black", "Middle Eastern", "Mixed"];
 const AGE_RANGES = ["18-22", "23-27", "28-35", "36+"];
 
-const BUILDS_FEMALE = [
-  { label: "Slim", desc: "Lean & toned" },
-  { label: "Athletic", desc: "Fit & defined" },
-  { label: "Slim Thick", desc: "Narrow waist, full hips" },
-  { label: "Full Figure", desc: "Soft & natural" },
-];
-
-const BUILDS_MALE = [
-  { label: "Slim", desc: "Lean" },
-  { label: "Athletic", desc: "Toned" },
-  { label: "Muscular", desc: "Built" },
-  { label: "Average", desc: "Natural" },
-];
+const BUILDS_FEMALE = ["Slim", "Athletic", "Slim Thick", "Full Figure"];
+const BUILDS_MALE = ["Slim", "Athletic", "Muscular", "Average"];
 
 const CHEST_SIZES = ["Small", "Medium", "Medium-Large", "Large"];
 
+// Vibes — clear labels everyone understands
 const VIBES_FEMALE = [
   { label: "Girl Next Door", emoji: "🌻" },
   { label: "Glamorous", emoji: "✨" },
-  { label: "Sultry", emoji: "🔥" },
+  { label: "Sexy", emoji: "🔥" },
   { label: "Fitness", emoji: "💪" },
   { label: "Baddie", emoji: "💅" },
-  { label: "Soft & Sweet", emoji: "🌸" },
-  { label: "Sophisticated", emoji: "🍷" },
-  { label: "Natural Beauty", emoji: "🌿" },
+  { label: "Sweet", emoji: "🌸" },
+  { label: "Classy", emoji: "🍷" },
+  { label: "Natural", emoji: "🌿" },
 ];
 
 const VIBES_MALE = [
@@ -50,7 +40,7 @@ const VIBES_MALE = [
   { label: "Rugged", emoji: "🪵" },
   { label: "Athletic", emoji: "💪" },
   { label: "Street", emoji: "🔥" },
-  { label: "Sophisticated", emoji: "🍷" },
+  { label: "Classy", emoji: "🍷" },
   { label: "Bad Boy", emoji: "😈" },
   { label: "Chill", emoji: "🌊" },
   { label: "Creative", emoji: "🎨" },
@@ -66,6 +56,8 @@ export function StudioCreatePage() {
   } = useStudioStore();
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [customVibe, setCustomVibe] = useState("");
+  const [customBuild, setCustomBuild] = useState("");
+  const [customAge, setCustomAge] = useState("");
 
   const isMale = traits.gender === "Male";
   const builds = isMale ? BUILDS_MALE : BUILDS_FEMALE;
@@ -81,7 +73,6 @@ export function StudioCreatePage() {
 
   function applyPreset(preset: typeof PRESETS[number]) {
     if (activePreset === preset.id) {
-      // Deselect — clear description AND traits that were set
       setActivePreset(null);
       setDescription("");
       pickTrait("gender", "");
@@ -129,7 +120,7 @@ export function StudioCreatePage() {
         />
       </div>
 
-      {/* Reference Upload — near the top for easy access */}
+      {/* Reference Upload */}
       <ReferenceUpload />
 
       {/* Gender */}
@@ -164,45 +155,79 @@ export function StudioCreatePage() {
         </div>
       </div>
 
-      {/* Age — visible by default */}
+      {/* Age + custom */}
       <div className="studio-section">
         <div className="studio-section-label">Age</div>
         <div className="studio-chips">
           {AGE_RANGES.map((a) => (
             <button
               key={a}
-              onClick={() => pickTrait("age", a)}
+              onClick={() => { pickTrait("age", a); setCustomAge(""); }}
               className={`studio-chip${traits.age === a ? " active" : ""}`}
             >
               {a}
             </button>
           ))}
+          {/* Custom age shows as active chip */}
+          {traits.age && !AGE_RANGES.includes(traits.age) && (
+            <button className="studio-chip active" onClick={() => pickTrait("age", "")}>
+              {traits.age} &times;
+            </button>
+          )}
         </div>
+        <input
+          className="studio-inline-custom"
+          placeholder="Or type exact age..."
+          value={customAge}
+          onChange={(e) => setCustomAge(e.target.value.replace(/\D/g, ""))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && customAge.trim()) {
+              pickTrait("age", customAge.trim());
+              setCustomAge("");
+            }
+          }}
+        />
       </div>
 
-      {/* Build */}
+      {/* Build + custom */}
       <div className="studio-section">
         <div className="studio-section-label">Build</div>
         <div className="studio-chips">
           {builds.map((b) => (
             <button
-              key={b.label}
-              onClick={() => pickTrait("build", b.label)}
-              className={`studio-chip${traits.build === b.label ? " active" : ""}`}
-              title={b.desc}
+              key={b}
+              onClick={() => { pickTrait("build", b); setCustomBuild(""); }}
+              className={`studio-chip${traits.build === b ? " active" : ""}`}
             >
-              {b.label}
+              {b}
             </button>
           ))}
+          {traits.build && !builds.includes(traits.build) && (
+            <button className="studio-chip active" onClick={() => pickTrait("build", "")}>
+              {traits.build} &times;
+            </button>
+          )}
         </div>
+        <input
+          className="studio-inline-custom"
+          placeholder="Or describe body type..."
+          value={customBuild}
+          onChange={(e) => setCustomBuild(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && customBuild.trim()) {
+              pickTrait("build", customBuild.trim());
+              setCustomBuild("");
+            }
+          }}
+        />
       </div>
 
-      {/* Vibe — gender-specific */}
+      {/* Vibe — compact chips, not big cards */}
       <div className="studio-section">
         <div className="studio-section-label">
           Vibe <span style={{ fontWeight: 400, textTransform: "none", color: "var(--text-muted, #BBB)" }}>(up to {MAX_VIBES})</span>
         </div>
-        <div className="studio-vibe-cards">
+        <div className="studio-chips">
           {vibes.map((v) => {
             const selected = traits.vibes.includes(v.label);
             const disabled = !selected && traits.vibes.length >= MAX_VIBES;
@@ -215,38 +240,32 @@ export function StudioCreatePage() {
                   }
                 }}
                 disabled={disabled}
-                className={`studio-vibe-card${selected ? " active" : ""}`}
+                className={`studio-chip${selected ? " active" : ""}`}
                 style={disabled ? { opacity: 0.4, pointerEvents: "none" } : undefined}
               >
-                <div className="studio-vibe-emoji">{v.emoji}</div>
-                <div className="studio-vibe-label">{v.label}</div>
+                {v.emoji} {v.label}
               </button>
             );
           })}
-        </div>
-        {/* Custom vibe input */}
-        <div className="studio-custom-vibe">
-          <input
-            className="studio-custom-vibe-input"
-            placeholder="Or type a custom vibe..."
-            value={customVibe}
-            onChange={(e) => setCustomVibe(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && customVibe.trim() && traits.vibes.length < MAX_VIBES) {
-                toggleArrayTrait("vibes", customVibe.trim());
-                setCustomVibe("");
-              }
-            }}
-          />
-          {customVibe.trim() && traits.vibes.length < MAX_VIBES && (
-            <button
-              className="studio-custom-vibe-add"
-              onClick={() => { toggleArrayTrait("vibes", customVibe.trim()); setCustomVibe(""); }}
-            >
-              Add
+          {/* Custom vibes show as active chips */}
+          {traits.vibes.filter((v) => !vibes.some((p) => p.label === v)).map((v) => (
+            <button key={v} className="studio-chip active" onClick={() => toggleArrayTrait("vibes", v)}>
+              {v} &times;
             </button>
-          )}
+          ))}
         </div>
+        <input
+          className="studio-inline-custom"
+          placeholder="Or type a custom vibe..."
+          value={customVibe}
+          onChange={(e) => setCustomVibe(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && customVibe.trim() && traits.vibes.length < MAX_VIBES) {
+              toggleArrayTrait("vibes", customVibe.trim());
+              setCustomVibe("");
+            }
+          }}
+        />
       </div>
 
       {/* More Options (collapsible) */}
@@ -265,7 +284,6 @@ export function StudioCreatePage() {
 
       {fineTuneOpen && (
         <div className="studio-finetune-body">
-          {/* Chest Size (female only) */}
           {!isMale && (
             <div className="studio-section">
               <div className="studio-section-label">Chest Size</div>
