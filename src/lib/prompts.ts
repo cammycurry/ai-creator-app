@@ -56,12 +56,16 @@ export const CLOTHING_MALE = "Shirtless, wearing dark joggers";
 // - awesome-nanobanana-pro repo: "Important: do not change [X]" pattern works
 // - Labeled sections (Composition, Subject) communicate hierarchy
 
+// AIAC reference: front-facing, calm confident expression, arms down, waist-up crop.
+// Strict crop enforcement — no hip dips, no nudity, always clothed.
 export function wrapWithSilhouette(personPrompt: string): string {
   return [
     "Composition: The reference image is a layout template.",
     "It shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.",
     "Strictly match the silhouette's composition — do not change the framing, crop, or body position.",
-    "Frame the image from head to hips only. Crop at the hips — do not show anything below the waist.",
+    "Frame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.",
+    "IMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.",
+    "Pose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.",
     `Subject: Replace the gray silhouette with a real photorealistic person. ${personPrompt}`,
   ].join("\n");
 }
@@ -101,13 +105,18 @@ export function buildWizardPrompt(traits: StudioTraits): string {
   let bodyDesc = "";
   let clothingTight = "";
 
+  // Chest size mapping — be very explicit so Gemini actually renders the difference
   if (!isMale && traits.chestSize) {
-    const chest = traits.chestSize.toLowerCase();
-    if (chest === "large" || chest === "medium-large") {
-      bodyDesc = `, ${chest} bust with visible cleavage`;
+    const CHEST_MAP: Record<string, string> = {
+      "small": "small A-cup breasts, modest chest",
+      "medium": "medium B-cup breasts",
+      "medium-large": "large C-cup breasts with visible cleavage, chest filling the sports bra",
+      "large": "very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra",
+    };
+    const chestDesc = CHEST_MAP[traits.chestSize.toLowerCase()] ?? "medium breasts";
+    bodyDesc = `, ${chestDesc}`;
+    if (traits.chestSize.toLowerCase() === "large" || traits.chestSize.toLowerCase() === "medium-large") {
       clothingTight = "tight ";
-    } else {
-      bodyDesc = `, ${chest} bust`;
     }
   }
 
@@ -170,7 +179,9 @@ export function wrapWithSilhouetteAndRefs(refPrompt: string): string {
   return [
     "Composition: Image 1 is a layout template showing a gray featureless silhouette on a white background.",
     "It defines the exact framing, body position, crop level, and pose.",
-    "Strictly match this composition — frame from head to hips only, crop at the hips.",
+    "Strictly match this composition — frame from top of head to belly button ONLY. Do not show hips or anything below.",
+    "IMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear.",
+    "Pose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.",
     `Subject: Replace the silhouette with a real photorealistic person. ${refPrompt}`,
   ].join("\n");
 }

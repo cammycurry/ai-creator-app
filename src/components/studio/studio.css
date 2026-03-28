@@ -159,13 +159,14 @@
 .studio-gen-more:hover { opacity: 0.7; }
 
 /* ── Single-Page Create Layout ── */
-.studio-create-page { padding: 20px 24px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 0; }
+.studio-create-page { padding: 20px 24px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 0; position: relative; mask-image: linear-gradient(to bottom, black calc(100% - 32px), transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 32px), transparent 100%); }
 
 /* ── Preview Strip (compact, horizontal) ── */
-.studio-preview-strip { display: flex; align-items: center; gap: 12px; padding: 12px 24px; border-bottom: 1px solid var(--border, #EBEBEB); flex-shrink: 0; }
-.studio-preview-strip .studio-silhouette { width: 36px; height: 36px; border-radius: 8px; margin-bottom: 0; border-width: 1.5px; }
-.studio-preview-strip .studio-silhouette svg { width: 18px; height: 18px; }
-.studio-preview-strip .studio-summary { text-align: left; max-width: none; display: flex; flex-wrap: wrap; gap: 4px; }
+.studio-preview-strip { display: flex; align-items: center; gap: 12px; padding: 14px 24px; border-bottom: 1px solid var(--border, #EBEBEB); flex-shrink: 0; }
+.studio-preview-strip-text { display: flex; flex-direction: column; gap: 2px; }
+.studio-preview-strip-title { font-size: 13px; font-weight: 600; color: var(--text-primary, #111); }
+.studio-preview-strip-hint { font-size: 12px; color: var(--text-secondary, #888); }
+.studio-preview-strip .studio-summary { text-align: left; max-width: none; display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
 .studio-preview-strip .studio-summary-tag { font-size: 10px; padding: 1px 8px; }
 
 /* ── Reference Upload ── */
