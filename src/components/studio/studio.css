@@ -183,6 +183,14 @@
 .studio-ref-mode-btn:hover { border-color: #CCC; }
 .studio-ref-mode-btn.active { border-color: var(--accent, #C4603A); color: var(--accent, #C4603A); background: rgba(196, 96, 58, 0.06); }
 
+/* ── Custom Vibe Input ── */
+.studio-custom-vibe { display: flex; gap: 8px; margin-top: 10px; }
+.studio-custom-vibe-input { flex: 1; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border, #EBEBEB); border-radius: 10px; background: var(--surface, #fff); color: var(--text-primary, #111); font-family: inherit; transition: border-color 150ms; }
+.studio-custom-vibe-input:focus { border-color: var(--accent, #C4603A); outline: none; }
+.studio-custom-vibe-input::placeholder { color: var(--text-muted, #BBB); }
+.studio-custom-vibe-add { padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 600; background: var(--accent, #C4603A); color: #fff; border: none; cursor: pointer; transition: opacity 150ms; flex-shrink: 0; }
+.studio-custom-vibe-add:hover { opacity: 0.85; }
+
 /* ── More Options Toggle ── */
 .studio-finetune-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 0 12px; font-size: 12px; font-weight: 600; color: var(--text-muted, #BBB); cursor: pointer; border: none; background: none; width: 100%; text-align: left; transition: color 150ms; text-transform: uppercase; letter-spacing: 0.04em; }
 .studio-finetune-toggle:hover { color: var(--text-primary, #111); }

@@ -2,17 +2,21 @@
 
 import { useStudioStore } from "@/stores/studio-store";
 import { ReferenceUpload } from "./reference-upload";
+import { premadeCreators } from "@/data/premade-creators";
+import { useState } from "react";
 
-const PRESETS = [
-  { label: "Blonde Fitness", desc: "23 year old blonde, athletic build, toned abs, bright confident smile, fitness influencer energy" },
-  { label: "Brunette Glam", desc: "25 year old brunette, long dark wavy hair, glamorous, sultry confident gaze, model vibes" },
-  { label: "Asian Beauty", desc: "24 year old East Asian woman, sleek black hair, slim elegant, sophisticated natural beauty" },
-  { label: "Latina Baddie", desc: "22 year old latina, long dark hair, slim thick, bold confident, baddie energy" },
-  { label: "Redhead Sweet", desc: "26 year old redhead, fair skin, light freckles, soft sweet smile, girl next door vibes" },
-  { label: "Dark Skin Queen", desc: "24 year old Black woman, athletic, glowing dark skin, confident fierce expression, natural beauty" },
-];
+// Build presets from the premade creators library — easy to expand by editing premade-creators.ts
+const PRESETS = premadeCreators.map((c) => ({
+  id: c.id,
+  label: c.name,
+  gender: c.settings.gender as string,
+  desc: c.description,
+  vibe: c.vibe,
+  settings: c.settings,
+}));
 
 const ETHNICITIES = ["European", "Latina", "East Asian", "South Asian", "Black", "Middle Eastern", "Mixed"];
+const AGE_RANGES = ["18-22", "23-27", "28-35", "36+"];
 
 const BUILDS_FEMALE = [
   { label: "Slim", desc: "Lean & toned" },
@@ -28,10 +32,9 @@ const BUILDS_MALE = [
   { label: "Average", desc: "Natural" },
 ];
 
-const AGE_RANGES = ["18-22", "23-27", "28-35", "36+"];
 const CHEST_SIZES = ["Small", "Medium", "Medium-Large", "Large"];
 
-const VIBES = [
+const VIBES_FEMALE = [
   { label: "Girl Next Door", emoji: "🌻" },
   { label: "Glamorous", emoji: "✨" },
   { label: "Sultry", emoji: "🔥" },
@@ -42,6 +45,17 @@ const VIBES = [
   { label: "Natural Beauty", emoji: "🌿" },
 ];
 
+const VIBES_MALE = [
+  { label: "Clean Cut", emoji: "✨" },
+  { label: "Rugged", emoji: "🪵" },
+  { label: "Athletic", emoji: "💪" },
+  { label: "Street", emoji: "🔥" },
+  { label: "Sophisticated", emoji: "🍷" },
+  { label: "Bad Boy", emoji: "😈" },
+  { label: "Chill", emoji: "🌊" },
+  { label: "Creative", emoji: "🎨" },
+];
+
 const MAX_VIBES = 3;
 
 export function StudioCreatePage() {
@@ -50,9 +64,28 @@ export function StudioCreatePage() {
     traits, pickTrait, toggleArrayTrait,
     fineTuneOpen, setFineTuneOpen,
   } = useStudioStore();
+  const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [customVibe, setCustomVibe] = useState("");
 
-  const isFemale = traits.gender !== "Male";
-  const builds = traits.gender === "Male" ? BUILDS_MALE : BUILDS_FEMALE;
+  const isMale = traits.gender === "Male";
+  const builds = isMale ? BUILDS_MALE : BUILDS_FEMALE;
+  const vibes = isMale ? VIBES_MALE : VIBES_FEMALE;
+
+  function applyPreset(preset: typeof PRESETS[number]) {
+    if (activePreset === preset.id) {
+      // Deselect
+      setActivePreset(null);
+      setDescription("");
+      return;
+    }
+    setActivePreset(preset.id);
+    setDescription(preset.desc);
+    // Apply settings as traits
+    if (preset.settings.gender) pickTrait("gender", preset.settings.gender as string);
+    if (preset.settings.ethnicity) pickTrait("ethnicity", preset.settings.ethnicity as string);
+    if (preset.settings.build) pickTrait("build", preset.settings.build as string);
+    if (preset.settings.age) pickTrait("age", preset.settings.age as string);
+  }
 
   return (
     <div className="studio-create-page">
@@ -62,9 +95,10 @@ export function StudioCreatePage() {
         <div className="studio-presets">
           {PRESETS.map((p) => (
             <button
-              key={p.label}
-              className={`studio-preset${description === p.desc ? " active" : ""}`}
-              onClick={() => setDescription(description === p.desc ? "" : p.desc)}
+              key={p.id}
+              className={`studio-preset${activePreset === p.id ? " active" : ""}`}
+              onClick={() => applyPreset(p)}
+              title={`${p.vibe} — ${p.desc}`}
             >
               {p.label}
             </button>
@@ -79,10 +113,13 @@ export function StudioCreatePage() {
           className="studio-describe-input"
           placeholder="25 year old latina, long dark wavy hair, athletic, warm fitness influencer vibe..."
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => { setDescription(e.target.value); setActivePreset(null); }}
           rows={3}
         />
       </div>
+
+      {/* Reference Upload — near the top for easy access */}
+      <ReferenceUpload />
 
       {/* Gender */}
       <div className="studio-section">
@@ -116,6 +153,22 @@ export function StudioCreatePage() {
         </div>
       </div>
 
+      {/* Age — visible by default */}
+      <div className="studio-section">
+        <div className="studio-section-label">Age</div>
+        <div className="studio-chips">
+          {AGE_RANGES.map((a) => (
+            <button
+              key={a}
+              onClick={() => pickTrait("age", a)}
+              className={`studio-chip${traits.age === a ? " active" : ""}`}
+            >
+              {a}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Build */}
       <div className="studio-section">
         <div className="studio-section-label">Build</div>
@@ -133,13 +186,13 @@ export function StudioCreatePage() {
         </div>
       </div>
 
-      {/* Vibe */}
+      {/* Vibe — gender-specific */}
       <div className="studio-section">
         <div className="studio-section-label">
           Vibe <span style={{ fontWeight: 400, textTransform: "none", color: "var(--text-muted, #BBB)" }}>(up to {MAX_VIBES})</span>
         </div>
         <div className="studio-vibe-cards">
-          {VIBES.map((v) => {
+          {vibes.map((v) => {
             const selected = traits.vibes.includes(v.label);
             const disabled = !selected && traits.vibes.length >= MAX_VIBES;
             return (
@@ -160,6 +213,29 @@ export function StudioCreatePage() {
             );
           })}
         </div>
+        {/* Custom vibe input */}
+        <div className="studio-custom-vibe">
+          <input
+            className="studio-custom-vibe-input"
+            placeholder="Or type a custom vibe..."
+            value={customVibe}
+            onChange={(e) => setCustomVibe(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && customVibe.trim() && traits.vibes.length < MAX_VIBES) {
+                toggleArrayTrait("vibes", customVibe.trim());
+                setCustomVibe("");
+              }
+            }}
+          />
+          {customVibe.trim() && traits.vibes.length < MAX_VIBES && (
+            <button
+              className="studio-custom-vibe-add"
+              onClick={() => { toggleArrayTrait("vibes", customVibe.trim()); setCustomVibe(""); }}
+            >
+              Add
+            </button>
+          )}
+        </div>
       </div>
 
       {/* More Options (collapsible) */}
@@ -178,24 +254,8 @@ export function StudioCreatePage() {
 
       {fineTuneOpen && (
         <div className="studio-finetune-body">
-          {/* Age */}
-          <div className="studio-section">
-            <div className="studio-section-label">Age</div>
-            <div className="studio-chips">
-              {AGE_RANGES.map((a) => (
-                <button
-                  key={a}
-                  onClick={() => pickTrait("age", a)}
-                  className={`studio-chip${traits.age === a ? " active" : ""}`}
-                >
-                  {a}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Chest Size (female only) */}
-          {isFemale && (
+          {!isMale && (
             <div className="studio-section">
               <div className="studio-section-label">Chest Size</div>
               <div className="studio-chips">
@@ -213,9 +273,6 @@ export function StudioCreatePage() {
           )}
         </div>
       )}
-
-      {/* Reference Upload — compact, at the bottom */}
-      <ReferenceUpload />
     </div>
   );
 }
