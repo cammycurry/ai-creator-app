@@ -145,9 +145,11 @@
 
 
 /* ── Finish Form ── */
-.studio-finishing-form { padding: 32px 24px; overflow-y: auto; }
-.studio-finishing-title { font-size: 20px; font-weight: 700; color: var(--text-primary, #111); margin-bottom: 6px; }
-.studio-finishing-hint { font-size: 13px; color: var(--text-secondary, #888); margin-bottom: 28px; line-height: 1.5; }
+.studio-finishing-form { padding: 24px; overflow-y: auto; flex: 1; }
+.studio-finishing-preview { width: 120px; height: auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.studio-finishing-preview img { width: 100%; height: auto; display: block; }
+.studio-finishing-title { font-size: 18px; font-weight: 700; color: var(--text-primary, #111); margin-bottom: 4px; }
+.studio-finishing-hint { font-size: 13px; color: var(--text-secondary, #888); margin-bottom: 20px; line-height: 1.5; }
 .studio-finish-form { padding: 24px; }
 .studio-finish-field { margin-bottom: 20px; }
 .studio-finish-label { font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block; }

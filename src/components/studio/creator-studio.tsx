@@ -111,12 +111,13 @@ export function CreatorStudio({ fullScreen = false }: { fullScreen?: boolean }) 
           </div>
           <StudioCreatePage />
         </div>
+      ) : phase === "finishing" ? (
+        <div className="studio-body">
+          <StudioFinishing />
+        </div>
       ) : (
         <div className="studio-body">
           <StudioPreview />
-          {phase === "finishing" && (
-            <StudioFinishing />
-          )}
         </div>
       )}
 
