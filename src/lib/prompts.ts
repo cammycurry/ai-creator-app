@@ -16,8 +16,9 @@ import type { StudioTraits } from "@/stores/studio-store";
 // "Visible pores" is essential. "Light freckles" helps for fair skin only.
 
 export const CAMERA = "Canon EOS R5";
-export const REALISM_BASE = "Visible pores, photorealistic";
-export const REALISM_FRECKLES = "Visible pores, light freckles, photorealistic";
+export const EYES_OPEN = "Eyes open, looking directly at camera";
+export const REALISM_BASE = `${EYES_OPEN}. Visible pores, photorealistic`;
+export const REALISM_FRECKLES = `${EYES_OPEN}. Visible pores, light freckles, photorealistic`;
 
 // ─── Banned Words ────────────────────────────────────
 // NEVER use these in any prompt. Tested — they hurt output quality.

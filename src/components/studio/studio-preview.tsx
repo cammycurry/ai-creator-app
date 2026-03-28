@@ -22,7 +22,9 @@ function GeneratingPreview() {
   );
 }
 
-function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
+function ImageLightbox({ src, index, onClose }: { src: string; index: number; onClose: () => void }) {
+  const { selectImage, setPhase } = useStudioStore();
+
   return (
     <div className="studio-lightbox" onClick={onClose}>
       <button className="studio-lightbox-close" onClick={onClose}>
@@ -30,7 +32,15 @@ function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
           <path d="M18 6L6 18M6 6l12 12" />
         </svg>
       </button>
-      <img src={src} alt="Zoomed preview" onClick={(e) => e.stopPropagation()} />
+      <div className="studio-lightbox-inner" onClick={(e) => e.stopPropagation()}>
+        <img src={src} alt="Zoomed preview" />
+        <button
+          className="studio-lightbox-select"
+          onClick={() => { selectImage(index); setPhase("finishing"); onClose(); }}
+        >
+          Use This Look
+        </button>
+      </div>
     </div>
   );
 }
@@ -88,23 +98,11 @@ function PickingPreview() {
         {(generatedImages.length > 0 ? generatedImages : ["", "", "", ""]).map((img, i) => (
           <div
             key={i}
-            onClick={() => selectImage(i)}
+            onClick={() => img && setZoomedIndex(i)}
             className={`studio-gen-card${selectedImageIndex === i ? " selected" : ""}`}
           >
             {img ? (
-              <>
-                <img src={img} alt={`Generated option ${i + 1}`} />
-                <button
-                  className="studio-zoom-btn"
-                  onClick={(e) => { e.stopPropagation(); setZoomedIndex(i); }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="M21 21l-4.35-4.35" />
-                    <path d="M11 8v6M8 11h6" />
-                  </svg>
-                </button>
-              </>
+              <img src={img} alt={`Generated option ${i + 1}`} />
             ) : (
               <div className="studio-shimmer" />
             )}
@@ -120,6 +118,7 @@ function PickingPreview() {
       {zoomedIndex !== null && generatedImages[zoomedIndex] && (
         <ImageLightbox
           src={generatedImages[zoomedIndex]}
+          index={zoomedIndex}
           onClose={() => setZoomedIndex(null)}
         />
       )}
