@@ -14,7 +14,7 @@ export default async function PromptLabPage() {
   }));
 
   return (
-    <div className="p-8">
+    <div className="mx-auto max-w-7xl p-8">
       <h1 className="text-2xl font-bold">Prompt Lab</h1>
       <p className="mt-1 text-sm text-zinc-400">
         Test prompts and generation pipelines.

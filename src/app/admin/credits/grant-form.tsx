@@ -33,9 +33,9 @@ export function CreditGrantForm({ users }: { users: { id: string; email: string 
       <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
         Grant Credits
       </h2>
-      <div className="flex items-end gap-3">
+      <div className="flex flex-wrap items-end gap-4">
         <div className="w-64">
-          <label className="mb-1 block text-xs text-zinc-500">User</label>
+          <label className="mb-1.5 block text-xs text-zinc-500">User</label>
           <select
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
@@ -48,7 +48,7 @@ export function CreditGrantForm({ users }: { users: { id: string; email: string 
           </select>
         </div>
         <div className="w-24">
-          <label className="mb-1 block text-xs text-zinc-500">Amount</label>
+          <label className="mb-1.5 block text-xs text-zinc-500">Amount</label>
           <input
             type="number"
             value={amount}
@@ -58,7 +58,7 @@ export function CreditGrantForm({ users }: { users: { id: string; email: string 
           />
         </div>
         <div className="w-28">
-          <label className="mb-1 block text-xs text-zinc-500">Type</label>
+          <label className="mb-1.5 block text-xs text-zinc-500">Type</label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value as "BONUS" | "REFUND")}
@@ -69,7 +69,7 @@ export function CreditGrantForm({ users }: { users: { id: string; email: string 
           </select>
         </div>
         <div className="flex-1">
-          <label className="mb-1 block text-xs text-zinc-500">Description</label>
+          <label className="mb-1.5 block text-xs text-zinc-500">Description</label>
           <input
             type="text"
             value={description}

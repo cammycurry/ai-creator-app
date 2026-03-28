@@ -91,9 +91,9 @@ export function QuickTest({ initialRuns }: { initialRuns: TestRun[] }) {
           rows={4}
         />
 
-        <div className="mt-3 flex items-end gap-3">
+        <div className="mt-4 flex flex-wrap items-end gap-4">
           <div className="w-36">
-            <label className="mb-1 block text-xs text-zinc-500">Preset</label>
+            <label className="mb-1.5 block text-xs text-zinc-500">Preset</label>
             <select
               onChange={(e) => handlePreset(e.target.value)}
               className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100"
@@ -105,8 +105,8 @@ export function QuickTest({ initialRuns }: { initialRuns: TestRun[] }) {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs text-zinc-500">Model</label>
-            <div className="flex gap-0.5 rounded-md bg-zinc-800 p-0.5">
+            <label className="mb-1.5 block text-xs text-zinc-500">Model</label>
+            <div className="flex rounded-md border border-zinc-700 bg-zinc-800 p-1">
               {[
                 { id: "gemini-3-pro-image-preview", label: "NBPro" },
                 { id: "gemini-3.1-flash-image-preview", label: "NB2" },
@@ -114,7 +114,7 @@ export function QuickTest({ initialRuns }: { initialRuns: TestRun[] }) {
                 <button
                   key={m.id}
                   onClick={() => setSelectedModel(m.id)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`rounded px-4 py-1.5 text-xs font-medium transition-colors ${
                     selectedModel === m.id
                       ? "bg-[#C4603A] text-white"
                       : "text-zinc-400 hover:text-zinc-200"
@@ -127,7 +127,7 @@ export function QuickTest({ initialRuns }: { initialRuns: TestRun[] }) {
           </div>
 
           <div className="w-20">
-            <label className="mb-1 block text-xs text-zinc-500">Count</label>
+            <label className="mb-1.5 block text-xs text-zinc-500">Count</label>
             <input
               type="number"
               value={imageCount}
@@ -138,8 +138,8 @@ export function QuickTest({ initialRuns }: { initialRuns: TestRun[] }) {
             />
           </div>
 
-          <div className="w-40">
-            <label className="mb-1 block text-xs text-zinc-500">Label</label>
+          <div className="w-36">
+            <label className="mb-1.5 block text-xs text-zinc-500">Label</label>
             <input
               type="text"
               value={testLabel}
@@ -149,8 +149,8 @@ export function QuickTest({ initialRuns }: { initialRuns: TestRun[] }) {
             />
           </div>
 
-          <div className="flex-1">
-            <label className="mb-1 block text-xs text-zinc-500">Reference Image (optional)</label>
+          <div className="min-w-48 flex-1">
+            <label className="mb-1.5 block text-xs text-zinc-500">Reference Image (optional)</label>
             <input
               type="text"
               value={refPath}
@@ -163,7 +163,7 @@ export function QuickTest({ initialRuns }: { initialRuns: TestRun[] }) {
           <button
             onClick={handleGenerate}
             disabled={isPending || !promptText.trim()}
-            className="rounded-md bg-[#C4603A] px-5 py-2 text-sm font-semibold text-white hover:bg-[#d4704a] disabled:opacity-50"
+            className="rounded-md bg-[#C4603A] px-6 py-2 text-sm font-semibold text-white hover:bg-[#d4704a] disabled:opacity-50"
           >
             {isPending ? "Generating..." : "Generate"}
           </button>

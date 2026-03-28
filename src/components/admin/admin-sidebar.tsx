@@ -51,7 +51,7 @@ export function AdminSidebar() {
               href={item.href}
               className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
                 isActive
-                  ? "bg-zinc-800 text-zinc-100"
+                  ? "bg-zinc-800/80 text-white font-medium"
                   : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
               }`}
             >

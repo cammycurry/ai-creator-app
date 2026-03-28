@@ -4,7 +4,7 @@ export default async function CreatorsPage() {
   const creators = await getAdminCreators();
 
   return (
-    <div className="p-8">
+    <div className="p-8 [&_table]:min-w-[800px]">
       <h1 className="text-2xl font-bold">Creators</h1>
       <p className="mt-1 text-sm text-zinc-400">{creators.length} total creators</p>
 

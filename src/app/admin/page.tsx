@@ -10,17 +10,17 @@ export default async function AdminDashboard() {
   ]);
 
   return (
-    <div className="p-8">
+    <div className="mx-auto max-w-6xl p-8">
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <p className="mt-1 text-sm text-zinc-400">
         System overview for realinfluencer.ai
       </p>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <StatsCards stats={stats} />
       </div>
 
-      <div className="mt-6 flex gap-3">
+      <div className="mt-8 flex gap-3">
         <Link
           href="/admin/prompt-lab"
           className="rounded-md bg-[#C4603A] px-4 py-2 text-sm font-medium text-white hover:bg-[#d4704a]"
@@ -41,7 +41,7 @@ export default async function AdminDashboard() {
         </Link>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <ActivityFeed items={activity} />
       </div>
     </div>

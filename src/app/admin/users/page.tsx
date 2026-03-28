@@ -4,7 +4,7 @@ export default async function UsersPage() {
   const users = await getAdminUsers();
 
   return (
-    <div className="p-8">
+    <div className="p-8 [&_table]:min-w-[800px]">
       <h1 className="text-2xl font-bold">Users</h1>
       <p className="mt-1 text-sm text-zinc-400">{users.length} total users</p>
 

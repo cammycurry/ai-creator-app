@@ -24,7 +24,7 @@ export function TestResults({ runs }: { runs: TestRun[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {runs.map((run) => (
         <div
           key={run.id}
@@ -69,7 +69,7 @@ export function TestResults({ runs }: { runs: TestRun[] }) {
             {run.prompt}
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 p-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {run.images.map((img, i) => (
               <div
                 key={img}

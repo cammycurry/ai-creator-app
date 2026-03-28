@@ -4,7 +4,7 @@ export default async function ContentPage() {
   const content = await getAdminContent();
 
   return (
-    <div className="p-8">
+    <div className="p-8 [&_table]:min-w-[900px]">
       <h1 className="text-2xl font-bold">Content</h1>
       <p className="mt-1 text-sm text-zinc-400">{content.length} total pieces</p>
 

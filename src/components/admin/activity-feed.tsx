@@ -27,7 +27,7 @@ export function ActivityFeed({ items }: { items: ActivityItem[] }) {
           return (
             <div
               key={item.id}
-              className="flex items-center gap-3 px-4 py-2.5"
+              className="flex items-center gap-3 px-5 py-3"
             >
               <Icon className="h-3.5 w-3.5 text-zinc-500" />
               <span className="flex-1 text-sm text-zinc-300">

@@ -4,7 +4,7 @@ export default async function JobsPage() {
   const jobs = await getAdminJobs();
 
   return (
-    <div className="p-8">
+    <div className="p-8 [&_table]:min-w-[900px]">
       <h1 className="text-2xl font-bold">Generation Jobs</h1>
       <p className="mt-1 text-sm text-zinc-400">{jobs.length} total jobs</p>
 

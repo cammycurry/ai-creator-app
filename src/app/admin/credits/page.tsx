@@ -8,7 +8,7 @@ export default async function CreditsPage() {
   ]);
 
   return (
-    <div className="p-8">
+    <div className="mx-auto max-w-6xl p-8">
       <h1 className="text-2xl font-bold">Credits</h1>
       <p className="mt-1 text-sm text-zinc-400">{credits.length} transactions</p>
 
