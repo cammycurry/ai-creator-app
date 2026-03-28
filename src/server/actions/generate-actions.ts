@@ -17,6 +17,7 @@ import type { StudioTraits } from "@/stores/studio-store";
 import {
   buildWizardPrompt,
   buildVariationPrompt,
+  buildReferencePrompt,
   ENHANCE_SYSTEM_PROMPT,
   wrapWithSilhouette,
   softenPrompt,
@@ -107,10 +108,10 @@ async function enhanceDescribePrompt(rawDescription: string): Promise<string> {
 // Extract image from Gemini response, with optional safety retry
 async function generateWithRetry(
   prompt: string,
-  referenceImage?: { mimeType: string; data: string }
+  referenceImages?: { mimeType: string; data: string }[]
 ): Promise<{ data: string } | null> {
-  const contents = referenceImage
-    ? [{ text: prompt }, { inlineData: referenceImage }]
+  const contents = referenceImages && referenceImages.length > 0
+    ? [{ text: prompt }, ...referenceImages.map((ref) => ({ inlineData: ref }))]
     : prompt;
 
   try {
@@ -134,8 +135,8 @@ async function generateWithRetry(
     const softened = softenPrompt(prompt);
     if (softened === prompt) return null;
 
-    const retryContents = referenceImage
-      ? [{ text: softened }, { inlineData: referenceImage }]
+    const retryContents = referenceImages && referenceImages.length > 0
+      ? [{ text: softened }, ...referenceImages.map((ref) => ({ inlineData: ref }))]
       : softened;
 
     const retry = await ai.models.generateContent({
@@ -219,7 +220,7 @@ export async function generateCreatorImages(
     // Generate all images in parallel with the silhouette template
     const results = await Promise.all(
       Array.from({ length: count }, () =>
-        generateWithRetry(refPrompt, templateRef)
+        generateWithRetry(refPrompt, [templateRef])
       )
     );
 
@@ -264,6 +265,83 @@ export async function generateCreatorImages(
   }
 }
 
+// ─── Generate Creator Images with User-Provided Reference Photos ─────
+
+export async function generateCreatorImagesWithRef(
+  traits: StudioTraits,
+  description: string | undefined,
+  referenceData: { slot: "face" | "body" | "full"; base64: string; mimeType: string }[],
+  mode: "exact" | "inspired",
+  count: number = 4
+): Promise<GenerateResult> {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return { success: false, error: "Not authenticated" };
+
+  const user = await db.user.findUnique({ where: { clerkId } });
+  if (!user) return { success: false, error: "User not found" };
+
+  const totalCredits = user.planCredits + user.packCredits;
+  if (totalCredits < CREATOR_WIZARD_CREDIT_COST) {
+    return { success: false, error: `Not enough credits. Need ${CREATOR_WIZARD_CREDIT_COST}, have ${totalCredits}.` };
+  }
+
+  const slots = referenceData.map((r) => r.slot);
+  const prompt = buildReferencePrompt(traits, description, mode, slots);
+
+  // Combine composition template + user reference images
+  const templateRef = getTemplateRef();
+  const refImages = [
+    templateRef,
+    ...referenceData.map((r) => ({ mimeType: r.mimeType, data: r.base64 })),
+  ];
+
+  // Wrap prompt with silhouette instructions
+  const fullPrompt = wrapWithSilhouette(prompt);
+
+  try {
+    const results = await Promise.all(
+      Array.from({ length: count }, () =>
+        generateWithRetry(fullPrompt, refImages)
+      )
+    );
+
+    const s3Keys: string[] = [];
+    for (let i = 0; i < results.length; i++) {
+      if (results[i]) {
+        const key = await uploadBase64ToS3(results[i]!.data, user.id, i);
+        s3Keys.push(key);
+      }
+    }
+
+    if (s3Keys.length === 0) {
+      return { success: false, error: "This look couldn't be generated. Try adjusting your description." };
+    }
+
+    const images = await Promise.all(s3Keys.map((key) => getSignedImageUrl(key)));
+
+    await deductCredits(user.id, CREATOR_WIZARD_CREDIT_COST, "Creator wizard — generate with reference");
+
+    await db.generationJob.create({
+      data: {
+        userId: user.id,
+        type: "creator_wizard",
+        status: "COMPLETED",
+        provider: "google",
+        modelId: IMAGE_MODEL,
+        input: JSON.parse(JSON.stringify({ traits, mode, refSlots: slots })),
+        output: JSON.parse(JSON.stringify({ imageCount: s3Keys.length, s3Keys })),
+        estimatedCost: 0.02 * count,
+        completedAt: new Date(),
+      },
+    });
+
+    return { success: true, images, keys: s3Keys };
+  } catch (error) {
+    console.error("generateCreatorImagesWithRef error:", error);
+    return { success: false, error: "Image generation failed. Please try again." };
+  }
+}
+
 // ─── "More Like This" — generate variations from a reference image ───
 
 export async function generateMoreLikeThis(
@@ -294,7 +372,7 @@ export async function generateMoreLikeThis(
     const prompt = buildVariationPrompt(traits, refinement);
 
     const imagePromises = Array.from({ length: count }, () =>
-      generateWithRetry(prompt, referenceImage)
+      generateWithRetry(prompt, [referenceImage])
     );
 
     const results = await Promise.all(imagePromises);
@@ -320,16 +398,6 @@ export async function generateMoreLikeThis(
     console.error("generateMoreLikeThis error:", error);
     return { success: false, error: "Generation failed. Please try again." };
   }
-}
-
-// ─── Validation (removed — validation phase no longer exists) ───
-// Stub kept for compatibility until studio-footer.tsx is updated in Task 7.
-
-export async function generateValidationImages(
-  _traits: StudioTraits,
-  _baseImageKey: string
-): Promise<GenerateResult> {
-  return { success: false, error: "Validation phase removed" };
 }
 
 // ─── Finalize Creator ─────────────────────────────────
