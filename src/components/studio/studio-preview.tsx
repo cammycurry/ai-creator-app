@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useStudioStore } from "@/stores/studio-store";
+import { generateMoreLikeThis } from "@/server/actions/generate-actions";
 
 function GeneratingPreview() {
   return (
@@ -22,29 +23,6 @@ function GeneratingPreview() {
   );
 }
 
-function ImageLightbox({ src, index, onClose }: { src: string; index: number; onClose: () => void }) {
-  const { selectImage, setPhase } = useStudioStore();
-
-  return (
-    <div className="studio-lightbox" onClick={onClose}>
-      <button className="studio-lightbox-close" onClick={onClose}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M18 6L6 18M6 6l12 12" />
-        </svg>
-      </button>
-      <div className="studio-lightbox-inner" onClick={(e) => e.stopPropagation()}>
-        <img src={src} alt="Zoomed preview" />
-        <button
-          className="studio-lightbox-select"
-          onClick={() => { selectImage(index); setPhase("finishing"); onClose(); }}
-        >
-          Use This Look
-        </button>
-      </div>
-    </div>
-  );
-}
-
 const REFINE_CHIPS = [
   "Darker hair",
   "Lighter hair",
@@ -55,6 +33,116 @@ const REFINE_CHIPS = [
   "Bigger smile",
   "More serious",
 ];
+
+function ImageLightbox({ src, index, onClose }: { src: string; index: number; onClose: () => void }) {
+  const {
+    traits, generatedKeys, referenceImages,
+    selectImage, setPhase, setIsGenerating, setError,
+    setGenerationStep, setGeneratedImages, setRefineMode,
+  } = useStudioStore();
+  const [refineText, setRefineTextLocal] = useState("");
+  const [showRefine, setShowRefine] = useState(false);
+
+  async function handleLightboxMoreLikeThis(refinement?: string) {
+    selectImage(index);
+    const refKey = generatedKeys[index];
+    if (!refKey) return;
+
+    onClose();
+    setIsGenerating(true);
+    setError(null);
+    setRefineMode(false);
+    setPhase("generating");
+    setGenerationStep("base");
+
+    const userRefs = referenceImages.length > 0
+      ? referenceImages.map((r) => ({ base64: r.base64, mimeType: r.mimeType }))
+      : undefined;
+
+    const result = await generateMoreLikeThis(traits, refKey, 4, refinement, userRefs);
+
+    if (result.success) {
+      setGeneratedImages(result.images, result.keys);
+    } else {
+      setError(result.error ?? "Generation failed");
+      setPhase("picking");
+      setIsGenerating(false);
+    }
+    setGenerationStep("idle");
+  }
+
+  return (
+    <div className="studio-lightbox" onClick={onClose}>
+      <button className="studio-lightbox-close" onClick={onClose}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button>
+      <div className="studio-lightbox-inner" onClick={(e) => e.stopPropagation()}>
+        <img src={src} alt="Zoomed preview" />
+        <div className="studio-lightbox-actions">
+          <button
+            className="studio-lightbox-btn primary"
+            onClick={() => { selectImage(index); setPhase("finishing"); onClose(); }}
+          >
+            Use This Look
+          </button>
+          <button
+            className="studio-lightbox-btn secondary"
+            onClick={() => handleLightboxMoreLikeThis()}
+          >
+            More Like This
+          </button>
+          <button
+            className="studio-lightbox-btn secondary"
+            onClick={() => setShowRefine(!showRefine)}
+          >
+            Refine
+          </button>
+        </div>
+        {showRefine && (
+          <div className="studio-lightbox-refine">
+            <div className="studio-refine-chips">
+              {REFINE_CHIPS.map((chip) => (
+                <button
+                  key={chip}
+                  className={`studio-refine-chip${refineText.toLowerCase().includes(chip.toLowerCase()) ? " active" : ""}`}
+                  onClick={() => {
+                    if (refineText.toLowerCase().includes(chip.toLowerCase())) {
+                      setRefineTextLocal(refineText.replace(new RegExp(chip, "i"), "").replace(/,\s*,/g, ",").replace(/^,\s*|,\s*$/g, "").trim());
+                    } else {
+                      setRefineTextLocal(refineText ? `${refineText}, ${chip.toLowerCase()}` : chip.toLowerCase());
+                    }
+                  }}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+            <div className="studio-lightbox-refine-row">
+              <input
+                className="studio-refine-input"
+                placeholder="Describe what to change..."
+                value={refineText}
+                onChange={(e) => setRefineTextLocal(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && refineText.trim()) handleLightboxMoreLikeThis(refineText);
+                }}
+              />
+              <button
+                className="studio-lightbox-btn primary"
+                disabled={!refineText.trim()}
+                onClick={() => handleLightboxMoreLikeThis(refineText)}
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function RefinePanel() {
   const { refineText, setRefineText } = useStudioStore();
@@ -98,11 +186,23 @@ function PickingPreview() {
         {(generatedImages.length > 0 ? generatedImages : ["", "", "", ""]).map((img, i) => (
           <div
             key={i}
-            onClick={() => img && setZoomedIndex(i)}
+            onClick={() => img && selectImage(i)}
             className={`studio-gen-card${selectedImageIndex === i ? " selected" : ""}`}
           >
             {img ? (
-              <img src={img} alt={`Generated option ${i + 1}`} />
+              <>
+                <img src={img} alt={`Generated option ${i + 1}`} />
+                <button
+                  className="studio-zoom-btn"
+                  onClick={(e) => { e.stopPropagation(); setZoomedIndex(i); }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
+                    <path d="M11 8v6M8 11h6" />
+                  </svg>
+                </button>
+              </>
             ) : (
               <div className="studio-shimmer" />
             )}
