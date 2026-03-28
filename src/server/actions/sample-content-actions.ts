@@ -35,6 +35,8 @@ export async function generateSampleContent(
   const creatorCount = await db.creator.count({ where: { userId: user.id } });
   const isFirstCreator = creatorCount <= 1;
 
+  if (!creator.baseImageUrl) return { success: false, error: "Creator has no base image" };
+
   // Get the base image as reference
   const refBuffer = await getImageBuffer(creator.baseImageUrl);
   const refBase64 = refBuffer.toString("base64");
@@ -78,14 +80,13 @@ export async function generateSampleContent(
       await db.content.create({
         data: {
           creatorId: creator.id,
-          userId: user.id,
-          type: "PHOTO",
+          type: "IMAGE",
           status: "COMPLETED",
           url,
-          s3Key: key,
+          outputs: JSON.parse(JSON.stringify([key])),
+          source: "FREEFORM",
           prompt: prompts[i],
           creditsCost: isFirstCreator ? 0 : 1,
-          metadata: JSON.parse(JSON.stringify({ scene: SCENE_LABELS[i], sample: true })),
         },
       });
 
