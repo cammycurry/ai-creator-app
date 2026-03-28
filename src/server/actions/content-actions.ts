@@ -1,0 +1,290 @@
+"use server";
+
+import { auth } from "@clerk/nextjs/server";
+import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
+import { db } from "@/lib/db";
+import { uploadImage, getSignedImageUrl, getImageBuffer } from "@/lib/s3";
+import { deductCredits } from "./credit-actions";
+import { stripAndRewrite } from "@/lib/ai/metadata-strip";
+import type { ContentItem } from "@/types/content";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+const IMAGE_MODEL = "gemini-3-pro-image-preview";
+
+const SAFETY_OFF = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+];
+
+const CREDIT_PER_IMAGE = 1;
+
+// ─── Prompt Builder (Content, not Wizard) ─────
+
+type CreatorSettings = {
+  gender?: string | null;
+  age?: string | null;
+  ethnicity?: string | null;
+  skinTone?: number | null;
+  hairColor?: string | null;
+  hairLength?: string | null;
+  hairTexture?: string | null;
+  eyeColor?: string | null;
+  eyeShape?: string | null;
+  faceShape?: string | null;
+  lips?: string | null;
+  build?: string | null;
+  features?: string[];
+};
+
+function buildContentPrompt(settings: CreatorSettings, enhancedPrompt: string): string {
+  // Locked traits from creator settings — injected after the enhanced prompt
+  const traitParts: string[] = [];
+  if (settings.hairColor) traitParts.push(`${settings.hairColor.toLowerCase()} hair`);
+  if (settings.hairLength) traitParts.push(`${settings.hairLength.toLowerCase()} length`);
+  if (settings.eyeColor) traitParts.push(`${settings.eyeColor.toLowerCase()} eyes`);
+  if (settings.build) traitParts.push(`${settings.build.toLowerCase()} build`);
+  if (settings.ethnicity) traitParts.push(`${settings.ethnicity} ethnicity`);
+  const traitDesc = traitParts.length > 0 ? ` Physical traits: ${traitParts.join(", ")}.` : "";
+
+  return `${enhancedPrompt.trim()}${traitDesc} From the reference image.`;
+}
+
+// ─── Upload helper ─────
+
+async function uploadBase64ToS3(
+  base64Data: string,
+  userId: string,
+  creatorId: string,
+  index: number
+): Promise<string> {
+  const raw = Buffer.from(base64Data, "base64");
+  const clean = await stripAndRewrite(raw);
+  const timestamp = Date.now();
+  const key = `users/${userId}/creators/${creatorId}/content/${timestamp}-${index}.jpg`;
+  await uploadImage(clean, key, "image/jpeg");
+  return key;
+}
+
+// ─── Generate Content ─────
+
+type GenerateContentResult =
+  | { success: true; content: ContentItem[] }
+  | { success: false; error: string };
+
+export async function generateContent(
+  creatorId: string,
+  userPrompt: string,
+  imageCount: number = 1
+): Promise<GenerateContentResult> {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return { success: false, error: "Not authenticated" };
+
+  const user = await db.user.findUnique({ where: { clerkId } });
+  if (!user) return { success: false, error: "User not found" };
+
+  // Validate image count
+  const count = Math.min(Math.max(Math.round(imageCount), 1), 4);
+  const creditCost = count * CREDIT_PER_IMAGE;
+
+  const totalCredits = user.planCredits + user.packCredits;
+  if (totalCredits < creditCost) {
+    return {
+      success: false,
+      error: `Not enough credits. Need ${creditCost}, have ${totalCredits}.`,
+    };
+  }
+
+  // Load creator
+  const creator = await db.creator.findUnique({
+    where: { id: creatorId, userId: user.id },
+  });
+  if (!creator) return { success: false, error: "Creator not found" };
+
+  const settings = (creator.settings ?? {}) as CreatorSettings;
+
+  const prompt = buildContentPrompt(settings, userPrompt);
+
+  try {
+    // Download creator's base reference image from S3
+    let baseImageBase64: string | null = null;
+    if (creator.baseImageUrl) {
+      try {
+        const buf = await getImageBuffer(creator.baseImageUrl);
+        baseImageBase64 = buf.toString("base64");
+      } catch (e) {
+        console.error("Failed to load base image for reference:", e);
+      }
+    }
+
+    // Generate N images in parallel, passing reference image when available
+    const imagePromises = Array.from({ length: count }, () =>
+      ai.models.generateContent({
+        model: IMAGE_MODEL,
+        contents: baseImageBase64
+          ? [
+              { text: prompt },
+              { inlineData: { mimeType: "image/jpeg", data: baseImageBase64 } },
+            ]
+          : prompt,
+        config: {
+          responseModalities: ["TEXT", "IMAGE"],
+          safetySettings: SAFETY_OFF,
+        },
+      })
+    );
+
+    const results = await Promise.allSettled(imagePromises);
+
+    // Upload successful images to S3
+    const s3Keys: string[] = [];
+    let idx = 0;
+    for (const result of results) {
+      if (result.status === "fulfilled" && result.value.candidates?.[0]?.content?.parts) {
+        for (const part of result.value.candidates[0].content.parts) {
+          if (part.inlineData?.data) {
+            const key = await uploadBase64ToS3(
+              part.inlineData.data,
+              user.id,
+              creatorId,
+              idx++
+            );
+            s3Keys.push(key);
+          }
+        }
+      }
+    }
+
+    if (s3Keys.length === 0) {
+      const errors = results
+        .filter((r) => r.status === "rejected")
+        .map((r) => (r as PromiseRejectedResult).reason?.message ?? "Unknown error");
+      return {
+        success: false,
+        error: errors.length > 0
+          ? `Generation failed: ${errors[0]}`
+          : "No images generated. The model may have filtered the prompt.",
+      };
+    }
+
+    // Deduct credits for images actually generated
+    const actualCost = s3Keys.length * CREDIT_PER_IMAGE;
+    await deductCredits(user.id, actualCost, `Content generation — ${s3Keys.length} image(s)`);
+
+    // Create Content records
+    const contentItems: ContentItem[] = [];
+
+    for (let i = 0; i < s3Keys.length; i++) {
+      const signedUrl = await getSignedImageUrl(s3Keys[i]);
+
+      const content = await db.content.create({
+        data: {
+          creatorId,
+          type: "IMAGE",
+          status: "COMPLETED",
+          url: s3Keys[i],
+          outputs: JSON.parse(JSON.stringify([s3Keys[i]])),
+          source: "FREEFORM",
+          prompt,
+          userInput: userPrompt,
+          modelUsed: IMAGE_MODEL,
+          creditsCost: CREDIT_PER_IMAGE,
+        },
+      });
+
+      contentItems.push({
+        id: content.id,
+        creatorId: content.creatorId,
+        type: "IMAGE",
+        status: "COMPLETED",
+        url: signedUrl,
+        s3Keys: [s3Keys[i]],
+        source: "FREEFORM",
+        prompt,
+        userInput: userPrompt,
+        creditsCost: CREDIT_PER_IMAGE,
+        createdAt: content.createdAt.toISOString(),
+      });
+    }
+
+    // Update creator stats
+    await db.creator.update({
+      where: { id: creatorId },
+      data: {
+        lastUsedAt: new Date(),
+        contentCount: { increment: s3Keys.length },
+      },
+    });
+
+    return { success: true, content: contentItems };
+  } catch (error) {
+    console.error("generateContent error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Content generation failed",
+    };
+  }
+}
+
+// ─── Get Creator Content ─────
+
+export async function getCreatorContent(creatorId: string): Promise<ContentItem[]> {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return [];
+
+  const user = await db.user.findUnique({ where: { clerkId } });
+  if (!user) return [];
+
+  const content = await db.content.findMany({
+    where: { creatorId, creator: { userId: user.id } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return Promise.all(
+    content.map(async (c) => ({
+      id: c.id,
+      creatorId: c.creatorId,
+      type: c.type as ContentItem["type"],
+      status: c.status as ContentItem["status"],
+      url: c.url ? await getSignedImageUrl(c.url) : undefined,
+      s3Keys: (c.outputs as string[]) ?? [],
+      source: c.source as ContentItem["source"],
+      prompt: c.prompt ?? undefined,
+      userInput: c.userInput ?? undefined,
+      creditsCost: c.creditsCost,
+      createdAt: c.createdAt.toISOString(),
+    }))
+  );
+}
+
+// ─── Delete Content ─────
+
+export async function deleteContent(
+  contentId: string
+): Promise<{ success: boolean; error?: string }> {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return { success: false, error: "Not authenticated" };
+
+  const user = await db.user.findUnique({ where: { clerkId } });
+  if (!user) return { success: false, error: "User not found" };
+
+  const content = await db.content.findUnique({
+    where: { id: contentId },
+    include: { creator: { select: { userId: true, id: true } } },
+  });
+
+  if (!content || content.creator.userId !== user.id) {
+    return { success: false, error: "Content not found" };
+  }
+
+  await db.$transaction([
+    db.content.delete({ where: { id: contentId } }),
+    db.creator.update({
+      where: { id: content.creatorId },
+      data: { contentCount: { decrement: 1 } },
+    }),
+  ]);
+
+  return { success: true };
+}
