@@ -202,7 +202,9 @@ export function buildSampleContentPrompts(gender: string | null): string[] {
 
 // ─── "More Like This" Prompt ─────────────────────────
 // Used when user picks an image and wants variations of that same person.
-// Minimal text — the reference image does the heavy lifting.
+// Image 1 = silhouette composition template (framing), Image 2 = selected generated image.
+// Additional images = user-uploaded refs (if any).
+// Minimal text — the reference images do the heavy lifting.
 
 export function buildVariationPrompt(
   traits: StudioTraits,
@@ -212,11 +214,13 @@ export function buildVariationPrompt(
   const subject = genderRaw === "male" ? "man" : "woman";
   const clothing = subject === "man" ? CLOTHING_MALE.toLowerCase() : CLOTHING_FEMALE_TIGHT;
 
+  const framing = "Image 1 is a composition template — match its framing and crop. Image 2 shows the person to recreate.";
+
   if (refinement?.trim()) {
-    return `That exact ${subject} from the reference image, but ${refinement.trim()}. Wearing a ${clothing}. White studio backdrop. ${CAMERA}. ${REALISM_BASE}.`;
+    return `${framing} That exact ${subject} from image 2, but ${refinement.trim()}. Wearing a ${clothing}. ${CAMERA}. ${REALISM_BASE}.`;
   }
 
-  return `That exact ${subject} from the reference image, wearing a ${clothing}. White studio backdrop. ${CAMERA}. ${REALISM_BASE}.`;
+  return `${framing} That exact ${subject} from image 2, wearing a ${clothing}. ${CAMERA}. ${REALISM_BASE}.`;
 }
 
 // ─── Describe Mode Enhancement ───────────────────────

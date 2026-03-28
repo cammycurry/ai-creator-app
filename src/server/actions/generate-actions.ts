@@ -344,12 +344,14 @@ export async function generateCreatorImagesWithRef(
 }
 
 // ─── "More Like This" — generate variations from a reference image ───
+// Includes composition template + user-uploaded refs (if any) to prevent drift.
 
 export async function generateMoreLikeThis(
   traits: StudioTraits,
   referenceKey: string,
   count: number = 4,
-  refinement?: string
+  refinement?: string,
+  userRefs?: { base64: string; mimeType: string }[]
 ): Promise<GenerateResult> {
   const { userId: clerkId } = await auth();
   if (!clerkId) return { success: false, error: "Not authenticated" };
@@ -368,12 +370,20 @@ export async function generateMoreLikeThis(
   try {
     const refBuffer = await getImageBuffer(referenceKey);
     const refBase64 = refBuffer.toString("base64");
-    const referenceImage = { mimeType: "image/jpeg" as const, data: refBase64 };
+    const selectedImage = { mimeType: "image/jpeg" as const, data: refBase64 };
+
+    // Build ref array: composition template + selected image + user-uploaded refs
+    const templateRef = getTemplateRef();
+    const refImages: { mimeType: string; data: string }[] = [
+      templateRef,
+      selectedImage,
+      ...(userRefs ?? []).map((r) => ({ mimeType: r.mimeType, data: r.base64 })),
+    ];
 
     const prompt = buildVariationPrompt(traits, refinement);
 
     const imagePromises = Array.from({ length: count }, () =>
-      generateWithRetry(prompt, [referenceImage])
+      generateWithRetry(prompt, refImages)
     );
 
     const results = await Promise.all(imagePromises);

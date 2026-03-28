@@ -84,7 +84,13 @@ export function StudioFooter() {
     setPhase("generating");
     setGenerationStep("base");
 
-    const result = await generateMoreLikeThis(traits, refKey, 4, refinement);
+    // Pass user-uploaded reference images to maintain consistency
+    const { referenceImages } = useStudioStore.getState();
+    const userRefs = referenceImages.length > 0
+      ? referenceImages.map((r) => ({ base64: r.base64, mimeType: r.mimeType }))
+      : undefined;
+
+    const result = await generateMoreLikeThis(traits, refKey, 4, refinement, userRefs);
 
     if (result.success) {
       setGeneratedImages(result.images, result.keys);
