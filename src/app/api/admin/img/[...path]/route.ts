@@ -13,7 +13,12 @@ export async function GET(
   }
 
   const { path: segments } = await params;
-  const imgPath = path.join(process.cwd(), "scripts", "output", ...segments);
+  const baseDir = path.resolve(process.cwd(), "scripts", "output");
+  const imgPath = path.resolve(baseDir, ...segments);
+
+  if (!imgPath.startsWith(baseDir + path.sep)) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
 
   if (!fs.existsSync(imgPath)) {
     return new NextResponse("Not found", { status: 404 });

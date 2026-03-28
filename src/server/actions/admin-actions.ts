@@ -444,7 +444,7 @@ export async function adminGrantCredits(data: {
   const user = await db.user.findUnique({ where: { id: data.userId } });
   if (!user) throw new Error("User not found");
 
-  const newBalance = user.packCredits + data.amount;
+  const newBalance = user.planCredits + user.packCredits + data.amount;
 
   await db.$transaction([
     db.user.update({
@@ -456,7 +456,7 @@ export async function adminGrantCredits(data: {
         userId: data.userId,
         type: data.type,
         amount: data.amount,
-        balance: user.planCredits + newBalance,
+        balance: newBalance,
         description: data.description,
       },
     }),
