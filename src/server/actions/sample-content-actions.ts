@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { db } from "@/lib/db";
 import { deductCredits } from "./credit-actions";
-import { uploadImage, getSignedImageUrl, getImageBuffer } from "@/lib/s3";
+import { uploadImage, getImageBuffer } from "@/lib/s3";
 import { stripAndRewrite } from "@/lib/ai/metadata-strip";
 import { buildSampleContentPrompts } from "@/lib/prompts";
 
@@ -74,14 +74,13 @@ export async function generateSampleContent(
       const key = `users/${user.id}/creators/${creatorId}/content/sample-${Date.now()}-${i}.jpg`;
       await uploadImage(clean, key, "image/jpeg");
 
-      const url = await getSignedImageUrl(key);
-
+      // Store S3 key (not signed URL) — getCreatorContent signs on demand
       await db.content.create({
         data: {
           creatorId: creator.id,
           type: "IMAGE",
           status: "COMPLETED",
-          url,
+          url: key,
           outputs: JSON.parse(JSON.stringify([key])),
           source: "FREEFORM",
           prompt: prompts[i],
