@@ -129,7 +129,7 @@ export const useStudioStore = create<StudioState>((set) => ({
     }),
 
   setGeneratedImages: (generatedImages, generatedKeys) =>
-    set({ generatedImages, generatedKeys, phase: "picking", isGenerating: false }),
+    set({ generatedImages, generatedKeys, phase: "picking", isGenerating: false, selectedImageIndex: null }),
 
   selectImage: (index) => set({ selectedImageIndex: index }),
 

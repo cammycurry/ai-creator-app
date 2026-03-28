@@ -1,0 +1,225 @@
+export type PreMadeCreator = {
+  id: string;
+  name: string;
+  niche: string[];
+  vibe: string;
+  description: string;
+  settings: Record<string, unknown>;
+};
+
+export const premadeCreators: PreMadeCreator[] = [
+  // Fitness
+  {
+    id: "premade-fitness-01",
+    name: "Mia Strong",
+    niche: ["Fitness"],
+    vibe: "Motivational, high-energy",
+    description: "Athletic fitness influencer. Gym content, workout clips, progress updates.",
+    settings: {
+      gender: "Female",
+      age: "24",
+      ethnicity: "Mixed",
+      build: "Athletic",
+      hairColor: "Dark Brown",
+      hairLength: "Long",
+      hairTexture: "Straight",
+      eyeColor: "Brown",
+    },
+  },
+  {
+    id: "premade-fitness-02",
+    name: "Jake Ironside",
+    niche: ["Fitness"],
+    vibe: "Disciplined, clean aesthetic",
+    description: "Male fitness creator. Lifting, meal prep, transformation content.",
+    settings: {
+      gender: "Male",
+      age: "27",
+      ethnicity: "European",
+      build: "Muscular",
+      hairColor: "Brown",
+      hairLength: "Short",
+      hairTexture: "Straight",
+      eyeColor: "Blue",
+    },
+  },
+  {
+    id: "premade-fitness-03",
+    name: "Priya Flow",
+    niche: ["Fitness"],
+    vibe: "Zen, flexible, calm",
+    description: "Yoga and wellness creator. Peaceful settings, flexibility, mindfulness.",
+    settings: {
+      gender: "Female",
+      age: "26",
+      ethnicity: "South Asian",
+      build: "Slim",
+      hairColor: "Black",
+      hairLength: "Long",
+      hairTexture: "Wavy",
+      eyeColor: "Dark Brown",
+    },
+  },
+
+  // Lifestyle
+  {
+    id: "premade-lifestyle-01",
+    name: "Bella Morning",
+    niche: ["Lifestyle"],
+    vibe: "Cozy, warm, everyday luxury",
+    description: "Coffee girl aesthetic. Morning routines, cozy outfits, soft lighting.",
+    settings: {
+      gender: "Female",
+      age: "23",
+      ethnicity: "European",
+      build: "Slim",
+      hairColor: "Blonde",
+      hairLength: "Medium",
+      hairTexture: "Wavy",
+      eyeColor: "Green",
+    },
+  },
+  {
+    id: "premade-lifestyle-02",
+    name: "Kai Nomad",
+    niche: ["Lifestyle", "Travel"],
+    vibe: "Adventurous, free-spirited",
+    description: "Travel and city lifestyle. Exploring, golden hour, street style.",
+    settings: {
+      gender: "Male",
+      age: "28",
+      ethnicity: "Mixed",
+      build: "Athletic",
+      hairColor: "Dark Brown",
+      hairLength: "Medium",
+      hairTexture: "Curly",
+      eyeColor: "Hazel",
+    },
+  },
+  {
+    id: "premade-lifestyle-03",
+    name: "Nia Luxe",
+    niche: ["Lifestyle"],
+    vibe: "Elegant, polished, aspirational",
+    description: "City lifestyle creator. Fashion-forward, brunches, upscale aesthetic.",
+    settings: {
+      gender: "Female",
+      age: "25",
+      ethnicity: "Black",
+      build: "Slim",
+      hairColor: "Black",
+      hairLength: "Long",
+      hairTexture: "Straight",
+      eyeColor: "Dark Brown",
+    },
+  },
+
+  // Beauty
+  {
+    id: "premade-beauty-01",
+    name: "Luna Glow",
+    niche: ["Beauty"],
+    vibe: "Glamorous, confident",
+    description: "Beauty and skincare creator. Close-ups, product shots, transformation content.",
+    settings: {
+      gender: "Female",
+      age: "22",
+      ethnicity: "East Asian",
+      build: "Slim",
+      hairColor: "Black",
+      hairLength: "Long",
+      hairTexture: "Straight",
+      eyeColor: "Dark Brown",
+      faceShape: "Oval",
+    },
+  },
+  {
+    id: "premade-beauty-02",
+    name: "Sage Natural",
+    niche: ["Beauty"],
+    vibe: "Clean beauty, minimal, no-makeup makeup",
+    description: "Natural beauty creator. Skincare routines, clean living, subtle glam.",
+    settings: {
+      gender: "Female",
+      age: "26",
+      ethnicity: "Latina",
+      build: "Slim",
+      hairColor: "Brown",
+      hairLength: "Medium",
+      hairTexture: "Wavy",
+      eyeColor: "Brown",
+    },
+  },
+
+  // Tech
+  {
+    id: "premade-tech-01",
+    name: "Ava Digital",
+    niche: ["Tech"],
+    vibe: "Smart, approachable, modern",
+    description: "Tech and productivity creator. Desk setups, app reviews, digital lifestyle.",
+    settings: {
+      gender: "Female",
+      age: "27",
+      ethnicity: "European",
+      build: "Slim",
+      hairColor: "Auburn",
+      hairLength: "Medium",
+      hairTexture: "Straight",
+      eyeColor: "Blue",
+    },
+  },
+  {
+    id: "premade-tech-02",
+    name: "Marcus Code",
+    niche: ["Tech"],
+    vibe: "Startup energy, hustle",
+    description: "Startup and tech creator. Office content, coding aesthetic, thought leadership.",
+    settings: {
+      gender: "Male",
+      age: "30",
+      ethnicity: "Black",
+      build: "Slim",
+      hairColor: "Black",
+      hairLength: "Short",
+      hairTexture: "Coily",
+      eyeColor: "Dark Brown",
+    },
+  },
+
+  // Fashion
+  {
+    id: "premade-fashion-01",
+    name: "Zara Street",
+    niche: ["Fashion"],
+    vibe: "Streetwear, edgy, urban",
+    description: "Streetwear creator. Urban outfits, sneaker culture, city backdrops.",
+    settings: {
+      gender: "Female",
+      age: "21",
+      ethnicity: "Mixed",
+      build: "Slim",
+      hairColor: "Black",
+      hairLength: "Medium",
+      hairTexture: "Curly",
+      eyeColor: "Brown",
+    },
+  },
+  {
+    id: "premade-fashion-02",
+    name: "Sophia Elegance",
+    niche: ["Fashion"],
+    vibe: "Classic, timeless, refined",
+    description: "Elegant fashion creator. High fashion, classic style, sophisticated settings.",
+    settings: {
+      gender: "Female",
+      age: "28",
+      ethnicity: "Middle Eastern",
+      build: "Slim",
+      hairColor: "Dark Brown",
+      hairLength: "Long",
+      hairTexture: "Straight",
+      eyeColor: "Green",
+    },
+  },
+];

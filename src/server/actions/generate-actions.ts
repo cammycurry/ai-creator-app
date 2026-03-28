@@ -207,6 +207,9 @@ export async function generateCreatorImages(
     };
   }
 
+  // Deduct credits FIRST to prevent double-spend race condition
+  await deductCredits(user.id, CREATOR_WIZARD_CREDIT_COST, "Creator wizard — generate reference images");
+
   let prompt: string;
   if (description?.trim()) {
     prompt = await enhanceDescribePrompt(description);
@@ -218,7 +221,6 @@ export async function generateCreatorImages(
     const templateRef = getTemplateRef();
     const refPrompt = wrapWithSilhouette(prompt);
 
-    // Generate all images in parallel with the silhouette template
     const results = await Promise.all(
       Array.from({ length: count }, () =>
         generateWithRetry(refPrompt, [templateRef])
@@ -238,12 +240,6 @@ export async function generateCreatorImages(
     }
 
     const images = await Promise.all(s3Keys.map((key) => getSignedImageUrl(key)));
-
-    await deductCredits(
-      user.id,
-      CREATOR_WIZARD_CREDIT_COST,
-      "Creator wizard — generate reference images"
-    );
 
     await db.generationJob.create({
       data: {
@@ -286,10 +282,12 @@ export async function generateCreatorImagesWithRef(
     return { success: false, error: `Not enough credits. Need ${CREATOR_WIZARD_CREDIT_COST}, have ${totalCredits}.` };
   }
 
+  // Deduct credits FIRST to prevent double-spend race condition
+  await deductCredits(user.id, CREATOR_WIZARD_CREDIT_COST, "Creator wizard — generate with reference");
+
   const slots = referenceData.map((r) => r.slot);
   const prompt = buildReferencePrompt(traits, description, mode, slots);
 
-  // Combine composition template + user reference images
   const templateRef = getTemplateRef();
   const refImages = [
     templateRef,
@@ -319,8 +317,6 @@ export async function generateCreatorImagesWithRef(
     }
 
     const images = await Promise.all(s3Keys.map((key) => getSignedImageUrl(key)));
-
-    await deductCredits(user.id, CREATOR_WIZARD_CREDIT_COST, "Creator wizard — generate with reference");
 
     await db.generationJob.create({
       data: {
@@ -367,12 +363,14 @@ export async function generateMoreLikeThis(
     };
   }
 
+  // Deduct credits FIRST to prevent double-spend race condition
+  await deductCredits(user.id, CREATOR_WIZARD_CREDIT_COST, "Creator wizard — more like this");
+
   try {
     const refBuffer = await getImageBuffer(referenceKey);
     const refBase64 = refBuffer.toString("base64");
     const selectedImage = { mimeType: "image/jpeg" as const, data: refBase64 };
 
-    // Build ref array: composition template + selected image + user-uploaded refs
     const templateRef = getTemplateRef();
     const refImages: { mimeType: string; data: string }[] = [
       templateRef,
@@ -401,8 +399,6 @@ export async function generateMoreLikeThis(
     }
 
     const images = await Promise.all(s3Keys.map((key) => getSignedImageUrl(key)));
-
-    await deductCredits(user.id, CREATOR_WIZARD_CREDIT_COST, "Creator wizard — more like this");
 
     return { success: true, images, keys: s3Keys };
   } catch (error) {

@@ -35,6 +35,7 @@ export function StudioFooter() {
   const { setCreatorStudioOpen } = useUIStore();
 
   async function handleGenerate() {
+    if (useStudioStore.getState().isGenerating) return; // double-click guard
     const { referenceImages, description, traits } = useStudioStore.getState();
     setIsGenerating(true);
     setError(null);
@@ -148,7 +149,7 @@ export function StudioFooter() {
       <div className="studio-footer">
         <div className="studio-footer-actions">
           <button
-            onClick={() => { setRefineMode(false); setPhase("customize"); }}
+            onClick={() => { setRefineMode(false); setError(null); setPhase("customize"); }}
             disabled={isGenerating}
             className="studio-btn secondary"
           >

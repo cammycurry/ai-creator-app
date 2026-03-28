@@ -71,20 +71,31 @@ export function StudioCreatePage() {
   const builds = isMale ? BUILDS_MALE : BUILDS_FEMALE;
   const vibes = isMale ? VIBES_MALE : VIBES_FEMALE;
 
+  function ageToRange(age: string): string {
+    const n = parseInt(age, 10);
+    if (n <= 22) return "18-22";
+    if (n <= 27) return "23-27";
+    if (n <= 35) return "28-35";
+    return "36+";
+  }
+
   function applyPreset(preset: typeof PRESETS[number]) {
     if (activePreset === preset.id) {
-      // Deselect
+      // Deselect — clear description AND traits that were set
       setActivePreset(null);
       setDescription("");
+      pickTrait("gender", "");
+      pickTrait("ethnicity", "");
+      pickTrait("build", "");
+      pickTrait("age", "");
       return;
     }
     setActivePreset(preset.id);
     setDescription(preset.desc);
-    // Apply settings as traits
     if (preset.settings.gender) pickTrait("gender", preset.settings.gender as string);
     if (preset.settings.ethnicity) pickTrait("ethnicity", preset.settings.ethnicity as string);
     if (preset.settings.build) pickTrait("build", preset.settings.build as string);
-    if (preset.settings.age) pickTrait("age", preset.settings.age as string);
+    if (preset.settings.age) pickTrait("age", ageToRange(preset.settings.age as string));
   }
 
   return (
