@@ -387,6 +387,15 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
         item={selectedItem}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+        onMakeCarousel={(item) => {
+          // Use this photo as inspiration — suggest carousel formats
+          setSuggestions([
+            { type: "carousel", formatId: "photo-dump-gym", title: "Photo Dump — Gym Day", description: "Build a gym day carousel around this photo", slideCount: 5 },
+            { type: "carousel", formatId: "photo-dump-city", title: "Photo Dump — City Day", description: "Build a city day carousel around this photo", slideCount: 5 },
+            { type: "carousel", formatId: "outfit-showcase", title: "Outfit Showcase", description: "Show different outfits based on this look", slideCount: 3 },
+            { type: "carousel", formatId: "day-in-the-life", title: "Day in the Life", description: "Build a full day carousel from this moment", slideCount: 5 },
+          ]);
+        }}
       />
       <CarouselDetail
         contentSet={carouselSet}

@@ -31,32 +31,32 @@ const SAFETY_OFF = [
 
 // ─── Build prompt for one carousel slide ─────
 
+// IMPORTANT: Only describe the SCENE for the image model.
+// NEVER include meta-context like "slide 3 of 6" or "gym day carousel" —
+// Gemini takes that literally and renders text/labels into the photo.
+// The only context the model needs: who the person is + what scene to show.
 function buildSlidePrompt(
   slide: FormatSlide,
-  format: CarouselFormat,
   scene: ReturnType<typeof getScene>,
   gender: string,
-  totalSlides: number,
   userInstructions?: string
 ): string {
   const subject = gender.toLowerCase() === "male" ? "man" : "woman";
-  const sceneDesc = scene
-    ? `${scene.setting}. ${scene.lighting}. Wearing ${slide.outfitHint || scene.outfitDefault}.`
-    : `${slide.sceneHint}. Wearing ${slide.outfitHint}.`;
+  const outfit = slide.outfitHint || scene?.outfitDefault || "casual outfit";
+  const setting = scene?.setting ?? "natural setting";
+  const lighting = scene?.lighting ?? "natural lighting";
+  const camera = scene?.cameraStyle ?? "shot on iPhone, candid";
 
   const parts = [
     `That exact ${subject} from the reference image.`,
-    sceneDesc,
-    `Mood: ${slide.moodHint}.`,
-    `This is slide ${slide.position} of ${totalSlides} in a "${format.name}" carousel.`,
-    `Shot on iPhone, candid, ${scene?.cameraStyle ?? "natural angle"}.`,
+    `${setting}. ${lighting}.`,
+    `Wearing ${outfit}. ${slide.moodHint}.`,
+    `${camera}. ${REALISM_BASE}.`,
   ];
 
   if (userInstructions?.trim()) {
-    parts.push(`Additional instructions: ${userInstructions.trim()}`);
+    parts.push(userInstructions.trim());
   }
-
-  parts.push(`${REALISM_BASE}.`);
 
   return parts.join(" ");
 }
@@ -159,7 +159,7 @@ export async function generateCarousel(
     const results = await Promise.all(
       slides.map((slide, i) => {
         const scene = getScene(slide.sceneHint);
-        const prompt = buildSlidePrompt(slide, format, scene, gender, slides.length, userInstructions);
+        const prompt = buildSlidePrompt(slide, scene, gender, userInstructions);
 
         return generateSlideImage(prompt, refImage, user.id, creatorId, i).then(async (result) => {
           if (!result) return null;
@@ -310,22 +310,15 @@ export async function regenerateSlide(
   const gender = (creator.settings as Record<string, string>)?.gender ?? "Female";
   const subject = gender.toLowerCase() === "male" ? "man" : "woman";
 
-  // Build context from other slides
-  const otherSlides = content.contentSet.contents
-    .filter((c) => c.id !== contentId)
-    .sort((a, b) => (a.slideIndex ?? 0) - (b.slideIndex ?? 0))
-    .map((c) => {
-      const ctx = c.slideContext as { role?: string; moodHint?: string } | null;
-      return `Slide ${c.slideIndex}: ${ctx?.role ?? "content"} — ${ctx?.moodHint ?? ""}`;
-    });
+  // Scene-only prompt — NO meta-context (slide numbers, format names, etc.)
+  // Those get rendered as text in the image by Gemini.
+  const scene = slideContext ? getScene(slideContext.sceneHint) : null;
 
   const parts = [
     `That exact ${subject} from the reference image.`,
-    slideContext ? `${slideContext.sceneHint}. Mood: ${slideContext.moodHint}. Wearing ${slideContext.outfitHint}.` : "",
-    `This is slide ${content.slideIndex} of ${content.contentSet.slideCount} in a "${format?.name ?? "carousel"}" set.`,
-    `Other slides: ${otherSlides.join("; ")}.`,
-    `Generate a DIFFERENT version of this slide that stays cohesive with the set.`,
-    feedback ? `User feedback: ${feedback}` : "",
+    scene ? `${scene.setting}. ${scene.lighting}.` : "",
+    slideContext ? `Wearing ${slideContext.outfitHint}. ${slideContext.moodHint}.` : "",
+    feedback ? feedback : "Generate a different version.",
     `Shot on iPhone, candid. ${REALISM_BASE}.`,
   ].filter(Boolean);
 

@@ -1,5 +1,27 @@
 # Product Ideas & Future Features
 
+## Immediate Needs
+
+### Templates Need Real Examples
+- Current templates are text-only definitions with no visual reference
+- Need to generate actual example images for each carousel format + scene
+- Show users what they'll get before they commit credits
+- Build a library of "this is what a gym photo dump looks like" reference sets
+- Could generate these in batch as seed content
+
+### Background/Scene References
+- Let users upload a background/scene image as reference
+- "Put me in THIS location" — upload a photo of a beach, café, gym
+- Gemini can composite the creator into the uploaded scene
+- Combine with outfit references for full control
+
+### Post Grouping / "Same Post" Tracking
+- Content items need a concept of "same post" — which images go together
+- Carousel slides are grouped, but even single photos could be part of a planned post
+- Visual indicator on dashboard: "these 3 photos are for your Monday post"
+
+---
+
 ## Content Generation Workspace (NEXT UP)
 
 ### Core Flow

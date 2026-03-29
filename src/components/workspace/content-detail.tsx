@@ -1,0 +1,166 @@
+"use client";
+
+import { useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useCreatorStore } from "@/stores/creator-store";
+import { deleteContent } from "@/server/actions/content-actions";
+import type { ContentItem } from "@/types/content";
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
+
+export function ContentDetail({
+  item,
+  open,
+  onOpenChange,
+  onMakeCarousel,
+}: {
+  item: ContentItem | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onMakeCarousel?: (item: ContentItem) => void;
+}) {
+  const [downloading, setDownloading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const { setContent, content } = useCreatorStore();
+
+  if (!item) return null;
+
+  const handleDownload = async () => {
+    if (!item.url) return;
+    setDownloading(true);
+    try {
+      const response = await fetch(item.url);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `realinfluencer-${item.id}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      window.open(item.url, "_blank");
+    }
+    setDownloading(false);
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    const result = await deleteContent(item.id);
+    if (result.success) {
+      setContent(content.filter((c) => c.id !== item.id));
+      onOpenChange(false);
+    }
+    setDeleting(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="content-detail-dialog">
+        <div className="cd-layout">
+          {/* Image */}
+          <div className="cd-image-wrap">
+            {item.url && (
+              <img
+                src={item.url}
+                alt={item.userInput ?? "Generated content"}
+                className="cd-image"
+              />
+            )}
+          </div>
+
+          {/* Info panel */}
+          <div className="cd-info">
+            <div className="cd-meta">
+              <span className="cd-type-badge">
+                {item.type === "IMAGE" ? "Photo" : item.type === "VIDEO" ? "Video" : "Voice"}
+              </span>
+              <span className="cd-date">{formatDate(item.createdAt)}</span>
+            </div>
+
+            {item.userInput && (
+              <div className="cd-prompt">
+                <div className="cd-prompt-label">Prompt</div>
+                <div className="cd-prompt-text">{item.userInput}</div>
+              </div>
+            )}
+
+            <div className="cd-actions">
+              <button
+                className="cd-action-btn cd-download"
+                onClick={handleDownload}
+                disabled={downloading}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                {downloading ? "Downloading..." : "Download"}
+              </button>
+              {onMakeCarousel && (
+                <button
+                  className="cd-action-btn"
+                  onClick={() => { onMakeCarousel(item); onOpenChange(false); }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="2" width="20" height="20" rx="2" />
+                    <path d="M7 2v20M17 2v20" />
+                  </svg>
+                  Make Carousel
+                </button>
+              )}
+              <button className="cd-action-btn" disabled style={{ opacity: 0.5 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                Make Video
+              </button>
+              <button className="cd-action-btn" disabled style={{ opacity: 0.5 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Upscale
+              </button>
+              <button
+                className="cd-action-btn"
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{ marginLeft: "auto", color: "#e53e3e", borderColor: "#fed7d7" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+
+            <div className="cd-cost">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v12M8 10h8M8 14h8" />
+              </svg>
+              {item.creditsCost} credit{item.creditsCost !== 1 ? "s" : ""}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
