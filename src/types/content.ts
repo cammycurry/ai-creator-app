@@ -1,3 +1,17 @@
+export type ContentSetItem = {
+  id: string;
+  creatorId: string;
+  type: "CAROUSEL" | "PHOTO_SET";
+  formatId?: string;
+  caption?: string;
+  hashtags: string[];
+  slideCount: number;
+  status: "GENERATING" | "COMPLETED" | "PARTIAL";
+  creditsCost: number;
+  createdAt: string;
+  slides: ContentItem[];
+};
+
 export type ContentItem = {
   id: string;
   creatorId: string;
@@ -6,9 +20,11 @@ export type ContentItem = {
   url?: string;
   thumbnailUrl?: string;
   s3Keys: string[];
-  source: "TEMPLATE" | "FREEFORM" | "RECREATE" | "WIZARD";
+  source: "TEMPLATE" | "FREEFORM" | "RECREATE" | "WIZARD" | "CAROUSEL";
   prompt?: string;
   userInput?: string;
   creditsCost: number;
   createdAt: string;
+  contentSetId?: string;
+  slideIndex?: number;
 };

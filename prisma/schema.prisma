@@ -26,6 +26,7 @@ model User {
   // Relations
   creators           Creator[]
   creditTransactions CreditTransaction[]
+  contentSets        ContentSet[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -69,7 +70,8 @@ model Creator {
   lastUsedAt   DateTime?
 
   // Relations
-  content Content[]
+  content     Content[]
+  contentSets ContentSet[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -110,8 +112,34 @@ model Content {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  contentSetId String?
+  contentSet   ContentSet? @relation(fields: [contentSetId], references: [id], onDelete: Cascade)
+  slideIndex   Int?
+  slideContext  Json?
+
   @@index([creatorId])
   @@index([creatorId, type])
+}
+
+model ContentSet {
+  id        String   @id @default(cuid())
+  creatorId String
+  creator   Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  formatId  String?
+  caption   String?
+  hashtags  String[]
+  slideCount Int     @default(0)
+  status    String   @default("GENERATING")
+  creditsCost Int    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  contents  Content[]
+
+  @@index([creatorId])
+  @@index([userId])
 }
 
 enum ContentType {
@@ -131,6 +159,7 @@ enum ContentSource {
   FREEFORM
   RECREATE
   WIZARD
+  CAROUSEL
 }
 
 // ─── Credits ─────────────────────────────────────────
