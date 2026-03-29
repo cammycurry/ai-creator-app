@@ -313,6 +313,14 @@
 .template-card-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
 .template-card-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
 .template-card-cost { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); background: var(--card); padding: 2px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.carousel-format-card { flex-direction: column; gap: 10px; }
+.carousel-format-why { font-size: 10px; color: var(--text-muted); line-height: 1.4; margin-top: 6px; font-style: italic; }
+.carousel-format-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.carousel-format-slides { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); background: var(--card); padding: 2px 8px; border-radius: 999px; }
+.carousel-format-niches { font-size: 10px; color: var(--text-muted); }
+.carousel-format-generate-btn { align-self: flex-end; font-size: 12px; font-weight: 600; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; transition: opacity 150ms; }
+.carousel-format-generate-btn:hover { opacity: 0.7; }
+.carousel-format-generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Template Customize Dialog */
 .template-customize-fields { display: flex; flex-direction: column; gap: 14px; }
