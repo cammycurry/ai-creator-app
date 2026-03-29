@@ -4,11 +4,11 @@ export default async function ContentPage() {
   const content = await getAdminContent();
 
   return (
-    <div className="p-8 [&_table]:min-w-[900px]">
+    <div className="px-10 py-10">
       <h1 className="text-2xl font-bold">Content</h1>
-      <p className="mt-1 text-sm text-zinc-400">{content.length} total pieces</p>
+      <p className="mt-2 text-sm text-zinc-400">{content.length} total pieces</p>
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-zinc-800">
+      <div className="mt-8 overflow-auto rounded-xl border border-zinc-800">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-zinc-800 bg-zinc-900/50">

@@ -26,7 +26,7 @@ export default function ReferencesPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="px-10 py-10">
         <h1 className="text-2xl font-bold">References</h1>
         <p className="mt-4 text-sm text-zinc-500">Loading accounts...</p>
       </div>
@@ -34,7 +34,7 @@ export default function ReferencesPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="px-10 py-10">
       <h1 className="text-2xl font-bold">References</h1>
       <p className="mt-1 text-sm text-zinc-400">
         Instagram accounts and collected posts.
