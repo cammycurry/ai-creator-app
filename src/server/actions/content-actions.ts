@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { uploadImage, getSignedImageUrl, getImageBuffer } from "@/lib/s3";
 import { deductCredits } from "./credit-actions";
 import { stripAndRewrite } from "@/lib/ai/metadata-strip";
+import { calculateCost, sumCosts } from "@/lib/cost";
 import type { ContentItem } from "@/types/content";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
@@ -135,13 +136,16 @@ export async function generateContent(
       })
     );
 
+    const startTime = new Date();
     const results = await Promise.allSettled(imagePromises);
 
-    // Upload successful images to S3
+    // Upload successful images to S3, track costs
     const s3Keys: string[] = [];
+    const costs: number[] = [];
     let idx = 0;
     for (const result of results) {
       if (result.status === "fulfilled" && result.value.candidates?.[0]?.content?.parts) {
+        let hasImage = false;
         for (const part of result.value.candidates[0].content.parts) {
           if (part.inlineData?.data) {
             const key = await uploadBase64ToS3(
@@ -151,7 +155,11 @@ export async function generateContent(
               idx++
             );
             s3Keys.push(key);
+            hasImage = true;
           }
+        }
+        if (hasImage) {
+          costs.push(calculateCost(IMAGE_MODEL, result.value.usageMetadata, 1));
         }
       }
     }
@@ -169,8 +177,8 @@ export async function generateContent(
     }
 
     // Deduct credits for images actually generated
-    const actualCost = s3Keys.length * CREDIT_PER_IMAGE;
-    await deductCredits(user.id, actualCost, `Content generation — ${s3Keys.length} image(s)`);
+    const creditCostActual = s3Keys.length * CREDIT_PER_IMAGE;
+    await deductCredits(user.id, creditCostActual, `Content generation — ${s3Keys.length} image(s)`);
 
     // Create Content records
     const contentItems: ContentItem[] = [];
@@ -207,6 +215,24 @@ export async function generateContent(
         createdAt: content.createdAt.toISOString(),
       });
     }
+
+    // Log generation job with actual cost
+    await db.generationJob.create({
+      data: {
+        userId: user.id,
+        contentId: contentItems[0]?.id,
+        type: "content_freeform",
+        status: "COMPLETED",
+        provider: "google",
+        modelId: IMAGE_MODEL,
+        input: JSON.parse(JSON.stringify({ creatorId, userPrompt, prompt, imageCount: count })),
+        output: JSON.parse(JSON.stringify({ imageCount: s3Keys.length, s3Keys })),
+        estimatedCost: 0.04 * count,
+        actualCost: sumCosts(costs),
+        startedAt: startTime,
+        completedAt: new Date(),
+      },
+    });
 
     // Update creator stats
     await db.creator.update({

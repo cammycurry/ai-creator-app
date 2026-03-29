@@ -24,6 +24,7 @@ import {
   softenPrompt,
   fallbackEnhance,
 } from "@/lib/prompts";
+import { calculateCost, sumCosts } from "@/lib/cost";
 
 // Gemini client — Nano Banana Pro (image generation)
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
@@ -107,10 +108,16 @@ async function enhanceDescribePrompt(rawDescription: string): Promise<string> {
 }
 
 // Extract image from Gemini response, with optional safety retry
+// Returns image data + usage metadata for cost tracking
+type GenResult = {
+  data: string;
+  cost: number;
+} | null;
+
 async function generateWithRetry(
   prompt: string,
   referenceImages?: { mimeType: string; data: string }[]
-): Promise<{ data: string } | null> {
+): Promise<GenResult> {
   const contents = referenceImages && referenceImages.length > 0
     ? [{ text: prompt }, ...referenceImages.map((ref) => ({ inlineData: ref }))]
     : prompt;
@@ -129,7 +136,8 @@ async function generateWithRetry(
       (p: { inlineData?: { data?: string } }) => p.inlineData?.data
     );
     if (part?.inlineData?.data) {
-      return { data: part.inlineData.data };
+      const cost = calculateCost(IMAGE_MODEL, response.usageMetadata, 1);
+      return { data: part.inlineData.data, cost };
     }
 
     // Possibly filtered — retry with softened prompt
@@ -152,7 +160,13 @@ async function generateWithRetry(
     const retryPart = retry.candidates?.[0]?.content?.parts?.find(
       (p: { inlineData?: { data?: string } }) => p.inlineData?.data
     );
-    return retryPart?.inlineData?.data ? { data: retryPart.inlineData.data } : null;
+    if (retryPart?.inlineData?.data) {
+      // Cost = both attempts combined
+      const cost1 = calculateCost(IMAGE_MODEL, response.usageMetadata, 0);
+      const cost2 = calculateCost(IMAGE_MODEL, retry.usageMetadata, 1);
+      return { data: retryPart.inlineData.data, cost: cost1 + cost2 };
+    }
+    return null;
   } catch {
     return null;
   }
@@ -228,10 +242,12 @@ export async function generateCreatorImages(
     );
 
     const s3Keys: string[] = [];
+    const costs: number[] = [];
     for (let i = 0; i < results.length; i++) {
       if (results[i]) {
         const key = await uploadBase64ToS3(results[i]!.data, user.id, i);
         s3Keys.push(key);
+        costs.push(results[i]!.cost);
       }
     }
 
@@ -250,7 +266,9 @@ export async function generateCreatorImages(
         modelId: IMAGE_MODEL,
         input: JSON.parse(JSON.stringify({ traits })),
         output: JSON.parse(JSON.stringify({ imageCount: s3Keys.length, s3Keys })),
-        estimatedCost: 0.02 * count,
+        estimatedCost: 0.04 * count,
+        actualCost: sumCosts(costs),
+        startedAt: new Date(Date.now() - 1000),
         completedAt: new Date(),
       },
     });
@@ -305,10 +323,12 @@ export async function generateCreatorImagesWithRef(
     );
 
     const s3Keys: string[] = [];
+    const costs: number[] = [];
     for (let i = 0; i < results.length; i++) {
       if (results[i]) {
         const key = await uploadBase64ToS3(results[i]!.data, user.id, i);
         s3Keys.push(key);
+        costs.push(results[i]!.cost);
       }
     }
 
@@ -327,7 +347,9 @@ export async function generateCreatorImagesWithRef(
         modelId: IMAGE_MODEL,
         input: JSON.parse(JSON.stringify({ traits, mode, refSlots: slots })),
         output: JSON.parse(JSON.stringify({ imageCount: s3Keys.length, s3Keys })),
-        estimatedCost: 0.02 * count,
+        estimatedCost: 0.04 * count,
+        actualCost: sumCosts(costs),
+        startedAt: new Date(Date.now() - 1000),
         completedAt: new Date(),
       },
     });
@@ -380,17 +402,19 @@ export async function generateMoreLikeThis(
 
     const prompt = buildVariationPrompt(traits, refinement);
 
-    const imagePromises = Array.from({ length: count }, () =>
-      generateWithRetry(prompt, refImages)
+    const results = await Promise.all(
+      Array.from({ length: count }, () =>
+        generateWithRetry(prompt, refImages)
+      )
     );
 
-    const results = await Promise.all(imagePromises);
-
     const s3Keys: string[] = [];
+    const costs: number[] = [];
     for (let i = 0; i < results.length; i++) {
       if (results[i]) {
         const key = await uploadBase64ToS3(results[i]!.data, user.id, i);
         s3Keys.push(key);
+        costs.push(results[i]!.cost);
       }
     }
 
@@ -399,6 +423,22 @@ export async function generateMoreLikeThis(
     }
 
     const images = await Promise.all(s3Keys.map((key) => getSignedImageUrl(key)));
+
+    await db.generationJob.create({
+      data: {
+        userId: user.id,
+        type: "creator_wizard",
+        status: "COMPLETED",
+        provider: "google",
+        modelId: IMAGE_MODEL,
+        input: JSON.parse(JSON.stringify({ referenceKey, refinement })),
+        output: JSON.parse(JSON.stringify({ imageCount: s3Keys.length, s3Keys })),
+        estimatedCost: 0.04 * count,
+        actualCost: sumCosts(costs),
+        startedAt: new Date(Date.now() - 1000),
+        completedAt: new Date(),
+      },
+    });
 
     return { success: true, images, keys: s3Keys };
   } catch (error) {
