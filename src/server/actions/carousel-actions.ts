@@ -181,7 +181,20 @@ export async function generateCarousel(
           });
 
           const url = await getSignedImageUrl(result.key);
-          return { ...content, url } as ContentItem & { slideIndex: number };
+          return {
+            id: content.id,
+            creatorId: content.creatorId,
+            type: content.type as ContentItem["type"],
+            status: content.status as ContentItem["status"],
+            url,
+            s3Keys: [result.key],
+            source: "CAROUSEL" as const,
+            prompt: content.prompt ?? undefined,
+            creditsCost: content.creditsCost,
+            createdAt: content.createdAt.toISOString(),
+            contentSetId: content.contentSetId ?? undefined,
+            slideIndex: content.slideIndex ?? undefined,
+          };
         });
       })
     );
