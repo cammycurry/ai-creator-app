@@ -1,5 +1,50 @@
 # Product Ideas & Future Features
 
+## Content Generation Workspace (NEXT UP)
+
+### Core Flow
+- User types or clicks a suggestion → AI generates the content → shows in canvas
+- Every generation uses the creator's base reference image for consistency
+- AI suggests prompts/descriptions so users just click — minimal typing needed
+- "What should [name] do next?" suggestions powered by Grok based on niche/vibe
+
+### Carousel Generation
+- Generate one hero photo → use it as reference to generate 3-5 variations
+- Different angles, slight outfit changes, different expressions — same scene
+- One-click "Make carousel" from any generated image
+- AI generates captions/descriptions for each slide
+
+### Creator Appearance Controls
+- Change outfit per generation (not locked to sports bra forever)
+- Hair up/down, makeup/no makeup, accessories
+- "Dress them up" panel — quick outfit presets (casual, gym, going out, swimwear, lingerie)
+- Scene-specific styling suggestions
+- Tell the AI personality traits — how they talk, what they're about
+
+### Reference Upload System
+- Upload product images → creator holds/wears/uses the product (UGC)
+- Upload scene/background references → creator appears in that setting
+- Upload outfit references → creator wears that style
+- Upload pose references → creator matches the pose
+- Multiple reference types combinable: product + scene + outfit in one generation
+
+### AI-Powered Assistance
+- Auto-generate captions/descriptions for posts
+- Suggest hashtags based on niche
+- "Make it more [sexy/casual/professional]" refinement chips
+- AI writes the prompt from a basic idea: "gym selfie" → full detailed prompt
+- Suggest content calendar: what to post and when
+
+### Content Types
+- Single photo
+- Carousel (3-10 images, coherent set)
+- Stories format (vertical, text overlays)
+- Product showcase (UGC-style with product)
+- Before/after
+- Day-in-the-life series
+
+---
+
 ## Creator Studio Canvas Mode
 - Wireframe-style canvas where you can drag/arrange generated images
 - Select, zoom, pan on images freely
@@ -9,9 +54,9 @@
 - Full editing toolkit: crop, adjust, filter, before/after
 
 ## Picking Phase Improvements
-- Click into an image to see it full-size with action buttons (Use This Look, More Like This, Refine)
-- Better dialog/modal for selection instead of just border highlight
-- Show full body in the grid — images are currently cropped by the card aspect ratio
+- ~~Click into an image to see it full-size with action buttons~~ DONE
+- ~~Show full body in the grid~~ DONE
+- Better selection UX — click to select, lightbox for full actions
 
 ## Preset Library
 - Rich preset library with actual reference images, not just text descriptions
