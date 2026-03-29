@@ -245,8 +245,33 @@ Uses the same dialog component as the existing content detail modal, expanded:
 └───────────────────────────────────────────────┘
 ```
 
-- Slides in a responsive grid (3 columns desktop, 2 mobile)
-- Click a slide → lightbox opens with that slide + "Regenerate" button + optional text input for feedback
+- Two view modes toggled in the header: **Grid** (default) and **Preview**
+- Grid: slides in a responsive grid (3 columns desktop, 2 mobile). Click a slide → lightbox with regenerate.
+- Preview: Instagram-style phone mockup. Swipe/arrows to advance slides. Dot indicators. Shows how followers will actually see it. Caption displayed below the image like IG.
+
+```
+┌───────────────────────────────────────────────┐
+│ Gym Day Photo Dump     [Grid] [Preview]     ✕ │
+├───────────────────────────────────────────────┤
+│              ┌─────────────┐                  │
+│              │ ┌─────────┐ │                  │
+│              │ │         │ │                  │
+│              │ │ Slide 3 │ │                  │
+│              │ │         │ │                  │
+│              │ └─────────┘ │                  │
+│              │  ● ● ○ ○ ○  │                  │
+│              │             │                  │
+│              │ maria       │                  │
+│              │ gym days >  │                  │
+│              │ everything💪│                  │
+│              └─────────────┘                  │
+│         ◀  swipe or arrows  ▶                 │
+├───────────────────────────────────────────────┤
+│ [Download All]              [Delete Carousel] │
+└───────────────────────────────────────────────┘
+```
+
+- Click a slide in preview mode → same lightbox with regenerate
 - "Download All" downloads all slides as individual files (or zip)
 - Caption is AI-generated from the format template, editable
 - Hashtags auto-generated, editable
