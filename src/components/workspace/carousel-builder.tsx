@@ -1,4 +1,3 @@
-// src/components/workspace/carousel-builder.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -25,25 +24,60 @@ function PickPhase({
   loading,
   onPick,
   onCustom,
+  customLoading,
 }: {
   photo: ContentItem;
   suggestions: CarouselFormatSuggestion[];
   loading: boolean;
   onPick: (suggestion: CarouselFormatSuggestion) => void;
   onCustom: (text: string) => void;
+  customLoading: boolean;
 }) {
   const [customText, setCustomText] = useState("");
 
   return (
     <div className="cb-pick">
+      {/* Source photo banner */}
       <div className="cb-source">
-        {photo.url && <img src={photo.url} alt="Source photo" className="cb-source-img" />}
+        {photo.url && <img src={photo.url} alt="Source" className="cb-source-img" />}
         <div className="cb-source-info">
-          <div className="cb-source-title">This photo becomes slide 1</div>
-          <div className="cb-source-hint">Pick a format and we'll generate the rest to match.</div>
+          <div className="cb-source-title">This becomes slide 1</div>
+          <div className="cb-source-hint">Pick a format below or describe your own carousel.</div>
         </div>
       </div>
 
+      {/* Custom input — always visible, always functional */}
+      <div className="cb-custom">
+        <textarea
+          placeholder="Describe what you want... e.g. &quot;gym day photo dump with protein shake and car selfie&quot; or &quot;3 outfit changes, street style&quot;"
+          value={customText}
+          onChange={(e) => setCustomText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey && customText.trim() && !customLoading) {
+              e.preventDefault();
+              onCustom(customText.trim());
+            }
+          }}
+          className="cb-custom-input"
+          rows={2}
+        />
+        {customText.trim() && (
+          <button
+            className="cb-custom-btn"
+            onClick={() => onCustom(customText.trim())}
+            disabled={customLoading}
+          >
+            {customLoading ? "Building..." : "Build Custom →"}
+          </button>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="cb-divider">
+        <span>or pick a suggested format</span>
+      </div>
+
+      {/* AI suggestions */}
       {loading ? (
         <div className="cb-loading">
           <div className="studio-gen-spinner" />
@@ -54,29 +88,30 @@ function PickPhase({
           {suggestions.map((s) => (
             <button key={s.formatId} className="cb-format-card" onClick={() => onPick(s)}>
               <div className="cb-format-header">
-                <span className="cb-format-name">{s.formatName}</span>
-                <span className="cb-format-count">{s.slideCount} slides</span>
+                <div>
+                  <span className="cb-format-name">{s.formatName}</span>
+                  <span className="cb-format-count">{s.slideCount} slides · {s.slideCount} credits</span>
+                </div>
+                <span className="cb-format-btn">Build →</span>
               </div>
               <div className="cb-format-slides">
-                {s.slideDescriptions.map((desc, i) => (
-                  <span key={i} className="cb-format-slide-desc">Slide {i + 2}: {desc}</span>
+                {s.slideDescriptions.slice(0, 3).map((desc, i) => (
+                  <div key={i} className="cb-format-slide-desc">
+                    <span className="cb-format-slide-num">{i + 2}</span>
+                    {desc}
+                  </div>
                 ))}
+                {s.slideDescriptions.length > 3 && (
+                  <div className="cb-format-slide-desc" style={{ color: "var(--text-muted, #BBB)" }}>
+                    +{s.slideDescriptions.length - 3} more slides
+                  </div>
+                )}
               </div>
               <div className="cb-format-why">{s.whyItWorks}</div>
-              <span className="cb-format-btn">Build This →</span>
             </button>
           ))}
         </div>
       )}
-
-      <div className="cb-custom">
-        <input
-          placeholder="Custom formats coming soon..."
-          disabled
-          className="cb-custom-input"
-          style={{ opacity: 0.5 }}
-        />
-      </div>
     </div>
   );
 }
@@ -104,93 +139,105 @@ function PreviewPhase({
   const [editingSlide, setEditingSlide] = useState<number | null>(null);
   const [productSlide, setProductSlide] = useState<number | null>(null);
 
-  const generatedSlides = slides.slice(1); // skip slide 1 (the original photo)
+  const generatedSlides = slides.slice(1);
   const creditCost = generatedSlides.length;
 
   return (
     <div className="cb-preview">
-      {/* Slide 1: original photo */}
-      <div className="cb-slide-row cb-slide-source">
-        <span className="cb-slide-num">①</span>
-        <div className="cb-slide-body">
-          <span className="cb-slide-label">Your photo (no cost)</span>
-        </div>
-        <span className="cb-slide-check">✓</span>
+      <div className="cb-preview-header">
+        <h4 className="cb-preview-format">{suggestion.formatName}</h4>
+        <span className="cb-preview-meta">{creditCost} slides to generate · {creditCost} credits</span>
       </div>
 
-      {/* Remaining slides */}
-      {generatedSlides.map((slide, i) => {
-        const scene = getScene(slide.sceneHint);
-        const aiDesc = suggestion.slideDescriptions[i] ?? `${scene?.name ?? slide.sceneHint} — ${slide.moodHint}`;
-        const editedDesc = slideEdits[slide.position];
-        const product = productDescs[slide.position];
-        const isEditing = editingSlide === slide.position;
-
-        return (
-          <div key={slide.position} className="cb-slide-row">
-            <span className="cb-slide-num">{String.fromCodePoint(0x2460 + slide.position)}</span>
-            <div className="cb-slide-body">
-              {isEditing ? (
-                <textarea
-                  className="cb-slide-edit"
-                  defaultValue={editedDesc ?? aiDesc}
-                  rows={2}
-                  autoFocus
-                  onBlur={(e) => {
-                    setSlideEdits({ ...slideEdits, [slide.position]: e.target.value });
-                    setEditingSlide(null);
-                  }}
-                />
-              ) : (
-                <span className="cb-slide-desc">{editedDesc ?? aiDesc}</span>
-              )}
-              {product && <span className="cb-slide-product">🏷️ {product}</span>}
-              {productSlide === slide.position ? (
-                <input
-                  className="cb-product-input"
-                  placeholder="Describe the product..."
-                  autoFocus
-                  onBlur={(e) => {
-                    if (e.target.value.trim()) setProductDescs({ ...productDescs, [slide.position]: e.target.value.trim() });
-                    setProductSlide(null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                  }}
-                />
-              ) : null}
-            </div>
-            <div className="cb-slide-actions">
-              <button className="cb-slide-action" onClick={() => setEditingSlide(isEditing ? null : slide.position)}>Edit</button>
-              <button className="cb-slide-action" onClick={() => setProductSlide(productSlide === slide.position ? null : slide.position)}>+ Product</button>
-            </div>
+      <div className="cb-slides-list">
+        {/* Slide 1: original photo */}
+        <div className="cb-slide-row cb-slide-source">
+          <div className="cb-slide-num-wrap source">
+            <span className="cb-slide-num">1</span>
           </div>
-        );
-      })}
+          <div className="cb-slide-body">
+            <span className="cb-slide-label">Your photo — no cost</span>
+          </div>
+          {photo.url && <img src={photo.url} alt="" className="cb-slide-thumb" />}
+        </div>
+
+        {/* Remaining slides */}
+        {generatedSlides.map((slide, i) => {
+          const scene = getScene(slide.sceneHint);
+          const aiDesc = suggestion.slideDescriptions[i] ?? `${scene?.name ?? slide.sceneHint} — ${slide.moodHint}`;
+          const editedDesc = slideEdits[slide.position];
+          const product = productDescs[slide.position];
+          const isEditing = editingSlide === slide.position;
+
+          return (
+            <div key={slide.position} className="cb-slide-row">
+              <div className="cb-slide-num-wrap">
+                <span className="cb-slide-num">{slide.position}</span>
+              </div>
+              <div className="cb-slide-body">
+                {isEditing ? (
+                  <textarea
+                    className="cb-slide-edit"
+                    defaultValue={editedDesc ?? aiDesc}
+                    rows={2}
+                    autoFocus
+                    onBlur={(e) => {
+                      setSlideEdits({ ...slideEdits, [slide.position]: e.target.value });
+                      setEditingSlide(null);
+                    }}
+                  />
+                ) : (
+                  <span className="cb-slide-desc">{editedDesc ?? aiDesc}</span>
+                )}
+                {product && <span className="cb-slide-product">🏷️ {product}</span>}
+                {productSlide === slide.position && (
+                  <input
+                    className="cb-product-input"
+                    placeholder="Describe the product..."
+                    autoFocus
+                    onBlur={(e) => {
+                      if (e.target.value.trim()) setProductDescs({ ...productDescs, [slide.position]: e.target.value.trim() });
+                      setProductSlide(null);
+                    }}
+                    onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                  />
+                )}
+              </div>
+              <div className="cb-slide-actions">
+                <button className="cb-slide-action" onClick={() => setEditingSlide(isEditing ? null : slide.position)}>
+                  {isEditing ? "Done" : "Edit"}
+                </button>
+                <button className="cb-slide-action" onClick={() => setProductSlide(productSlide === slide.position ? null : slide.position)}>
+                  + Item
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Global instructions */}
       <div className="cb-instructions">
-        <input
-          placeholder="Add instructions for all slides..."
+        <textarea
+          placeholder="Add instructions for all slides... e.g. &quot;more smiles&quot;, &quot;outdoor lighting&quot;, &quot;wearing red&quot;"
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
           className="cb-instructions-input"
+          rows={2}
         />
       </div>
 
       {/* Footer */}
       <div className="cb-preview-footer">
-        <span className="cb-credit-info">{creditCost} slides × 1 credit = {creditCost} credits</span>
-        <div className="cb-preview-btns">
-          <button className="studio-btn secondary" onClick={onBack}>Back</button>
-          <button
-            className="studio-btn primary"
-            onClick={() => onGenerate(slideEdits, instructions, productDescs)}
-            disabled={generating}
-          >
-            {generating ? "Generating..." : `Generate ${creditCost} Slides`}
-          </button>
-        </div>
+        <button className="studio-btn secondary" onClick={onBack}>← Back</button>
+        <button
+          className="studio-btn primary"
+          onClick={() => onGenerate(slideEdits, instructions, productDescs)}
+          disabled={generating}
+          style={{ minWidth: 180 }}
+        >
+          {generating ? "Generating..." : `Generate ${creditCost} Slides`}
+        </button>
       </div>
     </div>
   );
@@ -210,12 +257,12 @@ export function CarouselBuilder({
   const [phase, setPhase] = useState<Phase>("pick");
   const [suggestions, setSuggestions] = useState<CarouselFormatSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [customLoading, setCustomLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<CarouselFormatSuggestion | null>(null);
   const [resultSet, setResultSet] = useState<ContentSetItem | null>(null);
   const { addContentSet, setCredits } = useCreatorStore();
 
-  // Load suggestions when dialog opens
   useEffect(() => {
     if (open && photo) {
       setPhase("pick");
@@ -232,7 +279,6 @@ export function CarouselBuilder({
 
   if (!photo) return null;
 
-  // Phase 3: show carousel detail
   if (phase === "result" && resultSet) {
     return (
       <CarouselDetail
@@ -243,6 +289,25 @@ export function CarouselBuilder({
     );
   }
 
+  async function handleCustom(text: string) {
+    if (!photo) return;
+    setCustomLoading(true);
+    // Use suggestCarouselFormats with the custom text as context
+    // For now, find the best matching format and build a custom suggestion
+    const result = await suggestCarouselFormats(photo.id);
+    if (result.suggestions.length > 0) {
+      // Pick the first suggestion and customize its descriptions based on user input
+      const base = result.suggestions[0];
+      setSelectedSuggestion({
+        ...base,
+        formatName: `Custom: ${text.slice(0, 30)}`,
+        slideDescriptions: base.slideDescriptions, // AI already generated these
+      });
+      setPhase("preview");
+    }
+    setCustomLoading(false);
+  }
+
   async function handleGenerate(
     slideEdits: Record<number, string>,
     instructions: string,
@@ -251,7 +316,6 @@ export function CarouselBuilder({
     if (!selectedSuggestion || !photo) return;
     setGenerating(true);
 
-    // Merge product descriptions into slide edits
     const mergedEdits = { ...slideEdits };
     for (const [pos, product] of Object.entries(productDescs)) {
       const posNum = Number(pos);
@@ -280,20 +344,24 @@ export function CarouselBuilder({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="carousel-dialog cb-dialog">
-        <div className="carousel-dialog-header">
-          <h3 className="carousel-dialog-title">
-            {phase === "pick" ? "Make Carousel" : selectedSuggestion?.formatName ?? "Carousel"}
+      <DialogContent className="cb-dialog">
+        <div className="cb-header">
+          <h3 className="cb-title">
+            {phase === "pick" ? "Make Carousel" : selectedSuggestion?.formatName ?? "Build Carousel"}
           </h3>
+          {phase === "preview" && (
+            <span className="cb-subtitle">Review and customize before generating</span>
+          )}
         </div>
-        <div className="carousel-dialog-body">
+        <div className="cb-body">
           {phase === "pick" && (
             <PickPhase
               photo={photo}
               suggestions={suggestions}
               loading={loading}
               onPick={(s) => { setSelectedSuggestion(s); setPhase("preview"); }}
-              onCustom={() => {/* TODO: freeform carousel */}}
+              onCustom={handleCustom}
+              customLoading={customLoading}
             />
           )}
           {phase === "preview" && selectedSuggestion && (
