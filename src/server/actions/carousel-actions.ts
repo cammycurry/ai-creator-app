@@ -104,7 +104,9 @@ export async function generateCarousel(
   creatorId: string,
   formatId: string,
   slideCount?: number,
-  userInstructions?: string
+  userInstructions?: string,
+  sourceContentId?: string,
+  slideEdits?: Record<number, string>
 ): Promise<CarouselResult> {
   const { userId: clerkId } = await auth();
   if (!clerkId) return { success: false, error: "Not authenticated" };
@@ -124,7 +126,8 @@ export async function generateCarousel(
     : format.slideRange[0]; // default to minimum
 
   const slides = format.slides.filter((s) => s.required || s.position <= count).slice(0, count);
-  const totalCredits = slides.length * CREDIT_PER_SLIDE;
+  const slidesToGenerate = sourceContentId ? slides.slice(1) : slides;
+  const totalCredits = slidesToGenerate.length * CREDIT_PER_SLIDE;
 
   const totalUserCredits = user.planCredits + user.packCredits;
   if (totalUserCredits < totalCredits) {
@@ -154,12 +157,30 @@ export async function generateCarousel(
     },
   });
 
+  // If building from an existing photo, link it as slide 1
+  if (sourceContentId) {
+    const sourceContent = await db.content.findUnique({ where: { id: sourceContentId } });
+    if (sourceContent) {
+      await db.content.update({
+        where: { id: sourceContentId },
+        data: {
+          contentSetId: contentSet.id,
+          slideIndex: 1,
+          source: "CAROUSEL",
+        },
+      });
+    }
+  }
+
   try {
     // Build prompts and generate all slides in parallel
     const results = await Promise.all(
-      slides.map((slide, i) => {
+      slidesToGenerate.map((slide, i) => {
         const scene = getScene(slide.sceneHint);
-        const prompt = buildSlidePrompt(slide, scene, gender, userInstructions);
+        const editedDesc = slideEdits?.[slide.position];
+        const prompt = editedDesc
+          ? `That exact ${gender.toLowerCase() === "male" ? "man" : "woman"} from the reference image. ${editedDesc}. Shot on iPhone, candid. ${REALISM_BASE}.`
+          : buildSlidePrompt(slide, scene, gender, userInstructions);
 
         return generateSlideImage(prompt, refImage, user.id, creatorId, i).then(async (result) => {
           if (!result) return null;
@@ -207,7 +228,7 @@ export async function generateCarousel(
     const successfulSlides = results.filter(Boolean) as (ContentItem & { slideIndex: number })[];
 
     // Refund credits for failed slides
-    const failedCount = slides.length - successfulSlides.length;
+    const failedCount = slidesToGenerate.length - successfulSlides.length;
     if (failedCount > 0) {
       await deductCredits(user.id, -failedCount * CREDIT_PER_SLIDE, `Carousel refund: ${failedCount} failed slides`);
     }
@@ -216,7 +237,7 @@ export async function generateCarousel(
     const caption = await generateCaption(format, gender, creator.name);
 
     // Update content set
-    const status = successfulSlides.length === slides.length ? "COMPLETED"
+    const status = successfulSlides.length === slidesToGenerate.length ? "COMPLETED"
       : successfulSlides.length > 0 ? "PARTIAL" : "FAILED";
 
     await db.contentSet.update({
@@ -465,6 +486,102 @@ Request: ${userInput || "help me come up with ideas"}`,
         })),
         { type: "photo" as const, title: "Mirror selfie", description: "Quick mirror selfie in today's outfit" },
       ],
+    };
+  }
+}
+
+// ─── Suggest carousel formats for an existing photo ─────
+
+export type CarouselFormatSuggestion = {
+  formatId: string;
+  formatName: string;
+  whyItWorks: string;
+  slideCount: number;
+  slideDescriptions: string[];
+};
+
+export async function suggestCarouselFormats(
+  contentId: string
+): Promise<{ suggestions: CarouselFormatSuggestion[] }> {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return { suggestions: [] };
+
+  const content = await db.content.findFirst({
+    where: { id: contentId, creator: { user: { clerkId } } },
+    include: { creator: true },
+  });
+  if (!content) return { suggestions: [] };
+
+  const settings = content.creator.settings as Record<string, string> | null;
+  const niche = content.creator.niche as string[] | null;
+  const photoPrompt = content.prompt ?? content.userInput ?? "photo";
+
+  const formatList = CAROUSEL_FORMATS.map((f) =>
+    `${f.id}: ${f.name} (${f.slideRange[0]}-${f.slideRange[1]} slides) — ${f.description}`
+  ).join("\n");
+
+  try {
+    const response = await grok.chat.completions.create({
+      model: "grok-4-1-fast-non-reasoning",
+      messages: [
+        {
+          role: "system",
+          content: `You suggest carousel formats for an existing Instagram photo. The photo becomes slide 1 — you describe what the REMAINING slides should be.
+
+Output ONLY a JSON array of 3-4 suggestions:
+[{
+  "formatId": "format-id",
+  "slideCount": N,
+  "slideDescriptions": ["slide 2 description", "slide 3 description", ...]
+}]
+
+Each slideDescription should be a short TLDR (under 15 words) of what that slide shows. Be specific to the photo context — not generic.
+
+Available formats:
+${formatList}`,
+        },
+        {
+          role: "user",
+          content: `Photo context: ${photoPrompt}
+Creator: ${content.creator.name}, ${(niche ?? []).join(", ")} niche
+Gender: ${settings?.gender ?? "Female"}`,
+        },
+      ],
+    });
+
+    const text = response.choices?.[0]?.message?.content?.trim() ?? "[]";
+    const raw = parseGrokJson(text);
+    if (!Array.isArray(raw)) return { suggestions: [] };
+
+    return {
+      suggestions: raw.slice(0, 4).map((s: { formatId?: string; slideCount?: number; slideDescriptions?: string[] }) => {
+        const format = CAROUSEL_FORMATS.find((f) => f.id === s.formatId);
+        return {
+          formatId: s.formatId ?? "",
+          formatName: format?.name ?? s.formatId ?? "",
+          whyItWorks: format?.whyItWorks ?? "",
+          slideCount: s.slideCount ?? format?.slideRange[0] ?? 5,
+          slideDescriptions: Array.isArray(s.slideDescriptions) ? s.slideDescriptions : [],
+        };
+      }).filter((s: CarouselFormatSuggestion) => s.formatId && CAROUSEL_FORMATS.some((f) => f.id === s.formatId)),
+    };
+  } catch {
+    // Fallback — pick formats matching niche
+    const nicheFormats = CAROUSEL_FORMATS.filter((f) =>
+      f.niches.some((n) => (niche ?? []).includes(n))
+    ).slice(0, 3);
+
+    return {
+      suggestions: nicheFormats.map((f) => ({
+        formatId: f.id,
+        formatName: f.name,
+        whyItWorks: f.whyItWorks,
+        slideCount: f.slideRange[0],
+        slideDescriptions: f.slides.filter((s) => s.required).slice(1).map((s) => {
+          const scene = getScene(s.sceneHint);
+          return `${scene?.name ?? s.sceneHint} — ${s.moodHint}`;
+        }),
+      })),
     };
   }
 }
