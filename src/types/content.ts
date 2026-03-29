@@ -6,7 +6,7 @@ export type ContentSetItem = {
   caption?: string;
   hashtags: string[];
   slideCount: number;
-  status: "GENERATING" | "COMPLETED" | "PARTIAL";
+  status: "GENERATING" | "COMPLETED" | "PARTIAL" | "FAILED";
   creditsCost: number;
   createdAt: string;
   slides: ContentItem[];

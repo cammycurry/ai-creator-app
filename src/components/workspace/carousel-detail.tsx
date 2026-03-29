@@ -1,7 +1,7 @@
 // src/components/workspace/carousel-detail.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useCreatorStore } from "@/stores/creator-store";
 import { regenerateSlide, rewriteCaption } from "@/server/actions/carousel-actions";
@@ -154,14 +154,16 @@ export function CarouselDetail({
   const [captionText, setCaptionText] = useState(initialSet?.caption ?? "");
   const [hashtags, setHashtags] = useState(initialSet?.hashtags ?? []);
   const [rewriting, setRewriting] = useState(false);
-  const creator = useCreatorStore.getState().getActiveCreator();
+  const creator = useCreatorStore((s) => s.getActiveCreator());
 
   // Sync when prop changes
-  if (initialSet && initialSet.id !== contentSet?.id) {
-    setContentSet(initialSet);
-    setCaptionText(initialSet.caption ?? "");
-    setHashtags(initialSet.hashtags ?? []);
-  }
+  useEffect(() => {
+    if (initialSet) {
+      setContentSet(initialSet);
+      setCaptionText(initialSet.caption ?? "");
+      setHashtags(initialSet.hashtags ?? []);
+    }
+  }, [initialSet]);
 
   if (!contentSet) return null;
 

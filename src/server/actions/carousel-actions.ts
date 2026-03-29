@@ -9,13 +9,18 @@ import { uploadImage, getSignedImageUrl, getImageBuffer } from "@/lib/s3";
 import { stripAndRewrite } from "@/lib/ai/metadata-strip";
 import { CAROUSEL_FORMATS, type CarouselFormat, type FormatSlide } from "@/data/carousel-formats";
 import { getScene } from "@/data/scenes";
-import { REALISM_BASE, CAMERA } from "@/lib/prompts";
+import { REALISM_BASE } from "@/lib/prompts";
 import type { ContentSetItem, ContentItem } from "@/types/content";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const grok = new OpenAI({ apiKey: process.env.GROK_API_KEY!, baseURL: "https://api.x.ai/v1" });
 const IMAGE_MODEL = "gemini-3-pro-image-preview";
 const CREDIT_PER_SLIDE = 1;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseGrokJson(text: string): any {
+  return JSON.parse(text.replace(/^```json?\n?|\n?```$/g, "").trim());
+}
 
 const SAFETY_OFF = [
   { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -201,12 +206,18 @@ export async function generateCarousel(
 
     const successfulSlides = results.filter(Boolean) as (ContentItem & { slideIndex: number })[];
 
+    // Refund credits for failed slides
+    const failedCount = slides.length - successfulSlides.length;
+    if (failedCount > 0) {
+      await deductCredits(user.id, -failedCount * CREDIT_PER_SLIDE, `Carousel refund: ${failedCount} failed slides`);
+    }
+
     // Generate caption
     const caption = await generateCaption(format, gender, creator.name);
 
     // Update content set
     const status = successfulSlides.length === slides.length ? "COMPLETED"
-      : successfulSlides.length > 0 ? "PARTIAL" : "GENERATING";
+      : successfulSlides.length > 0 ? "PARTIAL" : "FAILED";
 
     await db.contentSet.update({
       where: { id: contentSet.id },
@@ -281,13 +292,11 @@ export async function regenerateSlide(
     return { success: false, error: "Not authorized" };
   }
 
-  // Check credits
+  // Check credits (deduct AFTER successful generation)
   const totalCredits = user.planCredits + user.packCredits;
   if (totalCredits < CREDIT_PER_SLIDE) {
     return { success: false, error: "Not enough credits" };
   }
-
-  await deductCredits(user.id, CREDIT_PER_SLIDE, "Carousel slide regeneration");
 
   const creator = content.creator;
   if (!creator.baseImageUrl) return { success: false, error: "Creator has no base image" };
@@ -324,6 +333,9 @@ export async function regenerateSlide(
 
   const result = await generateSlideImage(prompt, refImage, user.id, creator.id, content.slideIndex ?? 0);
   if (!result) return { success: false, error: "Failed to regenerate slide" };
+
+  // Deduct credit only after successful generation
+  await deductCredits(user.id, CREDIT_PER_SLIDE, "Carousel slide regeneration");
 
   // Update the content record with new image
   await db.content.update({
@@ -387,7 +399,7 @@ Write a caption and hashtags.`,
     });
 
     const text = response.choices?.[0]?.message?.content?.trim() ?? "";
-    const json = JSON.parse(text);
+    const json = parseGrokJson(text);
     return {
       text: typeof json.text === "string" ? json.text : format.captionTemplate,
       hashtags: Array.isArray(json.hashtags) ? json.hashtags.slice(0, 5) : format.hashtagSuggestions,
@@ -441,7 +453,7 @@ Request: ${userInput || "help me come up with ideas"}`,
     });
 
     const text = response.choices?.[0]?.message?.content?.trim() ?? "[]";
-    const suggestions = JSON.parse(text);
+    const suggestions = parseGrokJson(text);
     return { suggestions: Array.isArray(suggestions) ? suggestions.slice(0, 5) : [] };
   } catch {
     // Fallback — suggest based on niche
@@ -499,7 +511,7 @@ ${instruction ? `Instructions: ${instruction}` : "Write a fresh version"}`,
     });
 
     const text = response.choices?.[0]?.message?.content?.trim() ?? "";
-    const json = JSON.parse(text);
+    const json = parseGrokJson(text);
     const newCaption = typeof json.text === "string" ? json.text : (contentSet.caption ?? "");
     const newHashtags = Array.isArray(json.hashtags) ? json.hashtags.slice(0, 5) : (contentSet.hashtags ?? []);
 
