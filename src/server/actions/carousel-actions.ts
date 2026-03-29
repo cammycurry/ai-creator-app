@@ -225,10 +225,34 @@ export async function generateCarousel(
       })
     );
 
-    const successfulSlides = results.filter(Boolean) as (ContentItem & { slideIndex: number })[];
+    const generatedSlides = results.filter(Boolean) as (ContentItem & { slideIndex: number })[];
+
+    // Include source photo as slide 1 in the response
+    const successfulSlides: (ContentItem & { slideIndex: number })[] = [];
+    if (sourceContentId) {
+      const sourceContent = await db.content.findUnique({ where: { id: sourceContentId } });
+      if (sourceContent) {
+        const sourceUrl = sourceContent.url ? await getSignedImageUrl(sourceContent.url) : undefined;
+        successfulSlides.push({
+          id: sourceContent.id,
+          creatorId: sourceContent.creatorId,
+          type: "IMAGE",
+          status: "COMPLETED",
+          url: sourceUrl,
+          s3Keys: [],
+          source: "CAROUSEL",
+          prompt: sourceContent.prompt ?? undefined,
+          creditsCost: 0,
+          createdAt: sourceContent.createdAt.toISOString(),
+          contentSetId: contentSet.id,
+          slideIndex: 1,
+        });
+      }
+    }
+    successfulSlides.push(...generatedSlides);
 
     // Refund credits for failed slides
-    const failedCount = slidesToGenerate.length - successfulSlides.length;
+    const failedCount = slidesToGenerate.length - generatedSlides.length;
     if (failedCount > 0) {
       await deductCredits(user.id, -failedCount * CREDIT_PER_SLIDE, `Carousel refund: ${failedCount} failed slides`);
     }
@@ -237,8 +261,8 @@ export async function generateCarousel(
     const caption = await generateCaption(format, gender, creator.name);
 
     // Update content set
-    const status = successfulSlides.length === slidesToGenerate.length ? "COMPLETED"
-      : successfulSlides.length > 0 ? "PARTIAL" : "FAILED";
+    const status = generatedSlides.length === slidesToGenerate.length ? "COMPLETED"
+      : generatedSlides.length > 0 ? "PARTIAL" : "FAILED";
 
     await db.contentSet.update({
       where: { id: contentSet.id },

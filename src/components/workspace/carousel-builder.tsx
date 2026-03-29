@@ -71,13 +71,10 @@ function PickPhase({
 
       <div className="cb-custom">
         <input
-          placeholder="Or describe what you want..."
-          value={customText}
-          onChange={(e) => setCustomText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && customText.trim()) onCustom(customText.trim());
-          }}
+          placeholder="Custom formats coming soon..."
+          disabled
           className="cb-custom-input"
+          style={{ opacity: 0.5 }}
         />
       </div>
     </div>
