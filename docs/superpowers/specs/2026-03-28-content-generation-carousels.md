@@ -393,7 +393,78 @@ Add to existing Content model:
 
 ---
 
-## 8. What's NOT in Scope
+## 8. Pre-Generation Prompt Review
+
+Before generating a carousel, users can review and edit what the AI is about to create.
+
+### Flow
+
+1. User picks a format (or AI suggests one) → clicks Generate
+2. **Instead of immediately generating**, show a **prompt preview step**:
+
+```
+┌───────────────────────────────────────────────┐
+│ Gym Day Photo Dump — 6 slides           [Edit]│
+├───────────────────────────────────────────────┤
+│ 1. Mirror selfie, matching sports set,        │
+│    confident pose, gym lighting                │
+│ 2. Mid-workout deadlift action shot            │
+│ 3. Close-up gym bag / shoes detail             │
+│ 4. Post-workout glow, slightly sweaty          │
+│ 5. Protein shake at gym juice bar              │
+│ 6. Car selfie leaving gym, casual              │
+├───────────────────────────────────────────────┤
+│ ┌──────────────────────────────────────────┐  │
+│ │ Add instructions: "make slide 1 in a     │  │
+│ │ black sports bra instead"                │  │
+│ └──────────────────────────────────────────┘  │
+│                                               │
+│ [← Back]                [Generate All →]      │
+└───────────────────────────────────────────────┘
+```
+
+3. User can:
+   - Read the slide descriptions to understand what they'll get
+   - Type additional instructions in a text field (applied to all slides)
+   - Click "Edit" to modify individual slide descriptions inline
+   - Click "Generate All" when satisfied
+4. The user instructions get appended to each slide's prompt as context
+
+### Skip option
+
+Power users who just want speed can hold Shift+click or we add a "Quick Generate" option that skips the preview. But the default shows the preview — helps users understand what they're getting and builds trust.
+
+---
+
+## 9. Chrome Extension — Carousel Collection
+
+The existing Chrome extension (`tools/chrome-extension/`) collects reference images from Instagram. It needs to understand carousel structure so we can build a library of real carousel examples.
+
+### What to collect
+
+When the extension detects a carousel post on Instagram:
+- Save all slides as separate images (already supports this via interceptor)
+- Save the **carousel structure**: slide count, which slide is the cover, slide order
+- Save the **caption** and **hashtags** from the post
+- Save the **post type** as "carousel" (vs "single" or "reel")
+- Tag with the account's niche if detectable
+
+### How this informs our template library
+
+Collected carousels become training data:
+- Analyze real carousel structures → refine our format recipes
+- See what slide orderings perform (hook types, closer types)
+- Extract common patterns (how many outfit changes, what scenes pair well)
+- Build a "real examples" reference that the AI can draw from when suggesting formats
+
+### Files to update
+- `tools/chrome-extension/content-instagram.js` — detect carousel posts, extract all slides + metadata
+- `tools/chrome-extension/background.js` — store carousel structure alongside images
+- `src/app/api/reference/route.ts` — accept carousel metadata in the upload payload
+
+---
+
+## 10. What's NOT in Scope
 
 - Canvas/node editor (future — captured in IDEAS.md)
 - Video generation (Kling 3.0 — separate spec)
