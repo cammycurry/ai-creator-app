@@ -7,6 +7,7 @@ import { generateContent, getCreatorContent } from "@/server/actions/content-act
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
 import { ContentDetail } from "./content-detail";
 import { CarouselDetail } from "./carousel-detail";
+import { CarouselBuilder } from "./carousel-builder";
 import { SuggestionCards, type Suggestion } from "./suggestion-cards";
 import { suggestContent, generateCarousel, getCreatorContentSets } from "@/server/actions/carousel-actions";
 import { TemplatesView } from "./templates-view";
@@ -105,6 +106,9 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [carouselSet, setCarouselSet] = useState<ContentSetItem | null>(null);
   const [carouselOpen, setCarouselOpen] = useState(false);
+  const [builderPhoto, setBuilderPhoto] = useState<ContentItem | null>(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [filter, setFilter] = useState<"all" | "photos" | "carousels">("all");
   const {
     content,
     contentSets,
@@ -187,16 +191,19 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
     <>
       {/* Filter pills */}
       <div className="filter-bar">
-        <button className="filter-pill active">
-          All<span className="count">{content.length}</span>
+        <button className={`filter-pill${filter === "all" ? " active" : ""}`} onClick={() => setFilter("all")}>
+          All<span className="count">{content.length + contentSets.length}</span>
         </button>
-        <button className="filter-pill">
-          Photos<span className="count">0</span>
+        <button className={`filter-pill${filter === "photos" ? " active" : ""}`} onClick={() => setFilter("photos")}>
+          Photos<span className="count">{content.filter((c) => !c.contentSetId).length}</span>
         </button>
-        <button className="filter-pill">
+        <button className={`filter-pill${filter === "carousels" ? " active" : ""}`} onClick={() => setFilter("carousels")}>
+          Carousels<span className="count">{contentSets.length}</span>
+        </button>
+        <button className="filter-pill" disabled style={{ opacity: 0.5 }}>
           Videos<span className="count">0</span>
         </button>
-        <button className="filter-pill">
+        <button className="filter-pill" disabled style={{ opacity: 0.5 }}>
           Voice<span className="count">0</span>
         </button>
         <span className="filter-divider" />
@@ -235,7 +242,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
           </div>
         )}
 
-        {content.length === 0 && !isGeneratingContent ? (
+        {content.filter((c) => !c.contentSetId).length === 0 && contentSets.length === 0 && !isGeneratingContent ? (
           <NoContentState />
         ) : (
           <div className="content-grid" style={{
@@ -249,7 +256,9 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                 <div key={`gen-${i}`} className="skel skel-card" style={{ aspectRatio: "1", borderRadius: 8 }} />
               ))
             )}
-            {content.map((item) => (
+
+            {/* Standalone photos (not part of a carousel) */}
+            {(filter === "all" || filter === "photos") && content.filter((item) => !item.contentSetId).map((item) => (
               <div
                 key={item.id}
                 className="content-card"
@@ -259,33 +268,36 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                 }}
               >
                 {item.url ? (
-                  <img
-                    src={item.url}
-                    alt={item.userInput ?? "Generated content"}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
+                  <img src={item.url} alt={item.userInput ?? "Generated content"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
                   <div className="placeholder-img">📷</div>
                 )}
-                <div className="content-card-overlay">
-                  <span className="content-card-type">
-                    {item.type === "IMAGE" ? "Photo" : item.type}
-                  </span>
-                </div>
-                <span className="type-badge">
-                  {item.type === "IMAGE" ? "Photo" : item.type}
-                </span>
-                {item.contentSetId && (
-                  <span className="carousel-badge" onClick={(e) => {
-                    e.stopPropagation();
-                    const set = contentSets.find((s) => s.id === item.contentSetId);
-                    if (set) { setCarouselSet(set); setCarouselOpen(true); }
-                  }}>
-                    {contentSets.find((s) => s.id === item.contentSetId)?.slideCount ?? ""} slides
-                  </span>
-                )}
+                <span className="type-badge">Photo</span>
               </div>
             ))}
+
+            {/* Carousel cards (consolidated) */}
+            {(filter === "all" || filter === "carousels") && contentSets.map((set) => {
+              const coverSlide = set.slides[0];
+              return (
+                <div
+                  key={set.id}
+                  className="content-card"
+                  onClick={() => {
+                    setCarouselSet(set);
+                    setCarouselOpen(true);
+                  }}
+                >
+                  {coverSlide?.url ? (
+                    <img src={coverSlide.url} alt={set.formatId ?? "Carousel"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <div className="placeholder-img">📸</div>
+                  )}
+                  <span className="type-badge">Carousel</span>
+                  <span className="carousel-badge">{set.slideCount} slides</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -388,19 +400,19 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
         open={detailOpen}
         onOpenChange={setDetailOpen}
         onMakeCarousel={(item) => {
-          // Use this photo as inspiration — suggest carousel formats
-          setSuggestions([
-            { type: "carousel", formatId: "photo-dump-gym", title: "Photo Dump — Gym Day", description: "Build a gym day carousel around this photo", slideCount: 5 },
-            { type: "carousel", formatId: "photo-dump-city", title: "Photo Dump — City Day", description: "Build a city day carousel around this photo", slideCount: 5 },
-            { type: "carousel", formatId: "outfit-showcase", title: "Outfit Showcase", description: "Show different outfits based on this look", slideCount: 3 },
-            { type: "carousel", formatId: "day-in-the-life", title: "Day in the Life", description: "Build a full day carousel from this moment", slideCount: 5 },
-          ]);
+          setBuilderPhoto(item);
+          setBuilderOpen(true);
         }}
       />
       <CarouselDetail
         contentSet={carouselSet}
         open={carouselOpen}
         onOpenChange={setCarouselOpen}
+      />
+      <CarouselBuilder
+        photo={builderPhoto}
+        open={builderOpen}
+        onOpenChange={setBuilderOpen}
       />
     </>
   );
