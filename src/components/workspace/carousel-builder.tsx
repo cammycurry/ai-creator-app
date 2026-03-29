@@ -85,8 +85,8 @@ function PickPhase({
         </div>
       ) : (
         <div className="cb-suggestions">
-          {suggestions.map((s) => (
-            <button key={s.formatId} className="cb-format-card" onClick={() => onPick(s)}>
+          {suggestions.map((s, i) => (
+            <button key={`${s.formatId}-${i}`} className="cb-format-card" onClick={() => onPick(s)}>
               <div className="cb-format-header">
                 <div>
                   <span className="cb-format-name">{s.formatName}</span>
