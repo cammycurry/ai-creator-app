@@ -239,7 +239,7 @@ Uses the same dialog component as the existing content detail modal, expanded:
 ├───────────────────────────────────────────────┤
 │ Caption: "gym days > everything 💪"           │
 │ #fitness #gymlife #motivation                 │
-│ [Copy Caption]  [Edit]                        │
+│ [Copy] [Rewrite ↻] [Make it spicier 🔥]       │
 ├───────────────────────────────────────────────┤
 │ [Download All]              [Delete Carousel] │
 └───────────────────────────────────────────────┘
@@ -273,8 +273,9 @@ Uses the same dialog component as the existing content detail modal, expanded:
 
 - Click a slide in preview mode → same lightbox with regenerate
 - "Download All" downloads all slides as individual files (or zip)
-- Caption is AI-generated from the format template, editable
+- Caption is AI-generated from the format template, editable inline
 - Hashtags auto-generated, editable
+- **Caption assistant:** "Rewrite" button generates a new version. Quick tone chips: "Make it spicier 🔥", "More casual", "Add CTA", "Shorter". User can also type instructions like "make it funny" and Grok rewrites. All mindless one-click — user never has to write a caption from scratch
 
 ### Slide lightbox (within carousel dialog)
 
