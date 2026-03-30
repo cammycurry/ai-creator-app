@@ -27,6 +27,7 @@ model User {
   creators           Creator[]
   creditTransactions CreditTransaction[]
   contentSets        ContentSet[]
+  references         Reference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -72,6 +73,7 @@ model Creator {
   // Relations
   content     Content[]
   contentSets ContentSet[]
+  references  Reference[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -231,6 +233,31 @@ enum JobStatus {
   FAILED
 }
 
+// ─── Creator References ─────────────────────────────
+// Per-creator reference library for consistent generations.
+// NOT the same as ReferenceAccount/ReferencePost (admin Instagram collection).
+
+model Reference {
+  id          String   @id @default(cuid())
+  creatorId   String
+  creator     Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        String   // BACKGROUND, PRODUCT, OUTFIT, POSE, CUSTOM
+  name        String
+  description String   @default("")
+  imageUrl    String   // S3 key
+  tags        String[]
+  usageCount  Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([userId])
+}
+
 // ─── Reference Collection ────────────────────────────
 
 model ReferenceAccount {
@@ -243,6 +270,14 @@ model ReferenceAccount {
   postCount Int?
   profilePicUrl String?
 
+  // Instagram metadata
+  isVerified    Boolean @default(false)
+  isPrivate     Boolean @default(false)
+  isBusiness    Boolean @default(false)
+  categoryName  String?   // Instagram's category ("Digital creator", "Fitness Model")
+  externalUrl   String?   // Link in bio
+
+  // Our classification
   niche     String[]
   gender    String?
   vibe      String?
@@ -263,12 +298,23 @@ model ReferencePost {
   shortcode     String
   postUrl       String
   s3Key         String
-  mediaType     String  @default("image")
+  mediaType     String  @default("image")   // "image" or "video"
+  postType      String  @default("single")  // "single", "carousel", or "reel"
+  carouselCount Int?                        // total slides if carousel
   width         Int?
   height        Int?
   caption       String?
   carouselIndex Int     @default(0)
 
+  // Instagram metadata
+  likeCount     Int?
+  commentCount  Int?
+  viewCount     Int?      // video views
+  postedAt      DateTime? // when originally posted on IG
+  location      String?   // tagged location
+  altText       String?   // Instagram's auto-generated accessibility caption
+
+  // Our classification
   pose          String?
   setting       String?
   outfit        String?
