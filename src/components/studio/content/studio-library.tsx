@@ -129,7 +129,7 @@ export function StudioLibrary() {
               <div
                 key={template.id}
                 className="cs-template-card"
-                onClick={() => startSingleTemplate(template.name, template.scenePrompt)}
+                onClick={() => startSingleTemplate(template)}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 18 }}>{template.icon}</span>

@@ -12,6 +12,8 @@ export function StudioReview() {
   const {
     mode,
     selectedFormat,
+    selectedTemplate,
+    templateFields,
     slides,
     globalInstructions,
     freeformPrompt,
@@ -77,9 +79,18 @@ export function StudioReview() {
         }
       } else {
         // Single photo / freeform generation
-        const prompt = mode === "freeform"
-          ? freeformPrompt
-          : (slides[0]?.description || slides[0]?.moodHint || globalInstructions || "");
+        let prompt = "";
+        if (mode === "freeform") {
+          prompt = freeformPrompt;
+        } else if (selectedTemplate) {
+          // Interpolate template fields into the scene prompt
+          prompt = selectedTemplate.scenePrompt;
+          for (const [key, value] of Object.entries(templateFields)) {
+            prompt = prompt.replace(`{${key}}`, value);
+          }
+        } else {
+          prompt = slides[0]?.description || slides[0]?.moodHint || globalInstructions || "";
+        }
 
         const fullPrompt = globalInstructions && mode !== "freeform"
           ? `${prompt}. ${globalInstructions}`

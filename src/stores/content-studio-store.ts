@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { ReferenceItem } from "@/types/reference";
 import type { CarouselFormat } from "@/data/carousel-formats";
+import type { Template } from "@/types/template";
 
 export type ContentStudioStep = "library" | "builder" | "review";
 
@@ -21,6 +22,8 @@ type ContentStudioStore = {
   step: ContentStudioStep;
   mode: StudioMode;
   selectedFormat: CarouselFormat | null;
+  selectedTemplate: Template | null;
+  templateFields: Record<string, string>;
   slides: SlideConfig[];
   slideCount: number;
   globalInstructions: string;
@@ -33,7 +36,8 @@ type ContentStudioStore = {
   setStep: (step: ContentStudioStep) => void;
   selectFormat: (format: CarouselFormat, slideCount?: number) => void;
   startFreeform: (prompt?: string) => void;
-  startSingleTemplate: (name: string, scenePrompt: string) => void;
+  startSingleTemplate: (template: Template) => void;
+  setTemplateField: (key: string, value: string) => void;
   setSlides: (slides: SlideConfig[]) => void;
   updateSlide: (position: number, updates: Partial<SlideConfig>) => void;
   attachRef: (position: number, ref: ReferenceItem) => void;
@@ -53,6 +57,8 @@ const INITIAL_STATE = {
   step: "library" as ContentStudioStep,
   mode: "carousel" as StudioMode,
   selectedFormat: null as CarouselFormat | null,
+  selectedTemplate: null as Template | null,
+  templateFields: {} as Record<string, string>,
   slides: [] as SlideConfig[],
   slideCount: 0,
   globalInstructions: "",
@@ -107,12 +113,17 @@ export const useContentStudioStore = create<ContentStudioStore>((set) => ({
     });
   },
 
-  startSingleTemplate: (name, scenePrompt) => {
+  startSingleTemplate: (template) => {
+    // Initialize field values from template defaults
+    const fields: Record<string, string> = {};
+    for (const f of template.customizableFields) {
+      fields[f.key] = f.default ?? f.options?.[0] ?? "";
+    }
     const slide: SlideConfig = {
       position: 1,
-      sceneHint: name.toLowerCase().replace(/\s+/g, "-"),
+      sceneHint: template.id,
       outfitHint: "",
-      moodHint: scenePrompt,
+      moodHint: template.scenePrompt,
       role: "content",
       description: "",
       references: [],
@@ -121,11 +132,16 @@ export const useContentStudioStore = create<ContentStudioStore>((set) => ({
     set({
       mode: "single",
       selectedFormat: null,
+      selectedTemplate: template,
+      templateFields: fields,
       slides: [slide],
       slideCount: 1,
       step: "builder",
     });
   },
+
+  setTemplateField: (key, value) =>
+    set((state) => ({ templateFields: { ...state.templateFields, [key]: value } })),
 
   setSlides: (slides) => set({ slides }),
 
