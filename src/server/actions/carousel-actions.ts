@@ -68,12 +68,23 @@ async function generateSlideImage(
   refImage: { mimeType: string; data: string },
   userId: string,
   creatorId: string,
-  index: number
+  index: number,
+  extraRefs?: { mimeType: string; data: string }[]
 ): Promise<{ key: string } | null> {
   try {
+    const contents: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
+      { text: prompt },
+      { inlineData: refImage },
+    ];
+    if (extraRefs) {
+      for (const ref of extraRefs) {
+        contents.push({ inlineData: ref });
+      }
+    }
+
     const response = await ai.models.generateContent({
       model: IMAGE_MODEL,
-      contents: [{ text: prompt }, { inlineData: refImage }],
+      contents,
       config: { responseModalities: ["TEXT", "IMAGE"], safetySettings: SAFETY_OFF },
     });
 
@@ -106,7 +117,8 @@ export async function generateCarousel(
   slideCount?: number,
   userInstructions?: string,
   sourceContentId?: string,
-  slideEdits?: Record<number, string>
+  slideEdits?: Record<number, string>,
+  slideReferences?: Record<number, string[]>
 ): Promise<CarouselResult> {
   const { userId: clerkId } = await auth();
   if (!clerkId) return { success: false, error: "Not authenticated" };
@@ -141,6 +153,30 @@ export async function generateCarousel(
   const refBuffer = await getImageBuffer(creator.baseImageUrl);
   const refBase64 = refBuffer.toString("base64");
   const refImage = { mimeType: "image/jpeg", data: refBase64 };
+
+  // Fetch slide-specific references
+  const slideRefImages: Record<number, { mimeType: string; data: string }[]> = {};
+  if (slideReferences) {
+    const allRefIds = [...new Set(Object.values(slideReferences).flat())];
+    if (allRefIds.length > 0) {
+      const refs = await db.reference.findMany({ where: { id: { in: allRefIds } } });
+      for (const [posStr, refIds] of Object.entries(slideReferences)) {
+        const pos = Number(posStr);
+        slideRefImages[pos] = [];
+        for (const refId of refIds) {
+          const ref = refs.find((r) => r.id === refId);
+          if (ref) {
+            const buf = await getImageBuffer(ref.imageUrl);
+            slideRefImages[pos].push({ mimeType: "image/jpeg", data: buf.toString("base64") });
+          }
+        }
+      }
+      await db.reference.updateMany({
+        where: { id: { in: allRefIds } },
+        data: { usageCount: { increment: 1 } },
+      });
+    }
+  }
 
   const gender = (creator.settings as Record<string, string>)?.gender ?? "Female";
 
@@ -182,7 +218,7 @@ export async function generateCarousel(
           ? `That exact ${gender.toLowerCase() === "male" ? "man" : "woman"} from the reference image. ${editedDesc}. Shot on iPhone, candid. ${REALISM_BASE}.`
           : buildSlidePrompt(slide, scene, gender, userInstructions);
 
-        return generateSlideImage(prompt, refImage, user.id, creatorId, i).then(async (result) => {
+        return generateSlideImage(prompt, refImage, user.id, creatorId, i, slideRefImages[slide.position]).then(async (result) => {
           if (!result) return null;
 
           const content = await db.content.create({
