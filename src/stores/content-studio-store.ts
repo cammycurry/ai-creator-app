@@ -37,6 +37,7 @@ type ContentStudioStore = {
   setGenerating: (generating: boolean) => void;
   setError: (error: string | null) => void;
   reset: () => void;
+  autoMatchReferences: (references: ReferenceItem[]) => void;
 };
 
 const INITIAL_STATE = {
@@ -129,4 +130,29 @@ export const useContentStudioStore = create<ContentStudioStore>((set) => ({
   setGenerating: (generating) => set({ generating }),
   setError: (error) => set({ error }),
   reset: () => set(INITIAL_STATE),
+
+  autoMatchReferences: (references) =>
+    set((state) => {
+      const newSlides = state.slides.map((slide) => {
+        if (slide.references.length > 0) return slide; // Don't override manual refs
+
+        const sceneKeywords = slide.sceneHint.split("-").map((k) => k.toLowerCase());
+        const matched: ReferenceItem[] = [];
+
+        for (const ref of references) {
+          const tagOverlap = ref.tags.some((tag) =>
+            sceneKeywords.some((kw) => tag.includes(kw) || kw.includes(tag))
+          );
+          if (tagOverlap && !matched.some((m) => m.type === ref.type)) {
+            matched.push(ref);
+          }
+        }
+
+        if (matched.length > 0) {
+          return { ...slide, references: matched, autoMatched: true };
+        }
+        return slide;
+      });
+      return { slides: newSlides };
+    }),
 }));

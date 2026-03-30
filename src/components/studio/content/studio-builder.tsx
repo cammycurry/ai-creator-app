@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useContentStudioStore } from "@/stores/content-studio-store";
+import { useCreatorStore } from "@/stores/creator-store";
 import { ReferencePanel } from "./reference-panel";
 import { SlideRow } from "./slide-row";
 
@@ -13,7 +15,17 @@ export function StudioBuilder() {
     setSlideCount,
     setGlobalInstructions,
     setStep,
+    autoMatchReferences,
   } = useContentStudioStore();
+
+  const { references } = useCreatorStore();
+
+  useEffect(() => {
+    if (references.length > 0 && slides.length > 0) {
+      autoMatchReferences(references);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!selectedFormat) return null;
 
