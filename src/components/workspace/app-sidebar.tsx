@@ -51,6 +51,19 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
           References
         </button>
         <button
+          onClick={() => {
+            useUIStore.getState().setContentStudioOpen(true);
+            onClose?.();
+          }}
+          className="new-creator-btn"
+          style={{ fontWeight: 400 }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          Create Content
+        </button>
+        <button
           onClick={() => setCreatorStudioOpen(true)}
           className="new-creator-btn"
         >

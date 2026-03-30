@@ -7,8 +7,8 @@ import { generateContent, getCreatorContent } from "@/server/actions/content-act
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
 import { ContentDetail } from "./content-detail";
 import { CarouselDetail } from "./carousel-detail";
-import { CarouselBuilder } from "./carousel-builder";
 import { SuggestionCards, type Suggestion } from "./suggestion-cards";
+import { useContentStudioStore } from "@/stores/content-studio-store";
 import { suggestContent, generateCarousel, getCreatorContentSets } from "@/server/actions/carousel-actions";
 import { TemplatesView } from "./templates-view";
 import { PreMadeLibrary } from "./premade-library";
@@ -107,8 +107,6 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [carouselSet, setCarouselSet] = useState<ContentSetItem | null>(null);
   const [carouselOpen, setCarouselOpen] = useState(false);
-  const [builderPhoto, setBuilderPhoto] = useState<ContentItem | null>(null);
-  const [builderOpen, setBuilderOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "photos" | "carousels">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "type">("newest");
@@ -232,7 +230,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
         <span className="filter-divider" />
         <button
           className="filter-pill"
-          onClick={() => useUIStore.getState().setActiveView("templates")}
+          onClick={() => useUIStore.getState().setContentStudioOpen(true)}
         >
           Templates
         </button>
@@ -428,19 +426,14 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
         open={detailOpen}
         onOpenChange={setDetailOpen}
         onMakeCarousel={(item) => {
-          setBuilderPhoto(item);
-          setBuilderOpen(true);
+          useContentStudioStore.getState().setSourceContentId(item.id);
+          useUIStore.getState().setContentStudioOpen(true);
         }}
       />
       <CarouselDetail
         contentSet={carouselSet}
         open={carouselOpen}
         onOpenChange={setCarouselOpen}
-      />
-      <CarouselBuilder
-        photo={builderPhoto}
-        open={builderOpen}
-        onOpenChange={setBuilderOpen}
       />
     </>
   );
