@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { Creator } from "@/types/creator";
 import type { CreditBalance } from "@/types/credits";
 import type { ContentItem, ContentSetItem } from "@/types/content";
+import type { ReferenceItem } from "@/types/reference";
 
 type CreatorStore = {
   creators: Creator[];
@@ -27,6 +28,11 @@ type CreatorStore = {
   setIsGeneratingContent: (v: boolean) => void;
   setContentError: (error: string | null) => void;
   setImageCount: (count: number) => void;
+  references: ReferenceItem[];
+  setReferences: (refs: ReferenceItem[]) => void;
+  addReference: (ref: ReferenceItem) => void;
+  removeReference: (id: string) => void;
+  updateReferenceInStore: (id: string, updates: Partial<ReferenceItem>) => void;
 };
 
 export const useCreatorStore = create<CreatorStore>((set, get) => ({
@@ -69,4 +75,11 @@ export const useCreatorStore = create<CreatorStore>((set, get) => ({
   setIsGeneratingContent: (isGeneratingContent) => set({ isGeneratingContent }),
   setContentError: (contentError) => set({ contentError }),
   setImageCount: (imageCount) => set({ imageCount: Math.min(Math.max(imageCount, 1), 4) }),
+  references: [],
+  setReferences: (references) => set({ references }),
+  addReference: (ref) => set((state) => ({ references: [ref, ...state.references] })),
+  removeReference: (id) => set((state) => ({ references: state.references.filter((r) => r.id !== id) })),
+  updateReferenceInStore: (id, updates) => set((state) => ({
+    references: state.references.map((r) => r.id === id ? { ...r, ...updates } : r),
+  })),
 }));
