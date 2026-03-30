@@ -46,12 +46,16 @@ export function ReferenceLibrary() {
   return (
     <div className="ref-library">
       <div className="ref-library-header">
-        <div className="ref-library-title">
-          <span className="ref-library-creator">{creator?.name ?? "References"}</span>
-          <span className="ref-library-count">{references.length}</span>
+        <div>
+          <h2 className="ref-library-title">
+            {creator?.name ? `${creator.name}'s References` : "References"}
+          </h2>
+          <span className="ref-library-count">
+            {references.length} reference{references.length !== 1 ? "s" : ""} — backgrounds, products, outfits, and more
+          </span>
         </div>
         <button className="studio-btn primary" onClick={() => setAddOpen(true)}>
-          Add Reference
+          + Add Reference
         </button>
       </div>
 

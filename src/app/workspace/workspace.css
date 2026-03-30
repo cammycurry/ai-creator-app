@@ -97,6 +97,10 @@
 .creator-count { font-size: 11px; color: var(--text-secondary); }
 .new-creator-btn { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); width: 100%; font-size: 13px; font-weight: 500; color: var(--text-secondary); transition: all 150ms; margin-top: 4px; }
 .new-creator-btn:hover { background: var(--card); color: var(--text-primary); }
+.sidebar-tool-btn { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: var(--radius-sm); width: 100%; font-size: 12px; font-weight: 400; color: var(--text-secondary); transition: all 150ms; }
+.sidebar-tool-btn:hover { background: var(--card); color: var(--text-primary); }
+.sidebar-tool-btn svg { opacity: 0.6; }
+.sidebar-tool-btn:hover svg { opacity: 1; }
 .sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .credits-display { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
 .credits-dot { width: 6px; height: 6px; border-radius: 50%; background: #4CAF50; }
