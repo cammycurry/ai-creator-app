@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useCreatorStore } from "@/stores/creator-store";
 import { deleteContent } from "@/server/actions/content-actions";
+import { AddReferenceDialog } from "./add-reference-dialog";
 import type { ContentItem } from "@/types/content";
 
 function formatDate(dateStr: string): string {
@@ -33,6 +34,8 @@ export function ContentDetail({
 }) {
   const [downloading, setDownloading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [saveRefOpen, setSaveRefOpen] = useState(false);
+  const [refImageBase64, setRefImageBase64] = useState<string | null>(null);
   const { setContent, content } = useCreatorStore();
 
   if (!item) return null;
@@ -55,6 +58,23 @@ export function ContentDetail({
       window.open(item.url, "_blank");
     }
     setDownloading(false);
+  };
+
+  const handleSaveAsRef = async () => {
+    if (!item?.url) return;
+    try {
+      const response = await fetch(item.url);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = (reader.result as string).split(",")[1];
+        setRefImageBase64(base64);
+        setSaveRefOpen(true);
+      };
+      reader.readAsDataURL(blob);
+    } catch {
+      setSaveRefOpen(true);
+    }
   };
 
   const handleDelete = async () => {
@@ -123,6 +143,14 @@ export function ContentDetail({
                   Make Carousel
                 </button>
               )}
+              <button className="cd-action-btn" onClick={handleSaveAsRef}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                </svg>
+                Save as Reference
+              </button>
               <button className="cd-action-btn" disabled style={{ opacity: 0.5 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polygon points="5 3 19 12 5 21 5 3" />
@@ -160,6 +188,13 @@ export function ContentDetail({
             </div>
           </div>
         </div>
+        {saveRefOpen && (
+          <AddReferenceDialog
+            open={saveRefOpen}
+            onOpenChange={setSaveRefOpen}
+            prefillImageBase64={refImageBase64 ?? undefined}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
