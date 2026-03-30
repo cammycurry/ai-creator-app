@@ -7,6 +7,8 @@ type UIStore = {
   setActiveView: (view: ActiveView) => void;
   creatorStudioOpen: boolean;
   setCreatorStudioOpen: (open: boolean) => void;
+  contentStudioOpen: boolean;
+  setContentStudioOpen: (open: boolean) => void;
 };
 
 export const useUIStore = create<UIStore>((set) => ({
@@ -14,4 +16,6 @@ export const useUIStore = create<UIStore>((set) => ({
   setActiveView: (activeView) => set({ activeView }),
   creatorStudioOpen: false,
   setCreatorStudioOpen: (creatorStudioOpen) => set({ creatorStudioOpen }),
+  contentStudioOpen: false,
+  setContentStudioOpen: (contentStudioOpen) => set({ contentStudioOpen }),
 }));
