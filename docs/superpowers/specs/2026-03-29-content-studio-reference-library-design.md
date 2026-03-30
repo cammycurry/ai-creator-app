@@ -146,24 +146,28 @@ reference image 3. Shot on iPhone, candid. [REALISM_BASE]."
 
 ## 2. Content Studio
 
-### 2.1 Architecture
+### 2.1 Architecture & UX Hierarchy
 
-The Content Studio replaces the current `CarouselBuilder` dialog and expands the current `TemplatesView`. It's a workspace view (not a separate route), accessed via the existing view system in `ui-store`.
+Three levels of content creation UI, sharing the same underlying controls:
 
-**New view:** `activeView: "studio"` added to `UIStore.ActiveView`
+1. **Floating input** (always visible on dashboard) — quick generation, AI suggestions, type and go. Existing component, stays as-is.
+2. **Dialogs** (triggered from dashboard actions) — focused tasks: "Make Carousel from this photo", quick customize, caption edit. Compact versions of studio controls.
+3. **Content Studio** (full-screen overlay) — the complete creation experience. Template library, slide builder, reference panel, everything.
+
+**The Studio is a full-screen overlay**, not a workspace view or route. Opens with a smooth transition, has an X button top-right to close back to dashboard. Same pattern as the Creator Studio wizard (full-screen for big creative flows, dialogs for quick edits).
 
 **Components:**
 ```
 src/components/studio/content/
-  content-studio.tsx        — Main orchestrator, manages steps
+  content-studio.tsx        — Full-screen overlay orchestrator, manages steps
   studio-library.tsx        — Step 1: Template browse grid
   studio-builder.tsx        — Step 2: Split panel slide builder
   studio-review.tsx         — Step 3: Review & generate summary
-  reference-panel.tsx       — Left panel: creator's reference library
+  reference-panel.tsx       — Left panel: creator's reference library (My Refs + Browse Library tabs)
   slide-row.tsx             — Individual slide configuration row
-  reference-card.tsx        — Reference thumbnail card (reused in panel + grid)
-  add-reference-dialog.tsx  — Upload + tag reference
 ```
+
+Reuses existing components: `ReferenceCard`, `AddReferenceDialog` from the reference library.
 
 **CSS:** New `content-studio.css` in prototype-first pattern. NOT Tailwind for core layout.
 
