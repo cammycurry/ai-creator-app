@@ -79,11 +79,21 @@ model Reference {
 **Add Reference flow:**
 1. Click "+ Add Reference" (or drag-drop an image)
 2. Upload image (drag-drop or file picker, client-side resize)
-3. Pick type from dropdown (Background, Product, Outfit, Pose, Custom)
-4. Name it ("My Bedroom")
-5. Describe it ("White bed, fairy lights, morning window light from left") — this description is used in prompt building
-6. Tags auto-suggested, editable
-7. Save → S3 upload → DB record
+3. **AI auto-analyzes the image** → suggests type, name, description, and tags. User sees pre-filled fields and just confirms or tweaks. Near-zero effort.
+4. User adjusts if needed (change type, rename, edit description)
+5. Save → S3 upload → DB record
+
+AI analysis uses Gemini Flash (cheap, fast) to look at the image and return:
+```json
+{ "type": "BACKGROUND", "name": "Bedroom", "description": "White bed with fairy lights, morning window light from left, clean minimal decor", "tags": ["bedroom", "morning", "cozy", "home"] }
+```
+
+**"Save as Reference" surfaces:**
+- Content detail (photos) — existing
+- Video player (future) — save current frame as reference
+- Upload dialog — any image you upload can be a reference
+- Generated carousel slides — save any slide as a reference
+- Keep original image as-is, no cropping or processing
 
 **"Save as Reference" from generated content:**
 - New button on `ContentDetail` alongside Download, Make Carousel, Make Video
