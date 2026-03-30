@@ -188,6 +188,15 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.cs-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #888);
+  margin-bottom: 10px;
+}
+
 .cs-template-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

@@ -15,24 +15,33 @@ export type SlideConfig = {
   autoMatched: boolean;
 };
 
+export type StudioMode = "carousel" | "single" | "freeform";
+
 type ContentStudioStore = {
   step: ContentStudioStep;
+  mode: StudioMode;
   selectedFormat: CarouselFormat | null;
   slides: SlideConfig[];
   slideCount: number;
   globalInstructions: string;
   sourceContentId: string | null;
+  freeformPrompt: string;
+  imageCount: number;
   generating: boolean;
   error: string | null;
 
   setStep: (step: ContentStudioStep) => void;
   selectFormat: (format: CarouselFormat, slideCount?: number) => void;
+  startFreeform: (prompt?: string) => void;
+  startSingleTemplate: (name: string, scenePrompt: string) => void;
   setSlides: (slides: SlideConfig[]) => void;
   updateSlide: (position: number, updates: Partial<SlideConfig>) => void;
   attachRef: (position: number, ref: ReferenceItem) => void;
   detachRef: (position: number, refId: string) => void;
   setSlideCount: (count: number) => void;
   setGlobalInstructions: (instructions: string) => void;
+  setFreeformPrompt: (prompt: string) => void;
+  setImageCount: (count: number) => void;
   setSourceContentId: (id: string | null) => void;
   setGenerating: (generating: boolean) => void;
   setError: (error: string | null) => void;
@@ -42,11 +51,14 @@ type ContentStudioStore = {
 
 const INITIAL_STATE = {
   step: "library" as ContentStudioStep,
+  mode: "carousel" as StudioMode,
   selectedFormat: null as CarouselFormat | null,
   slides: [] as SlideConfig[],
   slideCount: 0,
   globalInstructions: "",
   sourceContentId: null as string | null,
+  freeformPrompt: "",
+  imageCount: 1,
   generating: false,
   error: null as string | null,
 };
@@ -71,7 +83,48 @@ export const useContentStudioStore = create<ContentStudioStore>((set) => ({
         references: [],
         autoMatched: false,
       }));
-    set({ selectedFormat: format, slides, slideCount: count, step: "builder" });
+    set({ selectedFormat: format, mode: "carousel", slides, slideCount: count, step: "builder" });
+  },
+
+  startFreeform: (prompt) => {
+    const slide: SlideConfig = {
+      position: 1,
+      sceneHint: "custom",
+      outfitHint: "",
+      moodHint: "",
+      role: "content",
+      description: prompt ?? "",
+      references: [],
+      autoMatched: false,
+    };
+    set({
+      mode: "freeform",
+      selectedFormat: null,
+      slides: [slide],
+      slideCount: 1,
+      freeformPrompt: prompt ?? "",
+      step: "builder",
+    });
+  },
+
+  startSingleTemplate: (name, scenePrompt) => {
+    const slide: SlideConfig = {
+      position: 1,
+      sceneHint: name.toLowerCase().replace(/\s+/g, "-"),
+      outfitHint: "",
+      moodHint: scenePrompt,
+      role: "content",
+      description: "",
+      references: [],
+      autoMatched: false,
+    };
+    set({
+      mode: "single",
+      selectedFormat: null,
+      slides: [slide],
+      slideCount: 1,
+      step: "builder",
+    });
   },
 
   setSlides: (slides) => set({ slides }),
@@ -126,6 +179,8 @@ export const useContentStudioStore = create<ContentStudioStore>((set) => ({
     }),
 
   setGlobalInstructions: (globalInstructions) => set({ globalInstructions }),
+  setFreeformPrompt: (freeformPrompt) => set({ freeformPrompt }),
+  setImageCount: (count) => set({ imageCount: Math.min(Math.max(count, 1), 4) }),
   setSourceContentId: (sourceContentId) => set({ sourceContentId }),
   setGenerating: (generating) => set({ generating }),
   setError: (error) => set({ error }),
