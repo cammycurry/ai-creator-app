@@ -110,6 +110,8 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
   const [builderPhoto, setBuilderPhoto] = useState<ContentItem | null>(null);
   const [builderOpen, setBuilderOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "photos" | "carousels">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "type">("newest");
   const {
     content,
     contentSets,
@@ -188,15 +190,35 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
     }
   }, [creator.id, addContentSet, setIsGeneratingContent, setContentError, setCredits]);
 
+  const standalonePhotos = content.filter((c) => !c.contentSetId);
+  const query = searchQuery.toLowerCase().trim();
+  const filteredContent = query
+    ? standalonePhotos.filter((c) =>
+        (c.userInput ?? "").toLowerCase().includes(query) ||
+        (c.prompt ?? "").toLowerCase().includes(query)
+      )
+    : standalonePhotos;
+  const filteredSets = query
+    ? contentSets.filter((s) =>
+        (s.formatId ?? "").toLowerCase().includes(query) ||
+        (s.caption ?? "").toLowerCase().includes(query)
+      )
+    : contentSets;
+  const sortedContent = [...filteredContent].sort((a, b) => {
+    if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    if (sortBy === "type") return a.type.localeCompare(b.type);
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <>
       {/* Filter pills */}
       <div className="filter-bar">
         <button className={`filter-pill${filter === "all" ? " active" : ""}`} onClick={() => setFilter("all")}>
-          All<span className="count">{content.length + contentSets.length}</span>
+          All<span className="count">{standalonePhotos.length + contentSets.length}</span>
         </button>
         <button className={`filter-pill${filter === "photos" ? " active" : ""}`} onClick={() => setFilter("photos")}>
-          Photos<span className="count">{content.filter((c) => !c.contentSetId).length}</span>
+          Photos<span className="count">{standalonePhotos.length}</span>
         </button>
         <button className={`filter-pill${filter === "carousels" ? " active" : ""}`} onClick={() => setFilter("carousels")}>
           Carousels<span className="count">{contentSets.length}</span>
@@ -225,16 +247,21 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
               <circle cx="11" cy="11" r="8" />
               <path d="M21 21l-4.35-4.35" />
             </svg>
-            <input type="text" placeholder="Search content..." />
+            <input
+              type="text"
+              placeholder="Search content..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
           <div className="gallery-sort">
-            <select>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "type")}>
               <option value="newest">Newest</option>
               <option value="oldest">Oldest</option>
               <option value="type">By type</option>
             </select>
           </div>
-          <span className="gallery-count">{content.length} items</span>
+          <span className="gallery-count">{sortedContent.length + (filter !== "photos" ? filteredSets.length : 0)} items</span>
         </div>
 
         {contentError && (
@@ -243,7 +270,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
           </div>
         )}
 
-        {content.filter((c) => !c.contentSetId).length === 0 && contentSets.length === 0 && !isGeneratingContent ? (
+        {standalonePhotos.length === 0 && contentSets.length === 0 && !isGeneratingContent ? (
           <NoContentState />
         ) : (
           <div className="content-grid" style={{
@@ -259,7 +286,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
             )}
 
             {/* Standalone photos (not part of a carousel) */}
-            {(filter === "all" || filter === "photos") && content.filter((item) => !item.contentSetId).map((item) => (
+            {(filter === "all" || filter === "photos") && sortedContent.map((item) => (
               <div
                 key={item.id}
                 className="content-card"
@@ -278,7 +305,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
             ))}
 
             {/* Carousel cards (consolidated) */}
-            {(filter === "all" || filter === "carousels") && contentSets.map((set) => {
+            {(filter === "all" || filter === "carousels") && filteredSets.map((set) => {
               const coverSlide = set.slides[0];
               return (
                 <div
