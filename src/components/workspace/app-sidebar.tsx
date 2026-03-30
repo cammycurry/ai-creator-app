@@ -37,7 +37,6 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
       {/* Creator section */}
       <div className="sidebar-section">
         <div className="sidebar-section-label">Creators</div>
-        <CreatorList onCreatorClick={onClose} />
         <button
           onClick={() => setCreatorStudioOpen(true)}
           className="new-creator-btn"
@@ -47,11 +46,8 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
           </svg>
           New Creator
         </button>
-      </div>
-
-      {/* Tools section */}
-      <div className="sidebar-section">
-        <div className="sidebar-section-label">Tools</div>
+        <CreatorList onCreatorClick={onClose} />
+        <div style={{ height: 1, background: "var(--border, #EBEBEB)", margin: "8px 0" }} />
         <button
           onClick={() => {
             useUIStore.getState().setContentStudioOpen(true);
