@@ -56,7 +56,7 @@ Keep name concise (2-4 words). Description should describe what it shows in a wa
     const name = typeof json.name === "string" ? json.name.slice(0, 50) : "New Reference";
     const description = typeof json.description === "string" ? json.description.slice(0, 200) : "";
     const tags = Array.isArray(json.tags)
-      ? json.tags.slice(0, 8).map(String)
+      ? json.tags.slice(0, 8).map((t: string) => String(t).toLowerCase())
       : [];
 
     return { type, name, description, tags };

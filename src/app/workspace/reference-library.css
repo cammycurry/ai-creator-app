@@ -256,6 +256,10 @@
   color: var(--accent, #C4603A);
 }
 
+.add-ref-upload.dragging {
+  border-color: var(--accent, #C4603A);
+}
+
 .add-ref-preview {
   position: relative;
   border-radius: 8px;

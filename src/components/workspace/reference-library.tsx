@@ -32,9 +32,15 @@ export function ReferenceLibrary() {
   const countFor = (value: FilterValue) =>
     value === "ALL" ? references.length : references.filter((r) => r.type === value).length;
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   async function handleDelete(id: string) {
-    removeReference(id);
-    await deleteReference(id);
+    setDeletingId(id);
+    const result = await deleteReference(id);
+    if (result.success) {
+      removeReference(id);
+    }
+    setDeletingId(null);
   }
 
   return (
@@ -49,7 +55,7 @@ export function ReferenceLibrary() {
         </button>
       </div>
 
-      <div className="ref-library-filters">
+      <div className="ref-filter-bar">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab.value}
@@ -63,16 +69,16 @@ export function ReferenceLibrary() {
       </div>
 
       {references.length === 0 ? (
-        <div className="ref-library-empty">
-          <div className="ref-library-empty-icon">
+        <div className="ref-empty">
+          <div className="ref-empty-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <rect x="3" y="3" width="18" height="18" rx="2" />
               <circle cx="8.5" cy="8.5" r="1.5" />
               <path d="M21 15l-5-5L5 21" />
             </svg>
           </div>
-          <div className="ref-library-empty-title">No references yet</div>
-          <div className="ref-library-empty-sub">
+          <div className="ref-empty-title">No references yet</div>
+          <div className="ref-empty-desc">
             Add backgrounds, products, outfits, and poses to use in your content.
           </div>
           <button className="studio-btn primary" onClick={() => setAddOpen(true)}>
@@ -80,7 +86,7 @@ export function ReferenceLibrary() {
           </button>
         </div>
       ) : (
-        <div className="ref-library-grid">
+        <div className="ref-grid">
           {filtered.map((ref) => (
             <ReferenceCard
               key={ref.id}
@@ -88,7 +94,7 @@ export function ReferenceLibrary() {
               onDelete={() => handleDelete(ref.id)}
             />
           ))}
-          <button className="ref-card ref-card-add" onClick={() => setAddOpen(true)}>
+          <button className="ref-add-card" onClick={() => setAddOpen(true)}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M12 5v14M5 12h14" />
             </svg>
