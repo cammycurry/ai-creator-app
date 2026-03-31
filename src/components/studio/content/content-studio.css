@@ -554,6 +554,25 @@
 }
 
 /* ── Footer ── */
+/* ── Upload Zone ── */
+.cs-upload-zone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border: 2px dashed var(--border, #EBEBEB);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text-muted, #BBB);
+  font-size: 13px;
+  transition: border-color 150ms, color 150ms;
+}
+
+.cs-upload-zone:hover {
+  border-color: var(--accent, #C4603A);
+  color: var(--text-secondary, #888);
+}
+
 .cs-footer {
   padding: 12px 20px;
   border-top: 1px solid var(--border, #EBEBEB);
