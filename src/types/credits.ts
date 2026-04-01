@@ -7,16 +7,20 @@ export type CreditBalance = {
 export type ContentCostType =
   | "IMAGE"
   | "IMAGE_UPSCALE"
-  | "VIDEO"
+  | "VIDEO_5S"
+  | "VIDEO_10S"
   | "VOICE"
-  | "TALKING_HEAD";
+  | "TALKING_HEAD"
+  | "MOTION_TRANSFER";
 
 export type CreditCost = Record<ContentCostType, number>;
 
 export const CREDIT_COSTS: CreditCost = {
   IMAGE: 1,
   IMAGE_UPSCALE: 1,
-  VIDEO: 5,
+  VIDEO_5S: 3,
+  VIDEO_10S: 5,
   VOICE: 2,
   TALKING_HEAD: 8,
+  MOTION_TRANSFER: 5,
 } as const;
