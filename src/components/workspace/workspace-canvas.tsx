@@ -4,17 +4,15 @@ import { useState, useEffect, useCallback } from "react";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUIStore } from "@/stores/ui-store";
 import { generateContent, getCreatorContent } from "@/server/actions/content-actions";
-import { generateVideoFromText, checkVideoStatus } from "@/server/actions/video-actions";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
 import { ContentDetail } from "./content-detail";
 import { CarouselDetail } from "./carousel-detail";
 import { SuggestionCards, type Suggestion } from "./suggestion-cards";
-import { useContentStudioStore } from "@/stores/content-studio-store";
+import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { suggestContent, generateCarousel, getCreatorContentSets } from "@/server/actions/carousel-actions";
 import { TemplatesView } from "./templates-view";
 import { PreMadeLibrary } from "./premade-library";
 import { ReferenceLibrary } from "./reference-library";
-import { TalkingHeadDialog } from "./talking-head-dialog";
 import type { ContentItem, ContentSetItem } from "@/types/content";
 
 /* ─── Loading Skeleton ─── */
@@ -110,7 +108,6 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [carouselSet, setCarouselSet] = useState<ContentSetItem | null>(null);
   const [carouselOpen, setCarouselOpen] = useState(false);
-  const [talkingHeadOpen, setTalkingHeadOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "photos" | "carousels">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "type">("newest");
@@ -152,32 +149,12 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
       return;
     }
 
-    // Video mode — generate video instead of photo
+    // Video mode — open studio instead
     if (contentMode === "video") {
-      setIsGeneratingContent(true);
-      setContentError(null);
+      useUnifiedStudioStore.getState().setContentType("video");
+      useUnifiedStudioStore.getState().setPrompt(input);
+      useUIStore.getState().setContentStudioOpen(true);
       setPrompt("");
-      const result = await generateVideoFromText(creator.id, input, 5, "9:16");
-      if (!result.success) {
-        setContentError(result.error);
-        setIsGeneratingContent(false);
-        return;
-      }
-      // Poll for completion
-      const poll = setInterval(async () => {
-        const status = await checkVideoStatus(result.jobId);
-        if (status.status === "COMPLETED" || status.status === "FAILED") {
-          clearInterval(poll);
-          setIsGeneratingContent(false);
-          if (status.status === "FAILED") {
-            setContentError(status.error ?? "Video generation failed");
-          } else {
-            const data = await getWorkspaceData();
-            setCredits(data.balance);
-            getCreatorContent(creator.id).then(setContent);
-          }
-        }
-      }, 5000);
       return;
     }
 
@@ -448,13 +425,19 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                 </svg>
                 Photo
               </button>
-              <button className={`mode-chip${contentMode === "video" ? " active" : ""}`} onClick={() => setContentMode("video")}>
+              <button className={`mode-chip${contentMode === "video" ? " active" : ""}`} onClick={() => {
+                useUnifiedStudioStore.getState().setContentType("video");
+                useUIStore.getState().setContentStudioOpen(true);
+              }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polygon points="5 3 19 12 5 21 5 3" />
                 </svg>
                 Video
               </button>
-              <button className="mode-chip" onClick={() => setTalkingHeadOpen(true)}>
+              <button className="mode-chip" onClick={() => {
+                useUnifiedStudioStore.getState().setContentType("talking-head");
+                useUIStore.getState().setContentStudioOpen(true);
+              }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
                   <path d="M19 10v2a7 7 0 01-14 0v-2" />
@@ -471,7 +454,8 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
         open={detailOpen}
         onOpenChange={setDetailOpen}
         onMakeCarousel={(item) => {
-          useContentStudioStore.getState().setSourceContentId(item.id);
+          useUnifiedStudioStore.getState().setContentType("carousel");
+          useUnifiedStudioStore.getState().setSourceContentId(item.id);
           useUIStore.getState().setContentStudioOpen(true);
         }}
       />
@@ -480,7 +464,6 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
         open={carouselOpen}
         onOpenChange={setCarouselOpen}
       />
-      <TalkingHeadDialog open={talkingHeadOpen} onOpenChange={setTalkingHeadOpen} />
     </>
   );
 }

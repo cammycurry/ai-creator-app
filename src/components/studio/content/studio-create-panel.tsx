@@ -329,10 +329,10 @@ export function StudioCreatePanel() {
             <span className="us-attached-label">References:</span>
             {attachedRefs.map((ref) => (
               <span key={ref.id} className="us-attached-tag">
-                {ref.label || ref.type}
+                {ref.name || ref.type}
                 <button
                   onClick={() => detachRef(ref.id)}
-                  aria-label={`Remove ${ref.label || ref.type}`}
+                  aria-label={`Remove ${ref.name || ref.type}`}
                 >
                   ×
                 </button>

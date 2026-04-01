@@ -82,7 +82,7 @@ export function ConfigCarousel() {
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
                         {slide.references.map((ref) => (
                           <span key={ref.id} className="us-slide-ref-tag">
-                            {ref.label ?? ref.type}
+                            {ref.name ?? ref.type}
                             <button
                               onClick={() => detachSlideRef(slide.position, ref.id)}
                               style={{ marginLeft: 4, background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1, color: "inherit", opacity: 0.6 }}
