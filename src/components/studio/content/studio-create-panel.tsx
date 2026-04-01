@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
+import { suggestContentIdeas, improvePrompt, writeScript } from "@/server/actions/ai-assist-actions";
 import { useCreatorStore } from "@/stores/creator-store";
 import { generateContent } from "@/server/actions/content-actions";
 import { generateCarousel } from "@/server/actions/carousel-actions";
@@ -71,6 +72,38 @@ export function StudioCreatePanel() {
   const creator = getActiveCreator();
 
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  const handleSuggest = useCallback(async () => {
+    if (!activeCreatorId || aiLoading) return;
+    setAiLoading(true);
+    const result = await suggestContentIdeas(activeCreatorId, contentType);
+    setSuggestions(result.suggestions);
+    setAiLoading(false);
+  }, [activeCreatorId, contentType, aiLoading]);
+
+  const handleImprove = useCallback(async () => {
+    const text = contentType === "talking-head" ? script : prompt;
+    if (!text.trim() || aiLoading) return;
+    setAiLoading(true);
+    const result = await improvePrompt(text, contentType);
+    if (contentType === "talking-head") {
+      setScript(result.improved);
+    } else {
+      setPrompt(result.improved);
+    }
+    setAiLoading(false);
+  }, [contentType, script, prompt, aiLoading, setScript, setPrompt]);
+
+  const handleWriteScript = useCallback(async (topic: string) => {
+    if (!creator || aiLoading) return;
+    setAiLoading(true);
+    const niche = (creator.niche as string[])?.join(", ") || "lifestyle";
+    const result = await writeScript(topic, creator.name, niche, talkingDuration);
+    if (result.script) setScript(result.script);
+    setAiLoading(false);
+  }, [creator, aiLoading, talkingDuration, setScript]);
 
   function getCreditCost(): number {
     switch (contentType) {
@@ -322,6 +355,60 @@ export function StudioCreatePanel() {
             />
           )}
         </div>
+
+        {/* AI assist buttons */}
+        <div className="us-ai-assist">
+          <button
+            className="us-ai-btn"
+            onClick={handleSuggest}
+            disabled={aiLoading}
+          >
+            {aiLoading ? "..." : "✨ Suggest ideas"}
+          </button>
+          {(contentType === "talking-head" ? script.trim() : prompt.trim()) && (
+            <button
+              className="us-ai-btn"
+              onClick={handleImprove}
+              disabled={aiLoading}
+            >
+              {aiLoading ? "..." : "⚡ Improve"}
+            </button>
+          )}
+          {contentType === "talking-head" && (
+            <button
+              className="us-ai-btn"
+              onClick={() => {
+                const topic = prompt.trim() || script.trim() || "trending topic";
+                handleWriteScript(topic);
+              }}
+              disabled={aiLoading}
+            >
+              {aiLoading ? "..." : "📝 Write script"}
+            </button>
+          )}
+        </div>
+
+        {/* AI suggestions */}
+        {suggestions.length > 0 && (
+          <div className="us-suggestions">
+            {suggestions.map((s, i) => (
+              <button
+                key={i}
+                className="us-suggestion-chip"
+                onClick={() => {
+                  if (contentType === "talking-head") {
+                    setScript(s);
+                  } else {
+                    setPrompt(s);
+                  }
+                  setSuggestions([]);
+                }}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Attached references */}
         {attachedRefs.length > 0 && (
