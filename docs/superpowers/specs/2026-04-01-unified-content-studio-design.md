@@ -360,7 +360,54 @@ The floating input remains as the QUICK path for simple photo generation. The st
 
 ---
 
-## 10. What's NOT in Scope
+## 10. Saved Configurations (Presets)
+
+Users save their favorite factory setups as reusable presets. One click to load, swap creator, generate.
+
+### 10.1 What Gets Saved
+
+A preset captures the full studio state:
+- Content type (photo/carousel/video/talking head)
+- Prompt text
+- Attached reference IDs (account + creator refs)
+- Type-specific config (image count, format, duration, voice, aspect ratio, etc.)
+- Name and optional description
+
+### 10.2 Data Model
+
+```prisma
+model ContentPreset {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String   // "My Gym Reel Setup"
+  contentType String   // photo, carousel, video, talking-head
+  config      Json     // full studio state snapshot
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+```
+
+### 10.3 UI
+
+- **Save:** "Save as Preset" button in studio footer (after configuring, before or after generating)
+- **Load:** Preset picker at the top of the studio (dropdown or chip row showing saved presets)
+- **Manage:** List in settings or a dedicated presets section
+
+### 10.4 Flow
+
+1. User configures studio (type + prompt + refs + config)
+2. Clicks "Save as Preset" → names it "Gym Reel"
+3. Next time: opens studio → selects "Gym Reel" preset → everything pre-fills
+4. Swaps to a different creator → same config, different person
+5. Hit generate → content factory
+
+---
+
+## 11. What's NOT in Scope
 
 - Public reference publishing by users (future)
 - AI content calendar / scheduling (future)
