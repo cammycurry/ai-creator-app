@@ -1077,3 +1077,14 @@ button.ob-card:hover .ob-card-icon {
   .workspace-gate-features { grid-template-columns: 1fr; gap: 20px; }
   .workspace-gate-actions { flex-direction: column; }
 }
+
+/* ── Video Player ── */
+.video-player { position: relative; cursor: pointer; border-radius: 8px; overflow: hidden; background: #000; }
+.video-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.25); transition: opacity 150ms; }
+.video-player:hover .video-play-overlay { background: rgba(0,0,0,0.35); }
+.video-controls { position: absolute; bottom: 8px; right: 8px; display: flex; gap: 4px; }
+.video-mute-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(0,0,0,0.6); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.video-mute-btn:hover { background: rgba(0,0,0,0.8); }
+
+/* ── Make Video Dialog ── */
+.make-video-dialog { max-width: 440px; }
