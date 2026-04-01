@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUIStore } from "@/stores/ui-store";
 import { generateContent, getCreatorContent } from "@/server/actions/content-actions";
+import { generateVideoFromText, checkVideoStatus } from "@/server/actions/video-actions";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
 import { ContentDetail } from "./content-detail";
 import { CarouselDetail } from "./carousel-detail";
@@ -101,6 +102,7 @@ function NoContentState() {
 /* ─── Content Area ─── */
 function ContentArea({ creator }: { creator: { id: string; name: string; contentCount: number } }) {
   const [prompt, setPrompt] = useState("");
+  const [contentMode, setContentMode] = useState<"photo" | "video">("photo");
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -148,6 +150,35 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
       return;
     }
 
+    // Video mode — generate video instead of photo
+    if (contentMode === "video") {
+      setIsGeneratingContent(true);
+      setContentError(null);
+      setPrompt("");
+      const result = await generateVideoFromText(creator.id, input, 5, "9:16");
+      if (!result.success) {
+        setContentError(result.error);
+        setIsGeneratingContent(false);
+        return;
+      }
+      // Poll for completion
+      const poll = setInterval(async () => {
+        const status = await checkVideoStatus(result.jobId);
+        if (status.status === "COMPLETED" || status.status === "FAILED") {
+          clearInterval(poll);
+          setIsGeneratingContent(false);
+          if (status.status === "FAILED") {
+            setContentError(status.error ?? "Video generation failed");
+          } else {
+            const data = await getWorkspaceData();
+            setCredits(data.balance);
+            getCreatorContent(creator.id).then(setContent);
+          }
+        }
+      }, 5000);
+      return;
+    }
+
     // Otherwise, generate single photo (existing behavior)
     setSuggestions([]);
     setIsGeneratingContent(true);
@@ -164,7 +195,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
       setContentError(result.error);
     }
     setIsGeneratingContent(false);
-  }, [prompt, isGeneratingContent, creator.id, imageCount, addContent, setIsGeneratingContent, setContentError, setCredits]);
+  }, [prompt, isGeneratingContent, contentMode, creator.id, imageCount, addContent, setContent, setIsGeneratingContent, setContentError, setCredits]);
 
   const handleSuggestionGenerate = useCallback(async (suggestion: Suggestion) => {
     setSuggestions([]);
@@ -288,6 +319,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
               <div
                 key={item.id}
                 className="content-card"
+                style={{ position: "relative" }}
                 onClick={() => {
                   setSelectedItem(item);
                   setDetailOpen(true);
@@ -298,7 +330,18 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                 ) : (
                   <div className="placeholder-img">📷</div>
                 )}
-                <span className="type-badge">Photo</span>
+                {item.type === "VIDEO" && (
+                  <div style={{
+                    position: "absolute", inset: 0, display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    background: "rgba(0,0,0,0.2)", borderRadius: 8, pointerEvents: "none",
+                  }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none" opacity={0.9}>
+                      <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                  </div>
+                )}
+                <span className="type-badge">{item.type === "VIDEO" ? "Video" : "Photo"}</span>
               </div>
             ))}
 
@@ -395,7 +438,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
               </button>
             </div>
             <div className="tool-right">
-              <button className="mode-chip active">
+              <button className={`mode-chip${contentMode === "photo" ? " active" : ""}`} onClick={() => setContentMode("photo")}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" />
                   <circle cx="8.5" cy="8.5" r="1.5" />
@@ -403,7 +446,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                 </svg>
                 Photo
               </button>
-              <button className="mode-chip" disabled style={{ opacity: 0.5 }}>
+              <button className={`mode-chip${contentMode === "video" ? " active" : ""}`} onClick={() => setContentMode("video")}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polygon points="5 3 19 12 5 21 5 3" />
                 </svg>
