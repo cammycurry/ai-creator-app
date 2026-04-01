@@ -14,6 +14,7 @@ import { suggestContent, generateCarousel, getCreatorContentSets } from "@/serve
 import { TemplatesView } from "./templates-view";
 import { PreMadeLibrary } from "./premade-library";
 import { ReferenceLibrary } from "./reference-library";
+import { TalkingHeadDialog } from "./talking-head-dialog";
 import type { ContentItem, ContentSetItem } from "@/types/content";
 
 /* ─── Loading Skeleton ─── */
@@ -109,6 +110,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [carouselSet, setCarouselSet] = useState<ContentSetItem | null>(null);
   const [carouselOpen, setCarouselOpen] = useState(false);
+  const [talkingHeadOpen, setTalkingHeadOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "photos" | "carousels">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "type">("newest");
@@ -452,7 +454,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                 </svg>
                 Video
               </button>
-              <button className="mode-chip" disabled style={{ opacity: 0.5 }}>
+              <button className="mode-chip" onClick={() => setTalkingHeadOpen(true)}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
                   <path d="M19 10v2a7 7 0 01-14 0v-2" />
@@ -478,6 +480,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
         open={carouselOpen}
         onOpenChange={setCarouselOpen}
       />
+      <TalkingHeadDialog open={talkingHeadOpen} onOpenChange={setTalkingHeadOpen} />
     </>
   );
 }
