@@ -10,7 +10,7 @@ import { AppSidebar } from "@/components/workspace/app-sidebar";
 import { WorkspaceHeader } from "@/components/workspace/workspace-header";
 import { WorkspaceInit } from "@/components/workspace/workspace-init";
 import { CreatorStudio } from "@/components/studio/creator-studio";
-import { UnifiedStudio } from "@/components/studio/content/unified-studio";
+import { ContentStudioV2 } from "@/components/studio/content/content-studio-v2";
 import { OnboardingScreen } from "@/components/workspace/onboarding-screen";
 import { WorkspaceGate } from "@/components/workspace/workspace-gate";
 import { useState, useEffect } from "react";
@@ -65,13 +65,13 @@ export function WorkspaceShell({
       {loaded && isOnboarding ? (
         <>
           <CreatorStudio fullScreen />
-          <UnifiedStudio />
+          <ContentStudioV2 />
           {!creatorStudioOpen && <OnboardingScreen />}
         </>
       ) : loaded ? (
         <>
           <CreatorStudio />
-          <UnifiedStudio />
+          <ContentStudioV2 />
           <div className="workspace app-shell">
             {!isMobile && (
               <aside className="ws-sidebar">
