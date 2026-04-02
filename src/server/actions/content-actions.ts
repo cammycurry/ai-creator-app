@@ -314,3 +314,42 @@ export async function deleteContent(
 
   return { success: true };
 }
+
+// ─── Recent Content (for Studio history) ─────
+
+export async function getRecentContent(
+  creatorId: string,
+  limit: number = 8
+): Promise<ContentItem[]> {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return [];
+
+  const items = await db.content.findMany({
+    where: {
+      creatorId,
+      creator: { user: { clerkId } },
+      status: "COMPLETED",
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+
+  return Promise.all(
+    items.map(async (item) => ({
+      id: item.id,
+      creatorId: item.creatorId,
+      type: item.type as ContentItem["type"],
+      status: item.status as ContentItem["status"],
+      url: item.url ? await getSignedImageUrl(item.url) : undefined,
+      thumbnailUrl: item.thumbnailUrl ? await getSignedImageUrl(item.thumbnailUrl) : undefined,
+      s3Keys: (item.outputs as string[]) ?? [],
+      source: item.source as ContentItem["source"],
+      prompt: item.prompt ?? undefined,
+      userInput: item.userInput ?? undefined,
+      creditsCost: item.creditsCost,
+      createdAt: item.createdAt.toISOString(),
+      contentSetId: item.contentSetId ?? undefined,
+      slideIndex: item.slideIndex ?? undefined,
+    }))
+  );
+}
