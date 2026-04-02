@@ -71,7 +71,8 @@
 /* ─── Body ────────────────────────────────────────────────────── */
 .sv2-body {
   display: flex;
-  min-height: 380px;
+  flex: 1;
+  overflow: hidden;
 }
 
 /* ─── Left: toolbox ───────────────────────────────────────────── */
@@ -81,6 +82,8 @@
   border-right: 1px solid #EBEBEB;
   padding: 10px;
   font-size: 11px;
+  overflow-y: auto;
+  flex-shrink: 0;
   overflow-y: auto;
 }
 
@@ -375,14 +378,51 @@
 /* ─── Compact config row ──────────────────────────────────────── */
 .sv2-config {
   display: flex;
-  gap: 6px;
-  align-items: center;
-  padding: 8px 12px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px;
   background: #FAFAFA;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 12px;
   font-size: 11px;
   color: #888;
+  border: 1px solid #EBEBEB;
+}
+
+.sv2-config-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sv2-config-label {
+  font-size: 11px;
+  color: #888;
+  min-width: 55px;
+}
+
+.sv2-cfg-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.sv2-cfg-pills {
+  display: flex;
+  gap: 4px;
+}
+
+.sv2-more-toggle {
+  font-size: 11px;
+  color: #BBB;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.sv2-more-toggle:hover {
+  color: #C4603A;
 }
 
 .sv2-cfg-btn {
@@ -486,6 +526,33 @@
   font-size: 10px;
   font-weight: 600;
   color: #111;
+}
+
+.sv2-photo-picker {
+  margin-top: 4px;
+}
+
+.sv2-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.sv2-photo-thumb {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+.sv2-photo-thumb:hover {
+  border-color: #EBEBEB;
+}
+
+.sv2-photo-thumb.on {
+  border-color: #C4603A;
 }
 
 .sv2-vsrc-hint {
