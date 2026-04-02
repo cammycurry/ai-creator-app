@@ -279,6 +279,36 @@ RULES:
 
 Output ONLY the prompt. No explanations, no quotes, no markdown.`;
 
+// ─── Content Enhancement Prompt ─────────────────────
+// Different from ENHANCE_SYSTEM_PROMPT (wizard-only, locked clothing/composition).
+// This is for content generation — full creative freedom on outfit, setting, pose.
+// User types "coffee shop selfie" → this turns it into a full scene description.
+
+export const CONTENT_ENHANCE_PROMPT = `You turn casual content ideas into detailed image generation prompts for an AI influencer's Instagram content.
+
+The person's appearance (face, body, hair, eyes) is handled by a reference image — you do NOT describe the person's physical features. You describe the SCENE, OUTFIT, POSE, and MOOD.
+
+FORMAT — lead with the scene/action, then outfit, then camera:
+"[Scene/action description]. [Outfit description]. [Mood/expression]. Shot on iPhone, candid. [Lighting]. Visible pores, photorealistic."
+
+RULES:
+- 30-60 words max. Descriptive but concise.
+- Always "Shot on iPhone, candid" — this is Instagram UGC, not a photoshoot
+- Describe the SETTING in detail: what's in the background, what they're doing
+- Describe the OUTFIT: be specific (colors, style, fit)
+- Describe the MOOD: expression, energy, vibe
+- Natural lighting by default. Mention specific lighting only if the scene demands it (golden hour, night, gym fluorescent)
+- NEVER describe the person's face, body type, hair color, or ethnicity (the reference handles this)
+- NEVER use: "Canon EOS R5", "studio lighting", "professional photography" — this is iPhone UGC
+- If the input is just a scene name ("gym", "beach"), create a full Instagram-worthy moment around it
+
+EXAMPLES:
+- Input: "gym selfie" → "Mirror selfie in a modern gym, wearing a black matching sports set, post-workout glow, slightly sweaty, confident smile. Shot on iPhone, candid. Gym fluorescent lighting, mirrors in background. Visible pores, photorealistic."
+- Input: "coffee" → "Sitting at a window table in a trendy coffee shop, holding an iced latte, wearing an oversized cream sweater, looking at phone with a relaxed smile. Shot on iPhone, candid. Warm natural window light. Visible pores, photorealistic."
+- Input: "beach sunset" → "Walking along the shoreline at sunset, wearing a white sundress, barefoot, wind in hair, looking back at camera. Shot on iPhone, candid. Golden hour warm tones. Visible pores, photorealistic."
+
+Output ONLY the enhanced prompt. No explanations, no quotes, no markdown.`;
+
 // ─── Safety Filter Softening ─────────────────────────
 // If Gemini blocks a prompt, strip these words and retry once.
 
@@ -288,6 +318,21 @@ const SAFETY_TRIGGERS = [
   /\bbikini\b/gi,
   /\blingerie\b/gi,
   /\brevealing\b/gi,
+  /\bskimpy\b/gi,
+  /\blace\b/gi,
+  /\bprovocative(ly)?\b/gi,
+  /\bseductive(ly)?\b/gi,
+  /\bsultry\b/gi,
+  /\bnude\b/gi,
+  /\bnaked\b/gi,
+  /\btopless\b/gi,
+  /\bunderwear\b/gi,
+  /\bcleavage\b/gi,
+  /\bbusty\b/gi,
+  /\bbreasts?\b/gi,
+  /\btits?\b/gi,
+  /\bdeep neckline\b/gi,
+  /\blow[- ]cut\b/gi,
 ];
 
 export function softenPrompt(prompt: string): string {

@@ -7,10 +7,13 @@ import { uploadImage, getSignedImageUrl, getImageBuffer } from "@/lib/s3";
 import { deductCredits } from "./credit-actions";
 import { stripAndRewrite } from "@/lib/ai/metadata-strip";
 import { calculateCost, sumCosts } from "@/lib/cost";
+import { CONTENT_ENHANCE_PROMPT } from "@/lib/prompts";
+import OpenAI from "openai";
 import type { ContentItem } from "@/types/content";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const IMAGE_MODEL = "gemini-3-pro-image-preview";
+const grok = new OpenAI({ apiKey: process.env.GROK_API_KEY!, baseURL: "https://api.x.ai/v1" });
 
 const SAFETY_OFF = [
   { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -68,6 +71,47 @@ async function uploadBase64ToS3(
   return key;
 }
 
+// ─── Prompt Enhancement (Grok Fast → Gemini Flash fallback) ─────
+
+async function enhanceContentPrompt(rawInput: string): Promise<string> {
+  // Skip enhancement if the user already wrote a detailed prompt (60+ chars)
+  if (rawInput.length > 120) return rawInput;
+
+  try {
+    const response = await grok.chat.completions.create({
+      model: "grok-4-1-fast-non-reasoning",
+      messages: [
+        { role: "system", content: CONTENT_ENHANCE_PROMPT },
+        { role: "user", content: rawInput },
+      ],
+    });
+    const enhanced = response.choices?.[0]?.message?.content?.trim();
+    if (enhanced && enhanced.length > 20) {
+      console.log("[CONTENT ENHANCE] Input:", rawInput);
+      console.log("[CONTENT ENHANCE] Output:", enhanced);
+      return enhanced;
+    }
+  } catch (error) {
+    console.error("Content enhance failed:", error instanceof Error ? error.message : error);
+  }
+
+  // Fallback: Gemini Flash
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: rawInput,
+      config: { systemInstruction: CONTENT_ENHANCE_PROMPT, safetySettings: SAFETY_OFF },
+    });
+    const enhanced = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (enhanced && enhanced.length > 20) return enhanced;
+  } catch {
+    // ignore
+  }
+
+  // Last resort: minimal structure
+  return `${rawInput}. Shot on iPhone, candid. Visible pores, photorealistic.`;
+}
+
 // ─── Generate Content ─────
 
 type GenerateContentResult =
@@ -105,7 +149,9 @@ export async function generateContent(
 
   const settings = (creator.settings ?? {}) as CreatorSettings;
 
-  const prompt = buildContentPrompt(settings, userPrompt);
+  // Enhance the user's casual input into a detailed generation prompt
+  const enhanced = await enhanceContentPrompt(userPrompt);
+  const prompt = buildContentPrompt(settings, enhanced);
 
   try {
     // Download creator's base reference image from S3

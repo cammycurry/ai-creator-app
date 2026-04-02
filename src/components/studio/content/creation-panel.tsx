@@ -125,13 +125,13 @@ export function CreationPanel() {
   function getPromptPlaceholder(): string {
     switch (contentType) {
       case "photo":
-        return "e.g. morning coffee at a cozy café, wearing an oversized sweater...";
+        return "e.g. gym selfie, coffee shop, beach sunset, mirror pic...";
       case "carousel":
-        return "e.g. gym day photo dump, city lifestyle, GRWM transformation...";
+        return "e.g. gym day, city trip, outfit changes, GRWM...";
       case "video":
-        return "e.g. walking through the city at golden hour, outfit reveal, dancing...";
+        return "e.g. walking in the city, gym workout, outfit reveal...";
       case "talking-head":
-        return "e.g. Hey guys! I've been obsessed with this product lately...";
+        return "e.g. Hey guys! I just tried this protein powder and honestly...";
     }
   }
 
