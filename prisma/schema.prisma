@@ -238,24 +238,29 @@ enum JobStatus {
 // NOT the same as ReferenceAccount/ReferencePost (admin Instagram collection).
 
 model Reference {
-  id          String   @id @default(cuid())
-  creatorId   String
-  creator     Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String    @id @default(cuid())
+  creatorId         String?
+  creator           Creator?  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type        String   // BACKGROUND, PRODUCT, OUTFIT, POSE, CUSTOM
-  name        String
-  description String   @default("")
-  imageUrl    String   // S3 key
-  tags        String[]
-  usageCount  Int      @default(0)
+  type              String    // "BACKGROUND" | "REFERENCE"
+  name              String
+  description       String    @default("")
+  imageUrl          String    // S3 key
+  tags              String[]
+  starred           Boolean   @default(false)
+  usageCount        Int       @default(0)
+  lastUsedAt        DateTime?
+  source            String    @default("UPLOAD")  // "UPLOAD" | "PUBLIC_SAVE" | "GENERATION_SAVE"
+  sourcePublicRefId String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  @@index([creatorId])
   @@index([userId])
+  @@index([userId, starred])
+  @@index([userId, lastUsedAt])
 }
 
 // ─── Reference Collection ────────────────────────────
@@ -323,10 +328,66 @@ model ReferencePost {
   quality       Int?
   isGoodReference Boolean @default(true)
 
+  // Triage tags (admin assigns these when reviewing collected posts)
+  // Multiple tags allowed — a post can be both a good creator source AND background
+  triageLabels  String[] // ["creator", "background", "reference", "custom", "skip"]
+  triageStarred Boolean @default(false)
+
+  publicReferences PublicReference[]
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   @@unique([shortcode, carouselIndex])
   @@index([accountId])
   @@index([shortcode])
+}
+
+model PublicReference {
+  id            String   @id @default(cuid())
+  type          String   // "BACKGROUND" | "REFERENCE"
+  name          String
+  description   String   @default("")
+  imageUrl      String   // S3 key
+  tags          String[]
+  category      String   // fitness, lifestyle, fashion, beauty, travel, general
+  popularity    Int      @default(0)
+  isActive      Boolean  @default(true)
+
+  // Internal admin fields
+  sourcePostId      String?
+  sourcePost        ReferencePost? @relation(fields: [sourcePostId], references: [id])
+  curatedBy         String?
+  generationPrompt  String?
+  generationModel   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([category])
+  @@index([isActive])
+}
+
+// Admin-generated images — pipeline tracking
+model AdminMedia {
+  id        String   @id @default(cuid())
+  s3Key     String   @unique
+  source    String   // "seed-script", "admin-generate", "upload"
+  mediaType String   @default("creator") // "creator", "background", "reference", "custom"
+  starred   Boolean  @default(false)
+  prompt    String?
+  notes     String?
+  sourceHandle String?
+
+  // Pipeline
+  pipelineStage String @default("inbox") // inbox, review, approved, published, rejected
+  pipelineOrder Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pipelineStage])
+  @@index([mediaType])
+  @@index([starred])
 }
