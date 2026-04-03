@@ -5,17 +5,14 @@ import { useCreatorStore } from "@/stores/creator-store";
 import { deleteReference } from "@/server/actions/reference-actions";
 import { ReferenceCard } from "./reference-card";
 import { AddReferenceDialog } from "./add-reference-dialog";
-import { REFERENCE_TYPES, REFERENCE_TYPE_LABELS, type ReferenceType } from "@/types/reference";
+import { type ReferenceType } from "@/types/reference";
 
 type FilterValue = "ALL" | ReferenceType;
 
 const FILTER_TABS: { value: FilterValue; label: string }[] = [
   { value: "ALL", label: "All" },
   { value: "BACKGROUND", label: "Backgrounds" },
-  { value: "PRODUCT", label: "Products" },
-  { value: "OUTFIT", label: "Outfits" },
-  { value: "POSE", label: "Poses" },
-  { value: "CUSTOM", label: "Custom" },
+  { value: "REFERENCE", label: "References" },
 ];
 
 export function ReferenceLibrary() {

@@ -3,10 +3,10 @@
 import { useEffect } from "react";
 import { useCreatorStore } from "@/stores/creator-store";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
-import { getCreatorReferences } from "@/server/actions/reference-actions";
+import { getReferences } from "@/server/actions/reference-actions";
 
 export function WorkspaceInit() {
-  const { loaded, setCreators, setActiveCreator, setCredits, setLoaded, activeCreatorId, setReferences } =
+  const { loaded, setCreators, setActiveCreator, setCredits, setLoaded, setReferences } =
     useCreatorStore();
 
   useEffect(() => {
@@ -28,9 +28,8 @@ export function WorkspaceInit() {
   }, [loaded, setCreators, setActiveCreator, setCredits, setLoaded]);
 
   useEffect(() => {
-    if (!activeCreatorId) return;
-    getCreatorReferences(activeCreatorId).then(setReferences);
-  }, [activeCreatorId, setReferences]);
+    getReferences().then(setReferences);
+  }, [setReferences]);
 
   return null;
 }

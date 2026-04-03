@@ -482,10 +482,6 @@ export function WorkspaceCanvas() {
     return <NoCreatorsState />;
   }
 
-  if (activeView === "references") {
-    return <ReferencesArea />;
-  }
-
   if (activeView === "templates") {
     return <TemplatesArea />;
   }

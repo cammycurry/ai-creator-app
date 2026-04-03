@@ -41,12 +41,12 @@ export function AddReferenceDialog({
   onOpenChange: (open: boolean) => void;
   prefillImageBase64?: string;
 }) {
-  const { getActiveCreator, addReference } = useCreatorStore();
+  const { addReference } = useCreatorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [imageBase64, setImageBase64] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string>("");
-  const [type, setType] = useState<ReferenceType>("CUSTOM");
+  const [type, setType] = useState<ReferenceType>("REFERENCE");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
@@ -69,7 +69,7 @@ export function AddReferenceDialog({
     if (!open) {
       setImageBase64("");
       setImagePreview("");
-      setType("CUSTOM");
+      setType("REFERENCE");
       setName("");
       setDescription("");
       setTags("");
@@ -117,8 +117,6 @@ export function AddReferenceDialog({
   }
 
   async function handleSave() {
-    const creator = getActiveCreator();
-    if (!creator) { setError("No active creator"); return; }
     if (!imageBase64) { setError("Please upload an image"); return; }
     if (!name.trim()) { setError("Please enter a name"); return; }
 
@@ -127,7 +125,6 @@ export function AddReferenceDialog({
 
     const tagList = tags.split(",").map((t) => t.trim()).filter(Boolean);
     const result = await createReference(
-      creator.id,
       type,
       name.trim(),
       description.trim(),

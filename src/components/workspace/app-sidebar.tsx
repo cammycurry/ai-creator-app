@@ -61,7 +61,7 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
           Create Content
         </button>
         <button
-          onClick={() => { setActiveView("references"); onClose?.(); }}
+          onClick={() => { setActiveView("library"); onClose?.(); }}
           className="sidebar-tool-btn"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

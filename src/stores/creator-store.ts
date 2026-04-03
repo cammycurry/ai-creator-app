@@ -33,6 +33,7 @@ type CreatorStore = {
   addReference: (ref: ReferenceItem) => void;
   removeReference: (id: string) => void;
   updateReferenceInStore: (id: string, updates: Partial<ReferenceItem>) => void;
+  toggleStarInStore: (id: string) => void;
 };
 
 export const useCreatorStore = create<CreatorStore>((set, get) => ({
@@ -81,5 +82,8 @@ export const useCreatorStore = create<CreatorStore>((set, get) => ({
   removeReference: (id) => set((state) => ({ references: state.references.filter((r) => r.id !== id) })),
   updateReferenceInStore: (id, updates) => set((state) => ({
     references: state.references.map((r) => r.id === id ? { ...r, ...updates } : r),
+  })),
+  toggleStarInStore: (id) => set((state) => ({
+    references: state.references.map((r) => r.id === id ? { ...r, starred: !r.starred } : r),
   })),
 }));

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ActiveView = "chat" | "library" | "templates" | "references";
+export type ActiveView = "chat" | "library" | "templates";
 
 type UIStore = {
   activeView: ActiveView;

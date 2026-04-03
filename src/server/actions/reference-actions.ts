@@ -15,7 +15,7 @@ const FLASH_MODEL = "gemini-2.5-flash-preview-05-20";
 export async function analyzeReferenceImage(
   imageBase64: string
 ): Promise<{ type: ReferenceType; name: string; description: string; tags: string[] }> {
-  const fallback = { type: "CUSTOM" as ReferenceType, name: "New Reference", description: "", tags: [] };
+  const fallback = { type: "REFERENCE" as ReferenceType, name: "New Reference", description: "", tags: [] };
 
   try {
     const response = await ai.models.generateContent({
@@ -26,20 +26,17 @@ export async function analyzeReferenceImage(
 
 Return ONLY a JSON object (no markdown, no code fences):
 {
-  "type": "BACKGROUND" | "PRODUCT" | "OUTFIT" | "POSE" | "CUSTOM",
+  "type": "BACKGROUND" | "REFERENCE",
   "name": "2-4 word label",
   "description": "10-20 word description useful for prompt building",
   "tags": ["tag1", "tag2", "tag3", "tag4"]
 }
 
 Type definitions:
-- BACKGROUND: a location, setting, or environment (no person required)
-- PRODUCT: a product, item, or object to feature
-- OUTFIT: clothing, fashion, or styling
-- POSE: a body position, gesture, or action
-- CUSTOM: anything else
+- BACKGROUND: a location, setting, or environment (no person, just the scene)
+- REFERENCE: everything else — outfits, poses, products, moods, compositions, props
 
-Keep name concise (2-4 words). Description should describe what it shows in a way useful for image generation prompts. Include 4-8 descriptive tags.`,
+For tags, include descriptive terms like "outfit", "pose", "product", "mood", "indoor", "outdoor", "gym", "beach", etc. Include 4-8 tags.`,
         },
         { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
       ],
@@ -52,7 +49,7 @@ Keep name concise (2-4 words). Description should describe what it shows in a wa
     const cleaned = text.replace(/^```json?\n?|\n?```$/g, "").trim();
     const json = JSON.parse(cleaned);
 
-    const type = REFERENCE_TYPES.includes(json.type) ? (json.type as ReferenceType) : "CUSTOM";
+    const type = REFERENCE_TYPES.includes(json.type) ? (json.type as ReferenceType) : "REFERENCE";
     const name = typeof json.name === "string" ? json.name.slice(0, 50) : "New Reference";
     const description = typeof json.description === "string" ? json.description.slice(0, 200) : "";
     const tags = Array.isArray(json.tags)
@@ -70,19 +67,25 @@ Keep name concise (2-4 words). Description should describe what it shows in a wa
 function toReferenceItem(
   ref: {
     id: string;
-    creatorId: string;
+    userId: string;
+    creatorId: string | null;
     type: string;
     name: string;
     description: string;
     imageUrl: string;
     tags: string[];
+    starred: boolean;
     usageCount: number;
+    lastUsedAt: Date | null;
+    source: string;
+    sourcePublicRefId: string | null;
     createdAt: Date;
   },
   signedUrl?: string
 ): ReferenceItem {
   return {
     id: ref.id,
+    userId: ref.userId,
     creatorId: ref.creatorId,
     type: ref.type as ReferenceType,
     name: ref.name,
@@ -90,41 +93,44 @@ function toReferenceItem(
     imageUrl: signedUrl,
     s3Key: ref.imageUrl,
     tags: ref.tags,
+    starred: ref.starred,
     usageCount: ref.usageCount,
+    lastUsedAt: ref.lastUsedAt?.toISOString() ?? null,
+    source: ref.source as ReferenceItem["source"],
+    sourcePublicRefId: ref.sourcePublicRefId,
     createdAt: ref.createdAt.toISOString(),
   };
 }
 
-// ─── Create ───────────────────────────────────────────
+async function getAuthUser() {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return null;
+  return db.user.findUnique({ where: { clerkId } });
+}
+
+// ─── Create ──────────────────────────────────────────
 
 type MutationResult =
   | { success: true; reference: ReferenceItem }
   | { success: false; error: string };
 
 export async function createReference(
-  creatorId: string,
   type: ReferenceType,
   name: string,
   description: string,
   imageBase64: string,
   tags?: string[]
 ): Promise<MutationResult> {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return { success: false, error: "Not authenticated" };
-  const user = await db.user.findUnique({ where: { clerkId } });
-  if (!user) return { success: false, error: "User not found" };
-
-  const creator = await db.creator.findUnique({ where: { id: creatorId, userId: user.id } });
-  if (!creator) return { success: false, error: "Creator not found" };
+  const user = await getAuthUser();
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const timestamp = Date.now();
-  const key = `users/${user.id}/creators/${creatorId}/references/ref-${timestamp}.jpg`;
+  const key = `users/${user.id}/references/ref-${timestamp}.jpg`;
   const buffer = Buffer.from(imageBase64, "base64");
   await uploadImage(buffer, key, "image/jpeg");
 
   const ref = await db.reference.create({
     data: {
-      creatorId,
       userId: user.id,
       type,
       name,
@@ -138,14 +144,14 @@ export async function createReference(
   return { success: true, reference: toReferenceItem(ref, signedUrl) };
 }
 
-// ─── Read ─────────────────────────────────────────────
+// ─── Read ────────────────────────────────────────────
 
-export async function getCreatorReferences(creatorId: string): Promise<ReferenceItem[]> {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return [];
+export async function getReferences(): Promise<ReferenceItem[]> {
+  const user = await getAuthUser();
+  if (!user) return [];
 
   const refs = await db.reference.findMany({
-    where: { creatorId, user: { clerkId } },
+    where: { userId: user.id },
     orderBy: { createdAt: "desc" },
   });
 
@@ -157,16 +163,49 @@ export async function getCreatorReferences(creatorId: string): Promise<Reference
   );
 }
 
-// ─── Update ───────────────────────────────────────────
+export async function getRecentReferences(limit: number = 10): Promise<ReferenceItem[]> {
+  const user = await getAuthUser();
+  if (!user) return [];
+
+  const refs = await db.reference.findMany({
+    where: { userId: user.id, lastUsedAt: { not: null } },
+    orderBy: { lastUsedAt: "desc" },
+    take: limit,
+  });
+
+  return Promise.all(
+    refs.map(async (ref) => {
+      const signedUrl = await getSignedImageUrl(ref.imageUrl);
+      return toReferenceItem(ref, signedUrl);
+    })
+  );
+}
+
+export async function getStarredReferences(): Promise<ReferenceItem[]> {
+  const user = await getAuthUser();
+  if (!user) return [];
+
+  const refs = await db.reference.findMany({
+    where: { userId: user.id, starred: true },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  return Promise.all(
+    refs.map(async (ref) => {
+      const signedUrl = await getSignedImageUrl(ref.imageUrl);
+      return toReferenceItem(ref, signedUrl);
+    })
+  );
+}
+
+// ─── Update ──────────────────────────────────────────
 
 export async function updateReference(
   referenceId: string,
   updates: { name?: string; description?: string; type?: ReferenceType; tags?: string[] }
 ): Promise<MutationResult> {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return { success: false, error: "Not authenticated" };
-  const user = await db.user.findUnique({ where: { clerkId } });
-  if (!user) return { success: false, error: "User not found" };
+  const user = await getAuthUser();
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const existing = await db.reference.findUnique({ where: { id: referenceId } });
   if (!existing || existing.userId !== user.id) {
@@ -187,15 +226,34 @@ export async function updateReference(
   return { success: true, reference: toReferenceItem(ref, signedUrl) };
 }
 
-// ─── Delete ───────────────────────────────────────────
+// ─── Toggle Star ─────────────────────────────────────
+
+export async function toggleStar(
+  referenceId: string
+): Promise<{ success: boolean; starred?: boolean; error?: string }> {
+  const user = await getAuthUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const existing = await db.reference.findUnique({ where: { id: referenceId } });
+  if (!existing || existing.userId !== user.id) {
+    return { success: false, error: "Reference not found" };
+  }
+
+  const ref = await db.reference.update({
+    where: { id: referenceId },
+    data: { starred: !existing.starred },
+  });
+
+  return { success: true, starred: ref.starred };
+}
+
+// ─── Delete ──────────────────────────────────────────
 
 export async function deleteReference(
   referenceId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return { success: false, error: "Not authenticated" };
-  const user = await db.user.findUnique({ where: { clerkId } });
-  if (!user) return { success: false, error: "User not found" };
+  const user = await getAuthUser();
+  if (!user) return { success: false, error: "Not authenticated" };
 
   const existing = await db.reference.findUnique({ where: { id: referenceId } });
   if (!existing || existing.userId !== user.id) {
@@ -206,13 +264,18 @@ export async function deleteReference(
   return { success: true };
 }
 
-// ─── Increment Usage ──────────────────────────────────
+// ─── Increment Usage ─────────────────────────────────
 
 export async function incrementReferenceUsage(referenceIds: string[]): Promise<void> {
   if (referenceIds.length === 0) return;
 
-  await db.reference.updateMany({
-    where: { id: { in: referenceIds } },
-    data: { usageCount: { increment: 1 } },
-  });
+  const now = new Date();
+  await Promise.all(
+    referenceIds.map((id) =>
+      db.reference.update({
+        where: { id },
+        data: { usageCount: { increment: 1 }, lastUsedAt: now },
+      })
+    )
+  );
 }
