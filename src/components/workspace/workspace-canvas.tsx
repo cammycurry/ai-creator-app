@@ -10,7 +10,6 @@ import { CarouselDetail } from "./carousel-detail";
 import { SuggestionCards, type Suggestion } from "./suggestion-cards";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { suggestContent, generateCarousel, getCreatorContentSets } from "@/server/actions/carousel-actions";
-import { TemplatesView } from "./templates-view";
 import { PreMadeLibrary } from "./premade-library";
 import type { ContentItem, ContentSetItem } from "@/types/content";
 
@@ -107,7 +106,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [carouselSet, setCarouselSet] = useState<ContentSetItem | null>(null);
   const [carouselOpen, setCarouselOpen] = useState(false);
-  const [filter, setFilter] = useState<"all" | "photos" | "carousels">("all");
+  const [filter, setFilter] = useState<"all" | "photos" | "carousels" | "videos">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "type">("newest");
   const {
@@ -217,6 +216,13 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
+  const displayContent = (() => {
+    let items = standalonePhotos;
+    if (filter === "photos") items = items.filter(c => c.type === "IMAGE");
+    if (filter === "videos") items = items.filter(c => c.type === "VIDEO" || c.type === "TALKING_HEAD");
+    return items;
+  })();
+
   return (
     <>
       {/* Filter pills */}
@@ -225,23 +231,13 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
           All<span className="count">{standalonePhotos.length + contentSets.length}</span>
         </button>
         <button className={`filter-pill${filter === "photos" ? " active" : ""}`} onClick={() => setFilter("photos")}>
-          Photos<span className="count">{standalonePhotos.length}</span>
+          Photos<span className="count">{standalonePhotos.filter(c => c.type === "IMAGE").length}</span>
         </button>
         <button className={`filter-pill${filter === "carousels" ? " active" : ""}`} onClick={() => setFilter("carousels")}>
           Carousels<span className="count">{contentSets.length}</span>
         </button>
-        <button className="filter-pill" disabled style={{ opacity: 0.5 }}>
-          Videos<span className="count">0</span>
-        </button>
-        <button className="filter-pill" disabled style={{ opacity: 0.5 }}>
-          Voice<span className="count">0</span>
-        </button>
-        <span className="filter-divider" />
-        <button
-          className="filter-pill"
-          onClick={() => useUIStore.getState().setContentStudioOpen(true)}
-        >
-          Templates
+        <button className={`filter-pill${filter === "videos" ? " active" : ""}`} onClick={() => setFilter("videos")}>
+          Videos<span className="count">{standalonePhotos.filter(c => c.type === "VIDEO" || c.type === "TALKING_HEAD").length}</span>
         </button>
       </div>
 
@@ -293,7 +289,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
             )}
 
             {/* Standalone photos (not part of a carousel) */}
-            {(filter === "all" || filter === "photos") && sortedContent.map((item) => (
+            {(filter === "all" || filter === "photos" || filter === "videos") && displayContent.map((item) => (
               <div
                 key={item.id}
                 className="content-card"
@@ -446,6 +442,17 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
             </div>
           </div>
         </div>
+        <div style={{ textAlign: "center", marginTop: 6 }}>
+          <button
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              color: "var(--accent, #C4603A)", fontSize: 12, fontFamily: "inherit",
+            }}
+            onClick={() => useUIStore.getState().setContentStudioOpen(true)}
+          >
+            Open full studio →
+          </button>
+        </div>
       </div>
 
       <ContentDetail
@@ -470,7 +477,6 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
 /* ─── Main Export ─── */
 export function WorkspaceCanvas() {
   const { creators, activeCreatorId, loaded } = useCreatorStore();
-  const { activeView } = useUIStore();
   const active = creators.find((c) => c.id === activeCreatorId);
 
   if (!loaded) {
@@ -481,37 +487,5 @@ export function WorkspaceCanvas() {
     return <NoCreatorsState />;
   }
 
-  if (activeView === "templates") {
-    return <TemplatesArea />;
-  }
-
   return <ContentArea creator={active} />;
-}
-
-/* ─── Templates Wrapper (shown when activeView === "templates") ─── */
-function TemplatesArea() {
-  const { setActiveView } = useUIStore();
-
-  return (
-    <>
-      <div className="filter-bar">
-        <button
-          className="filter-pill"
-          onClick={() => setActiveView("chat")}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}>
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          Content
-        </button>
-        <span className="filter-divider" />
-        <button className="filter-pill active">
-          Templates
-        </button>
-      </div>
-      <div className="content-area">
-        <TemplatesView />
-      </div>
-    </>
-  );
 }

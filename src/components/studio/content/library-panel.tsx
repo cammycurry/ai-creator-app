@@ -5,7 +5,9 @@ import { useCreatorStore } from "@/stores/creator-store";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { AddReferenceDialog } from "@/components/workspace/add-reference-dialog";
 import { getRecentContent } from "@/server/actions/content-actions";
+import { getPublicReferences, savePublicReference } from "@/server/actions/public-reference-actions";
 import type { ContentItem } from "@/types/content";
+import type { PublicReferenceItem } from "@/types/reference";
 
 function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -67,6 +69,7 @@ export function LibraryPanel() {
 
   const [addRefOpen, setAddRefOpen] = useState(false);
   const [recentItems, setRecentItems] = useState<ContentItem[]>([]);
+  const [publicRefs, setPublicRefs] = useState<PublicReferenceItem[]>([]);
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,6 +82,18 @@ export function LibraryPanel() {
     if (!creator?.id) return;
     getRecentContent(creator.id, 5).then(setRecentItems).catch(() => {});
   }, [creator?.id]);
+
+  useEffect(() => {
+    getPublicReferences(undefined, undefined, 8).then(setPublicRefs).catch(() => {});
+  }, []);
+
+  async function handlePublicRefClick(pubRef: PublicReferenceItem) {
+    const result = await savePublicReference(pubRef.id);
+    if (result.success && result.reference) {
+      useCreatorStore.getState().addReference(result.reference);
+      attachRef(result.reference);
+    }
+  }
 
   const handleDropZoneFile = useCallback(
     async (file: File) => {
@@ -162,16 +177,25 @@ export function LibraryPanel() {
 
       {/* ── Public library ── */}
       <div className="sv2-section-label">Public Library</div>
-      <div className="sv2-pub-row">
-        {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="sv2-pub-item"
-            style={{ background: "#F0F0F0" }}
-          />
-        ))}
-      </div>
-      <div className="sv2-section-hint">Coming soon</div>
+      {publicRefs.length === 0 ? (
+        <div className="sv2-section-hint">No public references yet</div>
+      ) : (
+        <div className="sv2-ref-grid">
+          {publicRefs.slice(0, 8).map((ref) => (
+            <div
+              key={ref.id}
+              className="sv2-ref"
+              style={
+                ref.imageUrl
+                  ? { backgroundImage: `url(${ref.imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+                  : { background: "#F5F5F5" }
+              }
+              onClick={() => handlePublicRefClick(ref)}
+              title={ref.name}
+            />
+          ))}
+        </div>
+      )}
 
       {/* ── Recent ── */}
       <div className="sv2-section-label">Recent</div>
