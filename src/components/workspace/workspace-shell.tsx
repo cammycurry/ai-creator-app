@@ -2,6 +2,7 @@
 
 import "@/app/workspace/workspace.css";
 import "@/app/workspace/reference-library.css";
+import "@/app/workspace/library.css";
 import { useAuth } from "@clerk/nextjs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCreatorStore } from "@/stores/creator-store";

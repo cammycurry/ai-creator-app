@@ -12,7 +12,6 @@ import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { suggestContent, generateCarousel, getCreatorContentSets } from "@/server/actions/carousel-actions";
 import { TemplatesView } from "./templates-view";
 import { PreMadeLibrary } from "./premade-library";
-import { ReferenceLibrary } from "./reference-library";
 import type { ContentItem, ContentSetItem } from "@/types/content";
 
 /* ─── Loading Skeleton ─── */
@@ -487,28 +486,6 @@ export function WorkspaceCanvas() {
   }
 
   return <ContentArea creator={active} />;
-}
-
-/* ─── References Wrapper (shown when activeView === "references") ─── */
-function ReferencesArea() {
-  const { setActiveView } = useUIStore();
-  return (
-    <>
-      <div className="filter-bar">
-        <button className="filter-pill" onClick={() => setActiveView("chat")}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 4 }}>
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          Content
-        </button>
-        <span className="filter-divider" />
-        <button className="filter-pill active">References</button>
-      </div>
-      <div className="content-area">
-        <ReferenceLibrary />
-      </div>
-    </>
-  );
 }
 
 /* ─── Templates Wrapper (shown when activeView === "templates") ─── */
