@@ -119,9 +119,6 @@
 .cp-actions { display: flex; align-items: center; gap: 4px; }
 .cp-btn { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all 150ms; }
 .cp-btn:hover { background: var(--card); color: var(--text-primary); }
-.cp-edit-btn { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; color: var(--text-secondary); border: 1px solid var(--border); transition: all 150ms; }
-.cp-edit-btn:hover { border-color: #CCC; color: var(--text-primary); }
-.cp-edit-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(196, 96, 58, 0.04); }
 .cp-divider { width: 1px; height: 16px; background: var(--border); margin: 0 4px; }
 
 /* Filter pills */
@@ -134,10 +131,9 @@
 /* ── Content Grid ── */
 .content-area { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 20px; }
 .gallery-toolbar { display: flex; align-items: center; gap: 8px; padding: 0 0 12px; }
-.gallery-search { display: flex; align-items: center; gap: 6px; flex: 1; max-width: 280px; padding: 6px 12px; background: var(--card); border-radius: var(--radius-sm); border: 1px solid transparent; transition: all 150ms; }
-.gallery-search:focus-within { border-color: var(--border); background: var(--surface); }
+.gallery-search { display: flex; align-items: center; gap: 6px; flex: 0 1 160px; min-width: 100px; }
 .gallery-search svg { color: var(--text-muted); flex-shrink: 0; }
-.gallery-search input { flex: 1; font-size: 12px; background: transparent; }
+.gallery-search input { border: none; outline: none; font-size: 12px; color: var(--text-primary); width: 100%; font-family: inherit; background: transparent; }
 .gallery-search input::placeholder { color: var(--text-muted); }
 .gallery-sort { display: flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); border: 1px solid var(--border); transition: all 150ms; cursor: pointer; background: var(--surface); }
 .gallery-sort:hover { border-color: #CCC; color: var(--text-primary); }
@@ -157,10 +153,6 @@
 .compose-area { padding: 14px 16px 10px; display: flex; align-items: flex-end; gap: 8px; }
 .compose-area textarea { flex: 1; resize: none; border: none; outline: none; font-size: 14px; line-height: 1.5; min-height: 22px; max-height: 120px; background: transparent; color: var(--text-primary); font-family: inherit; }
 .compose-area textarea::placeholder { color: var(--text-muted); }
-.quick-ideas { display: flex; gap: 6px; padding: 0 14px 8px; overflow-x: auto; scrollbar-width: none; }
-.quick-ideas::-webkit-scrollbar { display: none; }
-.idea-chip { flex-shrink: 0; padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 500; color: var(--text-secondary); border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: all 150ms; white-space: nowrap; }
-.idea-chip:hover { color: var(--text-primary); border-color: #CCC; background: var(--card); }
 .send-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--text-primary); color: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 150ms; flex-shrink: 0; }
 .send-btn:hover { opacity: 0.85; }
 .input-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 14px 10px; border-top: 1px solid var(--card); }
@@ -169,14 +161,12 @@
 .tool-btn { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: all 150ms; }
 .tool-btn:hover { color: var(--text-secondary); background: var(--card); }
 .slash-hint { font-size: 11px; color: var(--text-muted); margin-left: 4px; }
-.count-control { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; margin-right: 4px; }
-.count-btn { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 11px; transition: all 150ms; }
-.count-btn:hover { background: var(--card); color: var(--text-primary); }
-.count-value { width: 18px; text-align: center; font-size: 11px; font-weight: 500; font-family: var(--font-mono); }
 .mode-chip { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 150ms; }
 .mode-chip:hover { color: var(--text-secondary); background: var(--card); }
 .mode-chip.active { color: var(--text-primary); background: var(--card); }
 .mode-chip svg { width: 12px; height: 12px; }
+.studio-link { font-size: 12px; color: var(--accent); font-weight: 500; transition: opacity 150ms; }
+.studio-link:hover { opacity: 0.8; }
 
 /* Empty states */
 .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center; }
@@ -839,8 +829,6 @@ button.ob-card:hover .ob-card-icon {
   .cp-name { font-size: 14px; }
   .cp-meta { font-size: 11px; }
   .cp-actions { width: 100%; justify-content: flex-end; gap: 2px; }
-  .cp-edit-btn span { display: none; }
-  .cp-edit-btn { padding: 5px 8px; }
   .cp-btn { width: 44px; height: 44px; }
   .cp-divider { display: none; }
 
@@ -865,15 +853,12 @@ button.ob-card:hover .ob-card-icon {
   .float-card { border-radius: 14px; }
   .compose-area { padding: 10px 12px 8px; gap: 6px; }
   .compose-area textarea { font-size: 14px; }
-  .quick-ideas { padding: 0 10px 6px; gap: 4px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .idea-chip { padding: 6px 10px; font-size: 11px; min-height: 32px; }
   .input-toolbar { padding: 4px 10px 8px; flex-wrap: wrap; gap: 4px; }
   .tool-left { flex: 1; }
   .tool-right { flex-wrap: wrap; }
   .tool-btn { width: 44px; height: 44px; }
   .send-btn { width: 44px; height: 44px; border-radius: 10px; }
   .mode-chip { padding: 6px 10px; min-height: 36px; }
-  .count-btn { width: 32px; height: 32px; }
 
   /* Onboarding — stack */
   .onboarding { padding: 24px 16px; }
