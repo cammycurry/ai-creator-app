@@ -1,7 +1,52 @@
 /* ─── Content Library ─── */
 
+.lib-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #FAFAFA;
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid #EBEBEB;
+  background: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.lib-head-x {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #888;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.lib-head-x:hover { color: #111; }
+
+.lib-head-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
 .lib-page {
+  flex: 1;
+  overflow-y: auto;
   max-width: 960px;
+  width: 100%;
   margin: 0 auto;
   padding: 24px 24px 80px;
 }

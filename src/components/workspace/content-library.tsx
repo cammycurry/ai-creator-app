@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { getReferences, getRecentReferences, getStarredReferences, toggleStar } from "@/server/actions/reference-actions";
 import { getPublicReferences, savePublicReference } from "@/server/actions/public-reference-actions";
 import { AddReferenceDialog } from "./add-reference-dialog";
@@ -12,6 +13,7 @@ type Tab = "my" | "public" | "starred";
 type SortBy = "newest" | "oldest" | "most-used" | "name";
 
 export function ContentLibrary() {
+  const router = useRouter();
   const { references, setReferences, toggleStarInStore, removeReference } = useCreatorStore();
 
   const [tab, setTab] = useState<Tab>("my");
@@ -109,7 +111,15 @@ export function ContentLibrary() {
   }
 
   return (
-    <div className="lib-page">
+    <div className="lib-overlay">
+      {/* Header */}
+      <div className="lib-head">
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button className="lib-head-x" onClick={() => router.push("/workspace")}>&times;</button>
+          <span className="lib-head-title">Library</span>
+        </div>
+      </div>
+      <div className="lib-page">
       {/* Tab bar */}
       <div className="lib-tab-bar">
         <button className={`lib-tab${tab === "my" ? " active" : ""}`} onClick={() => setTab("my")}>
@@ -379,6 +389,7 @@ export function ContentLibrary() {
 
       {/* Upload Dialog */}
       <AddReferenceDialog open={addOpen} onOpenChange={setAddOpen} />
+    </div>
     </div>
   );
 }
