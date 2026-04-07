@@ -19,7 +19,7 @@ function contentToBrowserItem(c: ContentItem): BrowserItem {
     name: c.userInput ?? c.prompt ?? c.type,
     thumbnailUrl: c.thumbnailUrl ?? c.url,
     mediaUrl: c.url,
-    prompt: c.prompt,
+    prompt: c.userInput ?? c.prompt,
     createdAt: c.createdAt,
     contentSetId: c.contentSetId,
   };
