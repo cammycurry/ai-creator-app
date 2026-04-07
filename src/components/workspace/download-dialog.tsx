@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { processDownload, DEVICE_PROFILES, type DownloadSettings } from "@/server/actions/download-actions";
+import { processDownload } from "@/server/actions/download-actions";
+import { DEVICE_PROFILES, type DownloadSettings } from "@/types/download";
 
 export function DownloadDialog({
   open,
