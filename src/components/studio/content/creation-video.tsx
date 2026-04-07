@@ -45,6 +45,18 @@ export function CreationVideo() {
 
       {videoSource === "photo" && (
         <div className="sv2-photo-picker">
+          {sourceContentId && recentImages.length > 0 && (() => {
+            const preSelected = recentImages.find((c) => c.id === sourceContentId);
+            return preSelected ? (
+              <div className="sv2-photo-preselected">
+                <div
+                  className="sv2-photo-thumb on"
+                  style={{ backgroundImage: `url(${preSelected.url})`, width: 48, height: 48, borderRadius: 6, display: "inline-block", verticalAlign: "middle" }}
+                />
+                <span className="sv2-section-hint" style={{ display: "inline", marginLeft: 8 }}>Photo pre-selected from canvas</span>
+              </div>
+            ) : null;
+          })()}
           {recentImages.length === 0 ? (
             <p className="sv2-section-hint">No photos yet — generate some first.</p>
           ) : (

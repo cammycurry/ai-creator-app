@@ -363,7 +363,13 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
             <div className="tool-right">
               <button
                 className="studio-link"
-                onClick={() => useUIStore.getState().setContentStudioOpen(true)}
+                onClick={() => {
+                  const store = useUnifiedStudioStore.getState();
+                  if (prompt.trim()) store.setPrompt(prompt);
+                  const typeMap: Record<string, "photo" | "video"> = { photo: "photo", video: "video" };
+                  if (contentMode && typeMap[contentMode]) store.setContentType(typeMap[contentMode]);
+                  useUIStore.getState().setContentStudioOpen(true);
+                }}
               >
                 Open studio →
               </button>

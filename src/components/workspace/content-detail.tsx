@@ -166,6 +166,27 @@ export function ContentDetail({
                   Make Video
                 </button>
               )}
+              <button className="cd-action-btn" onClick={() => {
+                onOpenChange(false);
+                const { selectItem } = useUnifiedStudioStore.getState();
+                selectItem({
+                  id: item.id,
+                  kind: "content",
+                  type: item.type,
+                  name: item.userInput ?? item.prompt ?? item.type,
+                  thumbnailUrl: item.url,
+                  mediaUrl: item.url,
+                  prompt: item.prompt,
+                  createdAt: item.createdAt,
+                });
+                useUIStore.getState().setContentStudioOpen(true);
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M9 3v18M15 3v18" />
+                </svg>
+                Open in Studio
+              </button>
               <button className="cd-action-btn" disabled style={{ opacity: 0.5 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { useCreatorStore } from "@/stores/creator-store";
 import { generateContent } from "@/server/actions/content-actions";
@@ -13,7 +12,6 @@ import {
 } from "@/server/actions/video-actions";
 import { generateTalkingHead } from "@/server/actions/talking-head-actions";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
-import { templates } from "@/data/templates";
 import { CREDIT_COSTS } from "@/types/credits";
 import { InlineRefs } from "./inline-refs";
 import { CreationPhoto } from "./creation-photo";
@@ -64,8 +62,6 @@ export function CreationPanel() {
   const { activeCreatorId, getActiveCreator, setCredits } = useCreatorStore();
   const creator = getActiveCreator();
   const creatorName = creator?.name ?? "them";
-
-  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   function getCreditCost(): number {
     switch (contentType) {
@@ -146,6 +142,7 @@ export function CreationPanel() {
         if (result.success) {
           setResults(result.content);
           setShowResults(true);
+          useUnifiedStudioStore.getState().showCanvas();
         } else {
           setError(result.error);
         }
@@ -176,6 +173,7 @@ export function CreationPanel() {
         if (result.success) {
           setResultContentSet(result.contentSet);
           setShowResults(true);
+          useUnifiedStudioStore.getState().showCanvas();
         } else {
           setError(result.error);
         }
@@ -208,6 +206,7 @@ export function CreationPanel() {
                 createdAt: new Date().toISOString(),
               }]);
               setShowResults(true);
+              useUnifiedStudioStore.getState().showCanvas();
               setGenerating(false);
             } else if (status.status === "FAILED") {
               clearInterval(poll);
@@ -249,6 +248,7 @@ export function CreationPanel() {
                 createdAt: new Date().toISOString(),
               }]);
               setShowResults(true);
+              useUnifiedStudioStore.getState().showCanvas();
               setGenerating(false);
             } else if (status.status === "FAILED") {
               clearInterval(poll);
@@ -314,39 +314,20 @@ export function CreationPanel() {
         {contentType === "video" && <CreationVideo />}
         {contentType === "talking-head" && <CreationTalking />}
 
-        {/* Quick start template chips */}
-        <div className="sv2-tpl-section">
-          <button
-            className="sv2-tpl-toggle"
-            onClick={() => setTemplatesOpen((v) => !v)}
-          >
-            {templatesOpen ? "▾" : "▸"} Quick picks
-          </button>
-          {templatesOpen && (
-            <div className="sv2-tpl-chips">
-              {(contentType === "photo" || contentType === "video") &&
-                templates.map((t) => (
-                  <button
-                    key={t.id}
-                    className="sv2-tpl-chip"
-                    onClick={() => setPrompt(t.scenePrompt)}
-                  >
-                    {t.icon} {t.name}
-                  </button>
-                ))}
-              {contentType === "talking-head" &&
-                SCRIPT_STARTERS.map((s) => (
-                  <button
-                    key={s}
-                    className="sv2-tpl-chip"
-                    onClick={() => setScript(s + ": ")}
-                  >
-                    {s}
-                  </button>
-                ))}
-            </div>
-          )}
-        </div>
+        {/* Script starter chips for talking head */}
+        {contentType === "talking-head" && (
+          <div className="sv2-tpl-chips">
+            {SCRIPT_STARTERS.map((s) => (
+              <button
+                key={s}
+                className="sv2-tpl-chip"
+                onClick={() => setScript(s + ": ")}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Error */}
         {error && <div className="sv2-error">{error}</div>}

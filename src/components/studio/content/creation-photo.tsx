@@ -4,9 +4,8 @@ import { useState } from "react";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 
 export function CreationPhoto() {
-  const { imageCount, setImageCount } = useUnifiedStudioStore();
+  const { imageCount, setImageCount, aspectRatio, setAspectRatio } = useUnifiedStudioStore();
   const [expanded, setExpanded] = useState(false);
-  const [aspectRatio, setAspectRatio] = useState<string | null>(null);
 
   return (
     <div className="sv2-config">
@@ -37,7 +36,7 @@ export function CreationPhoto() {
               <button
                 key={r}
                 className={`sv2-cfg-pill${aspectRatio === r ? " on" : ""}`}
-                onClick={() => setAspectRatio(aspectRatio === r ? null : r)}
+                onClick={() => setAspectRatio(r)}
               >
                 {r}
               </button>
