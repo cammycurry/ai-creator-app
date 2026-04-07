@@ -8,6 +8,7 @@ import { useUIStore } from "@/stores/ui-store";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { deleteContent } from "@/server/actions/content-actions";
 import { AddReferenceDialog } from "./add-reference-dialog";
+import { DownloadDialog } from "./download-dialog";
 import { VideoPlayer } from "./video-player";
 import type { ContentItem } from "@/types/content";
 
@@ -37,7 +38,7 @@ export function ContentDetail({
   onMakeCarousel?: (item: ContentItem) => void;
 }) {
   const router = useRouter();
-  const [downloading, setDownloading] = useState(false);
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saveRefOpen, setSaveRefOpen] = useState(false);
   const [refImageBase64, setRefImageBase64] = useState<string | null>(null);
@@ -45,25 +46,7 @@ export function ContentDetail({
 
   if (!item) return null;
 
-  const handleDownload = async () => {
-    if (!item.url) return;
-    setDownloading(true);
-    try {
-      const response = await fetch(item.url);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `realinfluencer-${item.id}.${item.type === "VIDEO" ? "mp4" : "png"}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch {
-      window.open(item.url, "_blank");
-    }
-    setDownloading(false);
-  };
+  const s3Key = item.s3Keys?.[0] ?? "";
 
   const handleSaveAsRef = async () => {
     if (!item?.url) return;
@@ -124,16 +107,23 @@ export function ContentDetail({
             <div className="cd-actions">
               <button
                 className="cd-action-btn cd-download"
-                onClick={handleDownload}
-                disabled={downloading}
+                onClick={() => setDownloadDialogOpen(true)}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                {downloading ? "Downloading..." : "Download"}
+                Download
               </button>
+              {s3Key && (
+                <DownloadDialog
+                  open={downloadDialogOpen}
+                  onOpenChange={setDownloadDialogOpen}
+                  s3Key={s3Key}
+                  contentType={item.type === "VIDEO" || item.type === "TALKING_HEAD" ? "video" : "image"}
+                />
+              )}
               {onMakeCarousel && (
                 <button
                   className="cd-action-btn"

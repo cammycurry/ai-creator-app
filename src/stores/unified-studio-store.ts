@@ -27,6 +27,7 @@ export type BrowserItem = {
   slideCount?: number;
   contentSetId?: string;
   creditsCost?: number;
+  s3Keys?: string[];
 };
 
 export type SlideConfig = {

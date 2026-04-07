@@ -24,6 +24,7 @@ function contentToBrowserItem(c: ContentItem): BrowserItem {
     createdAt: c.createdAt,
     contentSetId: c.contentSetId,
     creditsCost: c.creditsCost,
+    s3Keys: c.s3Keys,
   };
 }
 

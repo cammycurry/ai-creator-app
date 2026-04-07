@@ -7,6 +7,7 @@ import { deleteContent } from "@/server/actions/content-actions";
 import { deleteReference } from "@/server/actions/reference-actions";
 import { useTemplate } from "@/server/actions/template-actions";
 import { AddReferenceDialog } from "@/components/workspace/add-reference-dialog";
+import { DownloadDialog } from "@/components/workspace/download-dialog";
 import { useState } from "react";
 
 export function CanvasActions({ item }: { item: BrowserItem }) {
@@ -16,6 +17,7 @@ export function CanvasActions({ item }: { item: BrowserItem }) {
   const [deleting, setDeleting] = useState(false);
   const [saveRefOpen, setSaveRefOpen] = useState(false);
   const [saveRefImage, setSaveRefImage] = useState<string | null>(null);
+  const [downloadOpen, setDownloadOpen] = useState(false);
 
   const creatorName = creator?.name ?? "your creator";
 
@@ -62,10 +64,18 @@ export function CanvasActions({ item }: { item: BrowserItem }) {
         }}>
           Save as Reference
         </button>
-        {item.mediaUrl && (
-          <a className="sv3-canvas-action" href={item.mediaUrl} download={`${creatorName}-${item.type.toLowerCase()}.jpg`} target="_blank" rel="noopener">
+        {item.s3Keys?.[0] && (
+          <button className="sv3-canvas-action" onClick={() => setDownloadOpen(true)}>
             Download
-          </a>
+          </button>
+        )}
+        {item.s3Keys?.[0] && (
+          <DownloadDialog
+            open={downloadOpen}
+            onOpenChange={setDownloadOpen}
+            s3Key={item.s3Keys[0]}
+            contentType={item.type === "VIDEO" || item.type === "TALKING_HEAD" ? "video" : "image"}
+          />
         )}
         <button
           className="sv3-canvas-action danger"
