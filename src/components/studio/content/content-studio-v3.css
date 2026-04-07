@@ -1,0 +1,478 @@
+/* ─── Content Studio V3 ─────────────────────────────────── */
+/* Prototype-first CSS — sv3- prefix for all classes         */
+
+/* Overlay — fullscreen modal */
+.sv3-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #FAFAFA;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header bar */
+.sv3-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid #EBEBEB;
+  background: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.sv3-x {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #888;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.sv3-x:hover {
+  color: #111;
+}
+
+.sv3-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+.sv3-badge {
+  background: #F5F5F5;
+  border-radius: 12px;
+  font-size: 11px;
+  padding: 2px 10px;
+  color: #888;
+}
+
+.sv3-credits {
+  margin-left: auto;
+  font-size: 12px;
+  color: #888;
+}
+
+/* Body — panel container */
+.sv3-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+}
+
+/* ─── Browser Panel (left) ─────────────────────────── */
+
+.sv3-browser {
+  height: 100%;
+  overflow-y: auto;
+  background: #FFFFFF;
+  border-right: 1px solid #EBEBEB;
+  display: flex;
+  flex-direction: column;
+}
+
+.sv3-browser-tabs {
+  display: flex;
+  border-bottom: 1px solid #EBEBEB;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.sv3-browser-tab {
+  padding: 8px 14px;
+  font-size: 12px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #888;
+  background: none;
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+}
+.sv3-browser-tab:hover {
+  color: #555;
+}
+.sv3-browser-tab.active {
+  color: #C4603A;
+  border-bottom-color: #C4603A;
+}
+
+.sv3-browser-search {
+  margin: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #F5F5F5;
+  border-radius: 6px;
+  padding: 6px 10px;
+  flex-shrink: 0;
+}
+.sv3-browser-search input {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  flex: 1;
+  outline: none;
+  color: #111;
+}
+.sv3-browser-search input::placeholder {
+  color: #BBB;
+}
+
+.sv3-browser-filters {
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.sv3-browser-chip {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 10px;
+  background: #F5F5F5;
+  color: #888;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  transition: background 150ms, color 150ms;
+}
+.sv3-browser-chip:hover {
+  background: #EBEBEB;
+}
+.sv3-browser-chip.active {
+  background: #111;
+  color: #FFF;
+}
+
+/* Thumbnail grid */
+.sv3-browser-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  padding: 8px;
+}
+
+.sv3-browser-item {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  background: #F0F0F0;
+}
+.sv3-browser-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.sv3-browser-item.selected {
+  box-shadow: 0 0 0 2px #C4603A;
+}
+
+/* Type badge */
+.sv3-browser-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #FFF;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.sv3-browser-badge.template {
+  background: rgba(196, 96, 58, 0.8);
+}
+
+/* Video play overlay */
+.sv3-browser-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Trend group header */
+.sv3-browser-group {
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Empty state */
+.sv3-browser-empty {
+  padding: 24px;
+  text-align: center;
+  color: #BBB;
+  font-size: 12px;
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+/* Load more */
+.sv3-browser-load-more {
+  width: calc(100% - 16px);
+  margin: 4px 8px 8px;
+  padding: 8px;
+  font-size: 11px;
+  color: #C4603A;
+  background: none;
+  border: 1px dashed #EBEBEB;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 150ms;
+}
+.sv3-browser-load-more:hover {
+  border-color: #C4603A;
+}
+
+/* ─── Canvas Panel (center) ────────────────────────── */
+
+.sv3-canvas {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background: #FAFAFA;
+}
+
+.sv3-canvas-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #EBEBEB;
+  border-radius: 6px;
+  font-size: 16px;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+}
+.sv3-canvas-close:hover {
+  color: #111;
+  background: #FFF;
+}
+
+.sv3-canvas-preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+}
+.sv3-canvas-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.sv3-canvas-preview video {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+}
+
+.sv3-canvas-info {
+  padding: 12px 16px;
+  border-top: 1px solid #EBEBEB;
+}
+
+.sv3-canvas-prompt {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.sv3-canvas-date {
+  font-size: 10px;
+  color: #BBB;
+}
+
+/* Action buttons */
+.sv3-canvas-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 16px;
+  border-top: 1px solid #EBEBEB;
+}
+
+.sv3-canvas-action {
+  padding: 6px 14px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #EBEBEB;
+  background: #FFF;
+  color: #111;
+  cursor: pointer;
+  transition: all 150ms;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.sv3-canvas-action:hover {
+  background: #F5F5F5;
+}
+.sv3-canvas-action.primary {
+  background: #C4603A;
+  color: #FFF;
+  border-color: #C4603A;
+}
+.sv3-canvas-action.primary:hover {
+  background: #a8502f;
+}
+.sv3-canvas-action.danger {
+  color: #e53e3e;
+  border-color: #e53e3e;
+}
+.sv3-canvas-action.danger:hover {
+  background: #fff5f5;
+}
+.sv3-canvas-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Carousel slide strip */
+.sv3-canvas-slides {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 16px;
+}
+
+.sv3-canvas-slide {
+  width: 64px;
+  height: 64px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid transparent;
+  overflow: hidden;
+}
+.sv3-canvas-slide.active {
+  border-color: #C4603A;
+}
+
+.sv3-canvas-slide-counter {
+  font-size: 11px;
+  color: #888;
+  text-align: center;
+  padding: 4px;
+}
+
+/* Loading / generating states */
+.sv3-canvas-skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.sv3-canvas-generating {
+  text-align: center;
+  padding: 24px;
+  color: #888;
+  font-size: 13px;
+}
+
+/* ─── Creation Panel (right) ───────────────────────── */
+
+.sv3-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border-left: 1px solid #EBEBEB;
+  overflow-y: auto;
+}
+
+/* ─── Mobile Layout ────────────────────────────────── */
+
+.sv3-mobile-tabs {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .sv3-body {
+    flex-direction: column;
+  }
+
+  .sv3-mobile-tabs {
+    display: flex;
+    border-top: 1px solid #EBEBEB;
+    background: #FFFFFF;
+    flex-shrink: 0;
+  }
+
+  .sv3-mobile-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: color 150ms;
+  }
+  .sv3-mobile-tab.active {
+    color: #C4603A;
+    font-weight: 600;
+  }
+
+  .sv3-browser {
+    width: 100%;
+    height: 100%;
+    border-right: none;
+  }
+
+  .sv3-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .sv3-panel {
+    width: 100%;
+    height: 100%;
+    border-left: none;
+  }
+
+  .sv3-browser-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ─── Skeleton pulse animation ─────────────────────── */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

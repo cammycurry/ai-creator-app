@@ -11,7 +11,7 @@ import { AppSidebar } from "@/components/workspace/app-sidebar";
 import { WorkspaceHeader } from "@/components/workspace/workspace-header";
 import { WorkspaceInit } from "@/components/workspace/workspace-init";
 import { CreatorStudio } from "@/components/studio/creator-studio";
-import { ContentStudioV2 } from "@/components/studio/content/content-studio-v2";
+import { ContentStudioV3 } from "@/components/studio/content/content-studio-v3";
 import { OnboardingScreen } from "@/components/workspace/onboarding-screen";
 import { WorkspaceGate } from "@/components/workspace/workspace-gate";
 import { useState, useEffect } from "react";
@@ -36,15 +36,14 @@ export function WorkspaceShell({
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  // Hide loader only after data is loaded
+  // Track fade-out state for loader
+  const [loaderFading, setLoaderFading] = useState(false);
+
   useEffect(() => {
-    if (!loaded) return;
-    const el = document.getElementById("app-loader");
-    if (el) {
-      el.classList.add("loaded");
-      setTimeout(() => el.remove(), 400);
+    if (loaded && !loaderFading) {
+      setLoaderFading(true);
     }
-  }, [loaded]);
+  }, [loaded, loaderFading]);
 
   // Not signed in — show SEO-friendly marketing content
   if (authLoaded && !isSignedIn) {
@@ -55,9 +54,9 @@ export function WorkspaceShell({
     <>
       <WorkspaceInit />
 
-      {/* Loading screen — stays visible until data loads */}
-      {(!authLoaded || !loaded) && (
-        <div id="app-loader">
+      {/* Loading screen — stays visible until data loads, fades out */}
+      {(!authLoaded || !loaded || loaderFading) && (
+        <div id="app-loader" className={loaderFading ? "loaded" : ""} onTransitionEnd={loaderFading ? () => setLoaderFading(false) : undefined}>
           <div id="app-loader-mark">Vi</div>
           <div id="app-loader-bar" />
         </div>
@@ -66,13 +65,13 @@ export function WorkspaceShell({
       {loaded && isOnboarding ? (
         <>
           <CreatorStudio fullScreen />
-          <ContentStudioV2 />
+          <ContentStudioV3 />
           {!creatorStudioOpen && <OnboardingScreen />}
         </>
       ) : loaded ? (
         <>
           <CreatorStudio />
-          <ContentStudioV2 />
+          <ContentStudioV3 />
           <div className="workspace app-shell">
             {!isMobile && (
               <aside className="ws-sidebar">
