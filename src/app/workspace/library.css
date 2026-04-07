@@ -45,10 +45,8 @@
 .lib-page {
   flex: 1;
   overflow-y: auto;
-  max-width: 960px;
   width: 100%;
-  margin: 0 auto;
-  padding: 24px 24px 80px;
+  padding: 24px 32px 80px;
 }
 
 /* ─── Tab Bar ─── */
@@ -260,7 +258,7 @@
 
 .lib-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 12px;
 }
 
@@ -637,11 +635,19 @@
   text-decoration: underline;
 }
 
+/* ─── Drag-Drop ─── */
+
+.lib-page-dragging {
+  outline: 2px dashed #C4603A;
+  outline-offset: -8px;
+  background: rgba(196, 96, 58, 0.02);
+}
+
 /* ─── Mobile ─── */
 
 @media (max-width: 640px) {
   .lib-page {
-    padding: 16px 12px 80px;
+    padding: 16px 16px 80px;
   }
 
   .lib-grid {

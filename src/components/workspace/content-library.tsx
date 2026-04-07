@@ -36,6 +36,9 @@ export function ContentLibrary() {
   // Starred state
   const [starredRefs, setStarredRefs] = useState<ReferenceItem[]>([]);
 
+  // Drag-drop state
+  const [pageDragging, setPageDragging] = useState(false);
+
   // Load data on mount
   useEffect(() => {
     getReferences().then(setReferences);
@@ -119,7 +122,19 @@ export function ContentLibrary() {
           <span className="lib-head-title">Library</span>
         </div>
       </div>
-      <div className="lib-page">
+      <div
+        className={`lib-page${pageDragging ? " lib-page-dragging" : ""}`}
+        onDragOver={(e) => { e.preventDefault(); setPageDragging(true); }}
+        onDragLeave={() => setPageDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setPageDragging(false);
+          const file = e.dataTransfer.files?.[0];
+          if (file && file.type.startsWith("image/")) {
+            setAddOpen(true);
+          }
+        }}
+      >
       {/* Tab bar */}
       <div className="lib-tab-bar">
         <button className={`lib-tab${tab === "my" ? " active" : ""}`} onClick={() => setTab("my")}>
@@ -235,21 +250,23 @@ export function ContentLibrary() {
             <div className="lib-grid">
               {sorted.map((ref) => (
                 <div key={ref.id} className="lib-card" onClick={() => setDetailItem(ref)}>
-                  {ref.imageUrl && <img src={ref.imageUrl} alt={ref.name} />}
-                  <span className="lib-card-badge">{ref.type === "BACKGROUND" ? "BG" : "REF"}</span>
+                  {ref.imageUrl ? (
+                    <img src={ref.imageUrl} alt={ref.name} />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", background: "#F0F0F0" }} />
+                  )}
+                  <span className="lib-card-badge">
+                    {ref.type === "BACKGROUND" ? "Background" : ref.tags[0] || "Reference"}
+                  </span>
                   <button
                     className={`lib-card-star${ref.starred ? " starred" : ""}`}
                     onClick={(e) => { e.stopPropagation(); handleToggleStar(ref.id); }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill={ref.starred ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
+                    {ref.starred ? "★" : "☆"}
                   </button>
                   <div className="lib-card-overlay">
                     <div className="lib-card-overlay-name">{ref.name}</div>
-                    {ref.usageCount > 0 && (
-                      <div className="lib-card-overlay-usage">Used {ref.usageCount}x</div>
-                    )}
+                    <div className="lib-card-overlay-usage">Used {ref.usageCount} time{ref.usageCount !== 1 ? "s" : ""}</div>
                   </div>
                 </div>
               ))}
@@ -309,8 +326,14 @@ export function ContentLibrary() {
             <div className="lib-grid">
               {publicRefs.map((ref) => (
                 <div key={ref.id} className="lib-card">
-                  {ref.imageUrl && <img src={ref.imageUrl} alt={ref.name} />}
-                  <span className="lib-card-badge">{ref.type === "BACKGROUND" ? "BG" : "REF"}</span>
+                  {ref.imageUrl ? (
+                    <img src={ref.imageUrl} alt={ref.name} />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", background: "#F0F0F0" }} />
+                  )}
+                  <span className="lib-card-badge">
+                    {ref.type === "BACKGROUND" ? "Background" : "Reference"}
+                  </span>
                   {savedIds.has(ref.id) && (
                     <span className="lib-card-saved">Saved</span>
                   )}
@@ -356,21 +379,23 @@ export function ContentLibrary() {
             <div className="lib-grid">
               {starredRefs.map((ref) => (
                 <div key={ref.id} className="lib-card" onClick={() => setDetailItem(ref)}>
-                  {ref.imageUrl && <img src={ref.imageUrl} alt={ref.name} />}
-                  <span className="lib-card-badge">{ref.type === "BACKGROUND" ? "BG" : "REF"}</span>
+                  {ref.imageUrl ? (
+                    <img src={ref.imageUrl} alt={ref.name} />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", background: "#F0F0F0" }} />
+                  )}
+                  <span className="lib-card-badge">
+                    {ref.type === "BACKGROUND" ? "Background" : ref.tags[0] || "Reference"}
+                  </span>
                   <button
                     className="lib-card-star starred"
                     onClick={(e) => { e.stopPropagation(); handleToggleStar(ref.id); }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
+                    ★
                   </button>
                   <div className="lib-card-overlay">
                     <div className="lib-card-overlay-name">{ref.name}</div>
-                    {ref.usageCount > 0 && (
-                      <div className="lib-card-overlay-usage">Used {ref.usageCount}x</div>
-                    )}
+                    <div className="lib-card-overlay-usage">Used {ref.usageCount} time{ref.usageCount !== 1 ? "s" : ""}</div>
                   </div>
                 </div>
               ))}
