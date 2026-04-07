@@ -5,12 +5,6 @@ import { useEffect, useCallback, useState } from "react";
 import { useUIStore } from "@/stores/ui-store";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "@/components/ui/resizable";
-import { useDefaultLayout } from "react-resizable-panels";
 import { ContentBrowser } from "./content-browser";
 import { StudioCanvas } from "./studio-canvas";
 import { CreationPanel } from "./creation-panel";
@@ -22,7 +16,6 @@ export function ContentStudioV3() {
   const { generating, canvasVisible, reset } = useUnifiedStudioStore();
   const [mobileTab, setMobileTab] = useState<"browse" | "create" | "view">("create");
   const [isMobile, setIsMobile] = useState(false);
-  const { defaultLayout, onLayoutChanged } = useDefaultLayout({ id: "studio-panels" });
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -120,26 +113,18 @@ export function ContentStudioV3() {
         </div>
         <span className="sv3-credits">{credits.total} credits</span>
       </div>
-      <div className="sv3-body">
-        <ResizablePanelGroup orientation="horizontal" id="studio-panels" defaultLayout={defaultLayout} onLayoutChanged={onLayoutChanged}>
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={35} collapsible collapsedSize={0}>
-            <ContentBrowser />
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          {canvasVisible && (
-            <>
-              <ResizablePanel defaultSize={45} minSize={30}>
-                <StudioCanvas />
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-            </>
-          )}
-          <ResizablePanel defaultSize={canvasVisible ? 35 : 80} minSize={25} maxSize={45}>
-            <div className="sv3-panel">
-              <CreationPanel />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+      <div className={`sv3-body${canvasVisible ? " sv3-body--with-canvas" : ""}`}>
+        <div className="sv3-browser">
+          <ContentBrowser />
+        </div>
+        {canvasVisible && (
+          <div className="sv3-canvas-wrap">
+            <StudioCanvas />
+          </div>
+        )}
+        <div className="sv3-panel">
+          <CreationPanel />
+        </div>
       </div>
     </div>
   );
