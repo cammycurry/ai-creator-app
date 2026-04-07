@@ -39,12 +39,18 @@ Three-panel workspace: Content Browser (left) → Canvas (center) → Creation P
 ├──────────────┴──────────────────────────┴────────────────────────┤
 ```
 
-### Panel Sizing
-- **Content Browser:** 240px fixed width, scrollable
+### Panel Sizing (Resizable)
+
+Built with **shadcn/ui Resizable** component (`react-resizable-panels`). Users can drag panel borders to resize.
+
+- **Content Browser:** default 240px, min 180px, max 400px, collapsible to 0
 - **Canvas:** flex: 1, fills remaining space
-- **Creation Panel:** 320px fixed width, scrollable
-- On tablet (≤1024px): Content Browser collapses to icon strip, expands on click
-- On mobile (≤768px): Full-screen tabs (Browse / Create), canvas is inline
+- **Creation Panel:** default 320px, min 280px, max 480px, collapsible to 0
+- Drag handles between panels (subtle 4px hit area, visible on hover)
+- Double-click handle to reset to default size
+- Panel sizes persist in localStorage
+- On tablet (≤1024px): Content Browser starts collapsed, click to expand
+- On mobile (≤768px): Full-screen tabs (Browse / Create / View) — no resize
 
 ### Two-Panel Default / Three-Panel on Preview
 
@@ -85,15 +91,19 @@ The Content Browser replaces the old Library Panel. It shows EVERYTHING the user
 
 ### Tabs
 ```
-[All] [Photos] [Videos] [Carousels] [Refs] [Templates]
+[My Content] [Refs & Templates]
 ```
 
-- **All:** Everything — your content + refs + templates mixed, sorted by recency
-- **Photos:** Your generated photos (type=IMAGE, no contentSetId)
-- **Videos:** Your generated videos + talking heads (type=VIDEO or TALKING_HEAD)
-- **Carousels:** Your carousel sets
-- **Refs:** Your personal references (from Library) — backgrounds, outfits, poses
-- **Templates:** Public viral content templates (admin-published)
+Two tabs, not six. Keep it simple.
+
+- **My Content:** Your generated photos, videos, carousels, talking heads. Filterable by type within the tab.
+  - Sub-filters (horizontal chips): All | Photos | Videos | Carousels
+- **Refs & Templates:** Your personal references + public templates combined. This is your "inspiration + assets" panel.
+  - Sub-filters: All | My Refs | Templates
+  - Templates section shows trend groupings (Gym & Fitness, City & Lifestyle, etc.)
+  - Refs show as a flat grid, same as current Library
+
+This means clicking "Refs & Templates" shows both your uploaded assets AND the viral template library together — they're all starting points for generation.
 
 ### Grid
 - 2-column visual grid with square thumbnails
@@ -940,6 +950,42 @@ When user clicks "Delete" on a reference in Canvas:
 - Generation cancellation API (server-side) — we can add cancel UI but async jobs complete regardless
 - Batch operations (select multiple items for delete, download, etc.)
 - Keyboard shortcuts beyond Esc (arrow navigation, space to play — nice to have, not now)
+
+---
+
+## 31. Detail: Content Type Priority + Creator Identity
+
+### Video and Carousel Sell the Product
+
+Video and carousel are the most impressive features — they're what makes someone say "I need this tool." Photos are probably most generated day-to-day, but every competitor does photos.
+
+**Template library should lead with video/carousel:**
+- Templates sorted with video templates first, then carousel, then photo
+- "Trending" section at top of Templates tab should feature video templates prominently
+- Category headers show video count: "Gym & Fitness (12 videos, 8 photos)"
+
+**Creation Panel should make video/carousel feel easy:**
+- Type pills order: Photo, Video, Carousel, Voice (Video is second, not buried)
+- Video "From Photo" source should be the default (most common workflow — generate photo, animate it)
+- Carousel format picker should show visual previews of what each format produces
+- "One-click" template generation should prioritize video templates
+
+**But Photo stays the default type** — it's the starting point, fastest to generate, and users need photos before they can make videos from them.
+
+### Always Use Active Creator
+
+Every generation MUST use the active creator. There should never be ambiguity about whose face/identity is being generated.
+
+**Rules:**
+- Studio header always shows active creator name + avatar
+- If no creator is active, studio shows "Select a creator first" and disables generation
+- The prompt label includes creator name: "What should maria do?"
+- Generation functions always receive `activeCreatorId` — never null
+- Template "Generate with [creator]" button shows the actual creator name
+- Canvas preview of templates shows: "This will be generated as maria"
+- Creator's base image is always passed as the reference for face consistency
+
+**No creator switching inside the studio.** If they want to generate as a different creator, they close the studio, switch creators in the sidebar, and reopen. This prevents accidental generation with the wrong creator.
 
 ---
 
