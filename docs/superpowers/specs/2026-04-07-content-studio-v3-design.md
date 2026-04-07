@@ -935,8 +935,91 @@ When user clicks "Delete" on a reference in Canvas:
 - AI agent layer (Layer 2) — designed for, not built
 - Instagram scraping / auto-template creation pipeline
 - User-published templates (admin-only for now)
-- Mobile-first responsive (basic responsive yes, mobile-optimized no)
+- Mobile-first responsive (handled in Section 30)
 - Content scheduling / auto-posting
 - Generation cancellation API (server-side) — we can add cancel UI but async jobs complete regardless
 - Batch operations (select multiple items for delete, download, etc.)
 - Keyboard shortcuts beyond Esc (arrow navigation, space to play — nice to have, not now)
+
+---
+
+## 30. Detail: Mobile Experience
+
+The studio will be used on phones — creators manage content on the go. This isn't an afterthought.
+
+### Layout (≤768px): Tab-Switched Single Panel
+
+On mobile, the three-panel layout collapses to a **single visible panel** with a bottom tab bar to switch:
+
+```
+┌─────────────────────────────┐
+│  × Content Studio    maria  │
+├─────────────────────────────┤
+│                             │
+│   (active panel fills      │
+│    full screen)             │
+│                             │
+│                             │
+│                             │
+│                             │
+│                             │
+├─────────────────────────────┤
+│  [Browse]  [Create]  [View] │
+└─────────────────────────────┘
+```
+
+- **Browse tab:** Content Browser at full width. 3-column grid. Tapping an item switches to View tab with that item in canvas.
+- **Create tab:** Creation Panel at full width. Prompt, type pills, config, generate button. Results appear inline (switches to View automatically).
+- **View tab:** Canvas at full width. Preview + action buttons. Only visible when an item is selected or results are showing. Badge shows if there's something to view.
+
+### Touch Targets
+- All buttons: minimum 44×44px tap area
+- Browser grid items: minimum 100px wide (3-column at 360px viewport = ~110px each)
+- Type pills: 44px height, horizontally scrollable
+- Action buttons in canvas: full-width stacked, 48px height
+
+### Inputs
+- All text inputs: 16px font minimum (prevents iOS zoom)
+- Prompt textarea: auto-grows, max 6 rows
+- Safe-area padding on bottom (for home indicator)
+
+### Gestures
+- Swipe left/right on canvas to navigate carousel slides
+- Pull-down on browser to refresh content
+- No complex gestures required
+
+### Tab Bar Behavior
+- Browse and Create are always available
+- View tab shows a dot indicator when there's content to view (selected item or results)
+- Tapping current tab scrolls to top
+- Tab bar sticks to bottom, above safe area
+
+### Generation on Mobile
+- Same flow as desktop — just in the Create tab
+- Progress shows inline in Create tab footer
+- When generation completes, auto-switches to View tab to show results
+- "Try Different" switches back to Create tab
+
+### Browser on Mobile
+- 3-column grid (smaller thumbnails but more visible at once)
+- Tabs (All/Photos/Videos/Refs/Templates) horizontally scrollable
+- Search bar at top, collapsible
+- Template groups scroll vertically (trend headers are sticky)
+
+### Canvas Actions on Mobile
+- Action buttons stack vertically (full-width)
+- Primary action (e.g., "Generate with maria") is at the top, terracotta
+- Secondary actions below in neutral style
+- "Download" triggers native share sheet on iOS/Android
+
+### What's Different from Desktop
+- No side-by-side panels — one at a time
+- No drag-and-drop (use upload button instead)
+- Bottom tab navigation instead of always-visible panels
+- Share sheet instead of direct download
+- Carousel navigation by swipe instead of arrow buttons
+
+### Breakpoints Summary
+- **≥1024px:** Full three-panel (or two-panel when canvas hidden)
+- **768-1023px:** Browser collapses to 48px icon strip, expands on click. Canvas + Creation side by side.
+- **≤767px:** Single panel with bottom tab bar (Browse / Create / View)
