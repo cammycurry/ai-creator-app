@@ -64,6 +64,7 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
     browserSubFilter, setBrowserSubFilter,
     browserSearch, setBrowserSearch,
     selectedItem, selectItem,
+    showResults,
   } = useUnifiedStudioStore();
 
   const [contentItems, setContentItems] = useState<BrowserItem[]>([]);
@@ -72,7 +73,7 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
   const [loading, setLoading] = useState(true);
   const [addRefOpen, setAddRefOpen] = useState(false);
 
-  // Load content on mount
+  // Load content on mount and after results are dismissed
   useEffect(() => {
     if (!creator?.id) return;
     setLoading(true);
@@ -82,7 +83,7 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
       setContentItems(standalone.map(contentToBrowserItem));
       setLoading(false);
     });
-  }, [creator?.id]);
+  }, [creator?.id, showResults]);
 
   // Load templates
   useEffect(() => {

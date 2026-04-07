@@ -6,6 +6,7 @@ import { toggleStar } from "@/server/actions/reference-actions";
 import { deleteContent } from "@/server/actions/content-actions";
 import { deleteReference } from "@/server/actions/reference-actions";
 import { useTemplate } from "@/server/actions/template-actions";
+import { AddReferenceDialog } from "@/components/workspace/add-reference-dialog";
 import { useState } from "react";
 
 export function CanvasActions({ item }: { item: BrowserItem }) {
@@ -13,6 +14,8 @@ export function CanvasActions({ item }: { item: BrowserItem }) {
   const { prefillVideoFromPhoto, prefillFromTemplate, prefillMotionTransfer, selectItem, setContentType, setSourceContentId } = useUnifiedStudioStore();
   const { removeReference, toggleStarInStore } = useCreatorStore();
   const [deleting, setDeleting] = useState(false);
+  const [saveRefOpen, setSaveRefOpen] = useState(false);
+  const [saveRefImage, setSaveRefImage] = useState<string | null>(null);
 
   const creatorName = creator?.name ?? "your creator";
 
@@ -38,8 +41,24 @@ export function CanvasActions({ item }: { item: BrowserItem }) {
             Use as Motion Source
           </button>
         )}
-        <button className="sv3-canvas-action" onClick={() => {
-          // Save as reference — placeholder for future dialog integration
+        <button className="sv3-canvas-action" onClick={async () => {
+          if (item.mediaUrl) {
+            try {
+              const res = await fetch(item.mediaUrl);
+              const blob = await res.blob();
+              const reader = new FileReader();
+              reader.onload = () => {
+                const b64 = (reader.result as string).split(",")[1];
+                setSaveRefImage(b64);
+                setSaveRefOpen(true);
+              };
+              reader.readAsDataURL(blob);
+            } catch {
+              setSaveRefOpen(true);
+            }
+          } else {
+            setSaveRefOpen(true);
+          }
         }}>
           Save as Reference
         </button>
@@ -61,6 +80,7 @@ export function CanvasActions({ item }: { item: BrowserItem }) {
         >
           {deleting ? "Deleting..." : "Delete"}
         </button>
+        <AddReferenceDialog open={saveRefOpen} onOpenChange={setSaveRefOpen} prefillImageBase64={saveRefImage ?? undefined} />
       </div>
     );
   }
@@ -118,10 +138,28 @@ export function CanvasActions({ item }: { item: BrowserItem }) {
           </button>
         )}
         <button className="sv3-canvas-action" onClick={async () => {
-          // Save template media as personal reference — placeholder
+          if (item.thumbnailUrl ?? item.mediaUrl) {
+            const url = item.thumbnailUrl ?? item.mediaUrl!;
+            try {
+              const res = await fetch(url);
+              const blob = await res.blob();
+              const reader = new FileReader();
+              reader.onload = () => {
+                const b64 = (reader.result as string).split(",")[1];
+                setSaveRefImage(b64);
+                setSaveRefOpen(true);
+              };
+              reader.readAsDataURL(blob);
+            } catch {
+              setSaveRefOpen(true);
+            }
+          } else {
+            setSaveRefOpen(true);
+          }
         }}>
           Save as Reference
         </button>
+        <AddReferenceDialog open={saveRefOpen} onOpenChange={setSaveRefOpen} prefillImageBase64={saveRefImage ?? undefined} />
       </div>
     );
   }

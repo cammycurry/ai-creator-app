@@ -60,6 +60,7 @@ type UnifiedStudioStore = {
   videoDuration: 5 | 10;
   videoAspectRatio: "9:16" | "1:1" | "16:9";
   sourceContentId: string | null;
+  motionSourceUrl: string | null;
 
   // Talking head config
   script: string;
@@ -99,6 +100,7 @@ type UnifiedStudioStore = {
   setVideoDuration: (duration: 5 | 10) => void;
   setVideoAspectRatio: (ratio: "9:16" | "1:1" | "16:9") => void;
   setSourceContentId: (id: string | null) => void;
+  setMotionSourceUrl: (url: string | null) => void;
 
   setScript: (script: string) => void;
   setVoiceId: (voiceId: string) => void;
@@ -149,7 +151,7 @@ const INITIAL: Omit<UnifiedStudioStore,
   'addInspirationPhoto' | 'removeInspirationPhoto' | 'setInspirationVideo' |
   'setImageCount' | 'selectCarouselFormat' | 'updateSlide' | 'attachSlideRef' |
   'detachSlideRef' | 'setSlideCount' | 'setCarouselInstructions' |
-  'setVideoSource' | 'setVideoDuration' | 'setVideoAspectRatio' | 'setSourceContentId' |
+  'setVideoSource' | 'setVideoDuration' | 'setVideoAspectRatio' | 'setSourceContentId' | 'setMotionSourceUrl' |
   'setScript' | 'setVoiceId' | 'setTalkingSetting' | 'setTalkingDuration' |
   'setGenerating' | 'setGeneratingProgress' | 'setError' |
   'setShowResults' | 'setResults' | 'setResultContentSet' |
@@ -172,6 +174,7 @@ const INITIAL: Omit<UnifiedStudioStore,
   videoDuration: 5,
   videoAspectRatio: "9:16",
   sourceContentId: null,
+  motionSourceUrl: null,
   script: "",
   voiceId: "",
   talkingSetting: "",
@@ -275,6 +278,7 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>((set) => ({
   setVideoDuration: (videoDuration) => set({ videoDuration }),
   setVideoAspectRatio: (videoAspectRatio) => set({ videoAspectRatio }),
   setSourceContentId: (sourceContentId) => set({ sourceContentId }),
+  setMotionSourceUrl: (motionSourceUrl) => set({ motionSourceUrl }),
 
   setScript: (script) => set({ script }),
   setVoiceId: (voiceId) => set({ voiceId }),
@@ -317,9 +321,10 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>((set) => ({
     canvasVisible: false,
   }),
 
-  prefillMotionTransfer: () => set({
+  prefillMotionTransfer: (sourceVideoUrl) => set({
     contentType: "video",
     videoSource: "motion",
+    motionSourceUrl: sourceVideoUrl,
     canvasVisible: false,
   }),
 

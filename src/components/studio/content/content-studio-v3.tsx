@@ -10,6 +10,7 @@ import {
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
+import { useDefaultLayout } from "react-resizable-panels";
 import { ContentBrowser } from "./content-browser";
 import { StudioCanvas } from "./studio-canvas";
 import { CreationPanel } from "./creation-panel";
@@ -21,6 +22,7 @@ export function ContentStudioV3() {
   const { generating, canvasVisible, reset } = useUnifiedStudioStore();
   const [mobileTab, setMobileTab] = useState<"browse" | "create" | "view">("create");
   const [isMobile, setIsMobile] = useState(false);
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({ id: "studio-panels" });
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -119,7 +121,7 @@ export function ContentStudioV3() {
         <span className="sv3-credits">{credits.total} credits</span>
       </div>
       <div className="sv3-body">
-        <ResizablePanelGroup orientation="horizontal" id="studio-panels">
+        <ResizablePanelGroup orientation="horizontal" id="studio-panels" defaultLayout={defaultLayout} onLayoutChanged={onLayoutChanged}>
           <ResizablePanel defaultSize={20} minSize={15} maxSize={35} collapsible collapsedSize={0}>
             <ContentBrowser />
           </ResizablePanel>

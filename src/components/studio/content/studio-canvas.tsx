@@ -74,6 +74,7 @@ export function StudioCanvas() {
             useUnifiedStudioStore.getState().setShowResults(false);
             useUnifiedStudioStore.getState().setResults([]);
             useUnifiedStudioStore.getState().setResultContentSet(null);
+            useUnifiedStudioStore.getState().hideCanvas();
           }}>
             Try Different
           </button>
