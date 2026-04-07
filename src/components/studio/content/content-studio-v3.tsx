@@ -2,7 +2,7 @@
 
 import "./content-studio-v3.css";
 import { useEffect, useCallback, useState } from "react";
-import { useUIStore } from "@/stores/ui-store";
+import { useRouter } from "next/navigation";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { ContentBrowser } from "./content-browser";
@@ -10,12 +10,24 @@ import { StudioCanvas } from "./studio-canvas";
 import { CreationPanel } from "./creation-panel";
 
 export function ContentStudioV3() {
-  const { contentStudioOpen, setContentStudioOpen } = useUIStore();
+  const router = useRouter();
   const creator = useCreatorStore((s) => s.getActiveCreator());
+  const creators = useCreatorStore((s) => s.creators);
+  const setActiveCreator = useCreatorStore((s) => s.setActiveCreator);
   const { credits } = useCreatorStore();
-  const { generating, canvasVisible, reset } = useUnifiedStudioStore();
+  const { generating, canvasVisible } = useUnifiedStudioStore();
   const [mobileTab, setMobileTab] = useState<"browse" | "create" | "view">("create");
   const [isMobile, setIsMobile] = useState(false);
+  const [browserOpen, setBrowserOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const saved = localStorage.getItem("studio-browser-open");
+    return saved !== null ? saved === "true" : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("studio-browser-open", String(browserOpen));
+  }, [browserOpen]);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -25,25 +37,16 @@ export function ContentStudioV3() {
 
   const handleClose = useCallback(() => {
     if (generating) return;
-    setContentStudioOpen(false);
-    reset();
-  }, [generating, setContentStudioOpen, reset]);
+    router.push("/workspace");
+  }, [generating, router]);
 
   useEffect(() => {
-    if (!contentStudioOpen) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !useUnifiedStudioStore.getState().generating) handleClose();
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [contentStudioOpen, handleClose]);
-
-  useEffect(() => {
-    document.body.style.overflow = contentStudioOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [contentStudioOpen]);
-
-  if (!contentStudioOpen) return null;
+  }, [handleClose]);
 
   if (!creator) {
     return (
@@ -68,7 +71,7 @@ export function ContentStudioV3() {
         <div className="sv3-head">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <button className="sv3-x" onClick={handleClose}>&times;</button>
-            <span className="sv3-title">Content Studio</span>
+            <span className="sv3-title">Studio</span>
             <span className="sv3-badge">{creator.name}</span>
           </div>
           <span className="sv3-credits">{credits.total} credits</span>
@@ -94,28 +97,53 @@ export function ContentStudioV3() {
           <button className={`sv3-mobile-tab${mobileTab === "browse" ? " active" : ""}`} onClick={() => setMobileTab("browse")}>Browse</button>
           <button className={`sv3-mobile-tab${mobileTab === "create" ? " active" : ""}`} onClick={() => setMobileTab("create")}>Create</button>
           <button className={`sv3-mobile-tab${mobileTab === "view" ? " active" : ""}`} onClick={() => setMobileTab("view")}>
-            View{canvasVisible ? " \u00b7" : ""}
+            View{canvasVisible ? " ·" : ""}
           </button>
         </div>
       </div>
     );
   }
 
-  // Desktop layout with resizable panels
+  // Desktop layout
   return (
     <div className="sv3-overlay">
       <div className="sv3-head">
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button className="sv3-x" onClick={handleClose}>&times;</button>
-          <span className="sv3-title">Content Studio</span>
-          <span className="sv3-badge">{creator.name}</span>
+          <button
+            className="sv3-browser-toggle"
+            onClick={() => setBrowserOpen(!browserOpen)}
+            title={browserOpen ? "Hide browser" : "Show browser"}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </button>
+          <span className="sv3-title">Studio</span>
+          {/* Creator switcher */}
+          {creators.length > 1 ? (
+            <select
+              className="sv3-creator-select"
+              value={creator.id}
+              onChange={(e) => setActiveCreator(e.target.value)}
+            >
+              {creators.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          ) : (
+            <span className="sv3-badge">{creator.name}</span>
+          )}
         </div>
         <span className="sv3-credits">{credits.total} credits</span>
       </div>
-      <div className={`sv3-body${canvasVisible ? " has-canvas" : ""}`}>
-        <div className="sv3-browser">
-          <ContentBrowser />
-        </div>
+      <div className={`sv3-body${canvasVisible ? " has-canvas" : ""}${!browserOpen ? " browser-hidden" : ""}`}>
+        {browserOpen && (
+          <div className="sv3-browser">
+            <ContentBrowser />
+          </div>
+        )}
         {canvasVisible && (
           <div className="sv3-canvas-wrap">
             <StudioCanvas />

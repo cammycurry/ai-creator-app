@@ -48,18 +48,16 @@ export function AppSidebar({ onClose }: { onClose?: () => void }) {
         </button>
         <CreatorList onCreatorClick={onClose} />
         <div style={{ height: 1, background: "var(--border, #EBEBEB)", margin: "8px 0" }} />
-        <button
-          onClick={() => {
-            useUIStore.getState().setContentStudioOpen(true);
-            onClose?.();
-          }}
+        <Link
+          href="/workspace/studio"
           className="sidebar-tool-btn"
+          onClick={() => onClose?.()}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
           Create Content
-        </button>
+        </Link>
         <Link href="/workspace/library" className="sidebar-tool-btn" onClick={() => onClose?.()}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="3" width="18" height="18" rx="2" />

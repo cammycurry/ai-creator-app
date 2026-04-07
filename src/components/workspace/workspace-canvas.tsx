@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUIStore } from "@/stores/ui-store";
 import { generateContent, getCreatorContent } from "@/server/actions/content-actions";
@@ -97,6 +98,7 @@ function NoContentState() {
 
 /* ─── Content Area ─── */
 function ContentArea({ creator }: { creator: { id: string; name: string; contentCount: number } }) {
+  const router = useRouter();
   const [prompt, setPrompt] = useState("");
   const [contentMode, setContentMode] = useState<"photo" | "video">("photo");
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
@@ -349,13 +351,13 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
               </button>
               <button className="mode-chip" onClick={() => {
                 useUnifiedStudioStore.getState().setContentType("carousel");
-                useUIStore.getState().setContentStudioOpen(true);
+                router.push("/workspace/studio");
               }}>
                 Carousel
               </button>
               <button className="mode-chip" onClick={() => {
                 useUnifiedStudioStore.getState().setContentType("talking-head");
-                useUIStore.getState().setContentStudioOpen(true);
+                router.push("/workspace/studio");
               }}>
                 Voice
               </button>
@@ -368,7 +370,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                   if (prompt.trim()) store.setPrompt(prompt);
                   const typeMap: Record<string, "photo" | "video"> = { photo: "photo", video: "video" };
                   if (contentMode && typeMap[contentMode]) store.setContentType(typeMap[contentMode]);
-                  useUIStore.getState().setContentStudioOpen(true);
+                  router.push("/workspace/studio");
                 }}
               >
                 Open studio →
@@ -385,7 +387,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
         onMakeCarousel={(item) => {
           useUnifiedStudioStore.getState().setContentType("carousel");
           useUnifiedStudioStore.getState().setSourceContentId(item.id);
-          useUIStore.getState().setContentStudioOpen(true);
+          router.push("/workspace/studio");
         }}
       />
       <CarouselDetail
