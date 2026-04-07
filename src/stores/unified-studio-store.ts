@@ -2,9 +2,29 @@ import { create } from "zustand";
 import type { ReferenceItem } from "@/types/reference";
 import type { CarouselFormat } from "@/data/carousel-formats";
 import type { ContentItem, ContentSetItem } from "@/types/content";
+import type { GenerationConfig } from "@/types/template";
 
 export type ContentType = "photo" | "carousel" | "video" | "talking-head";
 export type VideoSource = "text" | "photo" | "motion";
+
+export type BrowserItem = {
+  id: string;
+  kind: "content" | "reference" | "template";
+  type: string;
+  name: string;
+  thumbnailUrl?: string;
+  mediaUrl?: string;
+  prompt?: string;
+  createdAt: string;
+  trend?: string;
+  category?: string;
+  generationConfig?: GenerationConfig;
+  sourceVideoUrl?: string;
+  tags?: string[];
+  starred?: boolean;
+  slideCount?: number;
+  contentSetId?: string;
+};
 
 export type SlideConfig = {
   position: number;
@@ -93,6 +113,34 @@ type UnifiedStudioStore = {
   setResults: (results: ContentItem[]) => void;
   setResultContentSet: (set: ContentSetItem | null) => void;
 
+  // Browser state
+  browserTab: "my-content" | "refs-templates";
+  browserSubFilter: string;
+  browserSearch: string;
+
+  // Canvas state
+  selectedItem: BrowserItem | null;
+  canvasVisible: boolean;
+
+  // Browser actions
+  setBrowserTab: (tab: "my-content" | "refs-templates") => void;
+  setBrowserSubFilter: (filter: string) => void;
+  setBrowserSearch: (search: string) => void;
+
+  // Canvas actions
+  selectItem: (item: BrowserItem | null) => void;
+  showCanvas: () => void;
+  hideCanvas: () => void;
+
+  // Prefill actions
+  prefillFromTemplate: (config: GenerationConfig) => void;
+  prefillVideoFromPhoto: (contentId: string) => void;
+  prefillMotionTransfer: (sourceVideoUrl: string) => void;
+
+  // Aspect ratio
+  aspectRatio: "portrait" | "square" | "landscape";
+  setAspectRatio: (ratio: "portrait" | "square" | "landscape") => void;
+
   reset: () => void;
 };
 
@@ -104,7 +152,11 @@ const INITIAL: Omit<UnifiedStudioStore,
   'setVideoSource' | 'setVideoDuration' | 'setVideoAspectRatio' | 'setSourceContentId' |
   'setScript' | 'setVoiceId' | 'setTalkingSetting' | 'setTalkingDuration' |
   'setGenerating' | 'setGeneratingProgress' | 'setError' |
-  'setShowResults' | 'setResults' | 'setResultContentSet' | 'reset'
+  'setShowResults' | 'setResults' | 'setResultContentSet' |
+  'setBrowserTab' | 'setBrowserSubFilter' | 'setBrowserSearch' |
+  'selectItem' | 'showCanvas' | 'hideCanvas' |
+  'prefillFromTemplate' | 'prefillVideoFromPhoto' | 'prefillMotionTransfer' |
+  'setAspectRatio' | 'reset'
 > = {
   contentType: "photo",
   prompt: "",
@@ -130,6 +182,12 @@ const INITIAL: Omit<UnifiedStudioStore,
   showResults: false,
   results: [],
   resultContentSet: null,
+  browserTab: "my-content" as const,
+  browserSubFilter: "all",
+  browserSearch: "",
+  selectedItem: null,
+  canvasVisible: false,
+  aspectRatio: "portrait" as const,
 };
 
 export const useUnifiedStudioStore = create<UnifiedStudioStore>((set) => ({
@@ -230,6 +288,42 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>((set) => ({
   setShowResults: (showResults) => set({ showResults }),
   setResults: (results) => set({ results }),
   setResultContentSet: (resultContentSet) => set({ resultContentSet }),
+
+  setBrowserTab: (browserTab) => set({ browserTab }),
+  setBrowserSubFilter: (browserSubFilter) => set({ browserSubFilter }),
+  setBrowserSearch: (browserSearch) => set({ browserSearch }),
+
+  selectItem: (selectedItem) => set({ selectedItem, canvasVisible: selectedItem !== null }),
+  showCanvas: () => set({ canvasVisible: true }),
+  hideCanvas: () => set({ canvasVisible: false, selectedItem: null }),
+
+  prefillFromTemplate: (config) => set({
+    contentType: config.contentType,
+    prompt: config.prompt,
+    ...(config.imageCount !== undefined && { imageCount: config.imageCount }),
+    ...(config.videoSource !== undefined && { videoSource: config.videoSource }),
+    ...(config.videoDuration !== undefined && { videoDuration: config.videoDuration }),
+    ...(config.videoAspectRatio !== undefined && { videoAspectRatio: config.videoAspectRatio as "9:16" | "1:1" | "16:9" }),
+    ...(config.voiceId !== undefined && { voiceId: config.voiceId }),
+    ...(config.talkingDuration !== undefined && { talkingDuration: config.talkingDuration }),
+    ...(config.talkingSetting !== undefined && { talkingSetting: config.talkingSetting }),
+    ...(config.carouselInstructions !== undefined && { carouselInstructions: config.carouselInstructions }),
+  }),
+
+  prefillVideoFromPhoto: (contentId) => set({
+    contentType: "video",
+    videoSource: "photo",
+    sourceContentId: contentId,
+    canvasVisible: false,
+  }),
+
+  prefillMotionTransfer: () => set({
+    contentType: "video",
+    videoSource: "motion",
+    canvasVisible: false,
+  }),
+
+  setAspectRatio: (aspectRatio) => set({ aspectRatio }),
 
   reset: () => set(INITIAL),
 }));

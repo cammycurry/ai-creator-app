@@ -369,6 +369,38 @@ model PublicReference {
   @@index([isActive])
 }
 
+// ─── Content Templates ──────────────────────────────
+// Admin-published viral content templates that users can recreate with their creator.
+
+model ContentTemplate {
+  id              String   @id @default(cuid())
+  type            String   // "IMAGE" | "VIDEO" | "CAROUSEL"
+  name            String
+  description     String   @default("")
+
+  mediaUrl        String   // S3 key — the example output
+  thumbnailUrl    String?  // S3 key — for grid display
+  sourceVideoUrl  String?  // S3 key — original video for motion transfer
+
+  category        String   // gym-fitness, city-lifestyle, fashion-beauty, travel, general
+  trend           String   // mirror-selfie, grwm, city-walk, outfit-check, etc.
+  tags            String[]
+
+  generationConfig Json    // { prompt, aspectRatio, imageCount, videoSource, ... }
+
+  isActive        Boolean  @default(true)
+  popularity      Int      @default(0)
+  createdBy       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([category])
+  @@index([trend])
+  @@index([type])
+  @@index([isActive, popularity])
+}
+
 // Admin-generated images — pipeline tracking
 model AdminMedia {
   id        String   @id @default(cuid())
