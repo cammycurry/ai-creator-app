@@ -68,6 +68,17 @@
   display: flex;
 }
 
+/* ─── Panel layout ─────────────────────────── */
+
+/* Two-panel: browser fixed 280px, creation fills */
+.sv3-body > .sv3-browser { width: 280px; flex-shrink: 0; }
+.sv3-body > .sv3-panel { flex: 1; min-width: 300px; }
+
+/* Three-panel: browser 240px, canvas fills center, creation 360px */
+.sv3-body.has-canvas > .sv3-browser { width: 240px; }
+.sv3-body.has-canvas > .sv3-canvas-wrap { flex: 1; min-width: 200px; border-right: 1px solid #EBEBEB; }
+.sv3-body.has-canvas > .sv3-panel { width: 360px; flex: none; }
+
 /* Canvas wrapper */
 .sv3-canvas-wrap { height: 100%; overflow: hidden; display: flex; flex-direction: column; }
 

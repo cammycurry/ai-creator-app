@@ -1,16 +1,10 @@
 "use client";
 
 import "./content-studio-v3.css";
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useUIStore } from "@/stores/ui-store";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "@/components/ui/resizable";
-import { usePanelRef } from "react-resizable-panels";
 import { ContentBrowser } from "./content-browser";
 import { StudioCanvas } from "./studio-canvas";
 import { CreationPanel } from "./creation-panel";
@@ -22,18 +16,6 @@ export function ContentStudioV3() {
   const { generating, canvasVisible, reset } = useUnifiedStudioStore();
   const [mobileTab, setMobileTab] = useState<"browse" | "create" | "view">("create");
   const [isMobile, setIsMobile] = useState(false);
-  const canvasPanelRef = usePanelRef();
-
-  // Expand/collapse canvas panel when canvasVisible changes
-  useEffect(() => {
-    if (!canvasPanelRef.current) return;
-    if (canvasVisible) {
-      canvasPanelRef.current.resize(45);
-    } else {
-      canvasPanelRef.current.collapse();
-    }
-  }, [canvasVisible]);
-
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -130,32 +112,18 @@ export function ContentStudioV3() {
         </div>
         <span className="sv3-credits">{credits.total} credits</span>
       </div>
-      <div className="sv3-body">
-        <ResizablePanelGroup orientation="horizontal">
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={35}>
-            <div className="sv3-browser">
-              <ContentBrowser />
-            </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel
-            panelRef={canvasPanelRef}
-            defaultSize={0}
-            minSize={0}
-            collapsible
-            collapsedSize={0}
-                     >
-            <div className="sv3-canvas-wrap">
-              <StudioCanvas />
-            </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={80} minSize={25}>
-            <div className="sv3-panel">
-              <CreationPanel />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+      <div className={`sv3-body${canvasVisible ? " has-canvas" : ""}`}>
+        <div className="sv3-browser">
+          <ContentBrowser />
+        </div>
+        {canvasVisible && (
+          <div className="sv3-canvas-wrap">
+            <StudioCanvas />
+          </div>
+        )}
+        <div className="sv3-panel">
+          <CreationPanel />
+        </div>
       </div>
     </div>
   );
