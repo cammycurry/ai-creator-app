@@ -114,23 +114,29 @@ export function StudioCanvas() {
       </div>
 
       <div className="sv3-canvas-info">
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>{selectedItem.name}</div>
-        {selectedItem.prompt && <div className="sv3-canvas-prompt">{selectedItem.prompt}</div>}
+        {/* Only show name for refs/templates. For content, the image speaks for itself */}
+        {selectedItem.kind !== "content" && (
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{selectedItem.name}</div>
+        )}
+        {/* Only show prompt for templates — never expose enhanced prompts to users */}
+        {selectedItem.kind === "template" && selectedItem.prompt && (
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>{selectedItem.prompt}</div>
+        )}
         {selectedItem.trend && (
           <div style={{ fontSize: 11, color: "#C4603A", marginBottom: 2 }}>
-            {selectedItem.trend.replace(/-/g, " ")} &middot; {selectedItem.category?.replace(/-/g, " ")}
+            {selectedItem.trend.replace(/-/g, " ")} · {selectedItem.category?.replace(/-/g, " ")}
           </div>
         )}
-        <div className="sv3-canvas-date">
-          {new Date(selectedItem.createdAt).toLocaleDateString()}
-        </div>
         {selectedItem.tags && selectedItem.tags.length > 0 && (
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
             {selectedItem.tags.map((tag) => (
               <span key={tag} style={{ padding: "2px 8px", borderRadius: 10, background: "#F5F5F5", fontSize: 10, color: "#888" }}>{tag}</span>
             ))}
           </div>
         )}
+        <div style={{ fontSize: 10, color: "#CCC", marginTop: 4 }}>
+          {new Date(selectedItem.createdAt).toLocaleDateString()}
+        </div>
       </div>
 
       <CanvasActions item={selectedItem} />
