@@ -4,6 +4,82 @@ import { useState } from "react";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { CanvasActions } from "./canvas-actions";
 
+function contentTypeLabel(type: string) {
+  if (type === "IMAGE") return "Photo";
+  if (type === "VIDEO") return "Video";
+  if (type === "TALKING_HEAD") return "Talking Head";
+  if (type === "CAROUSEL") return "Carousel";
+  return type;
+}
+
+function CanvasInfo({ item }: { item: import("@/stores/unified-studio-store").BrowserItem }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  return (
+    <div className="sv3-canvas-info">
+      {/* Content items: show type + date + expandable details */}
+      {item.kind === "content" && (
+        <>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#555" }}>{contentTypeLabel(item.type)}</span>
+              <span style={{ fontSize: 10, color: "#CCC" }}>{new Date(item.createdAt).toLocaleDateString()}</span>
+              {item.creditsCost !== undefined && (
+                <span style={{ fontSize: 10, color: "#BBB" }}>{item.creditsCost} credit{item.creditsCost !== 1 ? "s" : ""}</span>
+              )}
+            </div>
+            <button
+              onClick={() => setDetailsOpen(!detailsOpen)}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 10, color: "#C4603A" }}
+            >
+              {detailsOpen ? "Hide details ▴" : "Details ▾"}
+            </button>
+          </div>
+          {detailsOpen && (
+            <div style={{ marginTop: 6, padding: 8, background: "#FAFAFA", borderRadius: 6, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+              {item.userInput && (
+                <div><span style={{ color: "#999" }}>You typed:</span> {item.userInput}</div>
+              )}
+              {item.prompt && item.prompt !== item.userInput && (
+                <div style={{ marginTop: 4 }}><span style={{ color: "#999" }}>Enhanced:</span> {item.prompt}</div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* References: show name + tags */}
+      {item.kind === "reference" && (
+        <>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{item.name}</div>
+          {item.tags && item.tags.length > 0 && (
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+              {item.tags.map((tag) => (
+                <span key={tag} style={{ padding: "2px 8px", borderRadius: 10, background: "#F5F5F5", fontSize: 10, color: "#888" }}>{tag}</span>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Templates: show name + description + trend */}
+      {item.kind === "template" && (
+        <>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{item.name}</div>
+          {item.prompt && (
+            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>{item.prompt}</div>
+          )}
+          {item.trend && (
+            <div style={{ fontSize: 11, color: "#C4603A" }}>
+              {item.trend.replace(/-/g, " ")} · {item.category?.replace(/-/g, " ")}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export function StudioCanvas() {
   const { selectedItem, hideCanvas, showResults, results, resultContentSet, contentType } = useUnifiedStudioStore();
   const [activeSlide, setActiveSlide] = useState(0);
@@ -113,31 +189,7 @@ export function StudioCanvas() {
         )}
       </div>
 
-      <div className="sv3-canvas-info">
-        {/* Only show name for refs/templates. For content, the image speaks for itself */}
-        {selectedItem.kind !== "content" && (
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{selectedItem.name}</div>
-        )}
-        {/* Only show prompt for templates — never expose enhanced prompts to users */}
-        {selectedItem.kind === "template" && selectedItem.prompt && (
-          <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>{selectedItem.prompt}</div>
-        )}
-        {selectedItem.trend && (
-          <div style={{ fontSize: 11, color: "#C4603A", marginBottom: 2 }}>
-            {selectedItem.trend.replace(/-/g, " ")} · {selectedItem.category?.replace(/-/g, " ")}
-          </div>
-        )}
-        {selectedItem.tags && selectedItem.tags.length > 0 && (
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
-            {selectedItem.tags.map((tag) => (
-              <span key={tag} style={{ padding: "2px 8px", borderRadius: 10, background: "#F5F5F5", fontSize: 10, color: "#888" }}>{tag}</span>
-            ))}
-          </div>
-        )}
-        <div style={{ fontSize: 10, color: "#CCC", marginTop: 4 }}>
-          {new Date(selectedItem.createdAt).toLocaleDateString()}
-        </div>
-      </div>
+      <CanvasInfo item={selectedItem} />
 
       <CanvasActions item={selectedItem} />
     </div>

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type { ReferenceItem } from "@/types/reference";
 import type { CarouselFormat } from "@/data/carousel-formats";
 import type { ContentItem, ContentSetItem } from "@/types/content";
@@ -15,6 +16,7 @@ export type BrowserItem = {
   thumbnailUrl?: string;
   mediaUrl?: string;
   prompt?: string;
+  userInput?: string;
   createdAt: string;
   trend?: string;
   category?: string;
@@ -24,6 +26,7 @@ export type BrowserItem = {
   starred?: boolean;
   slideCount?: number;
   contentSetId?: string;
+  creditsCost?: number;
 };
 
 export type SlideConfig = {
@@ -193,7 +196,8 @@ const INITIAL: Omit<UnifiedStudioStore,
   aspectRatio: "portrait" as const,
 };
 
-export const useUnifiedStudioStore = create<UnifiedStudioStore>((set) => ({
+export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
+  persist((set) => ({
   ...INITIAL,
 
   setContentType: (contentType) => set({ contentType }),
@@ -331,4 +335,25 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>((set) => ({
   setAspectRatio: (aspectRatio) => set({ aspectRatio }),
 
   reset: () => set(INITIAL),
-}));
+}),
+    {
+      name: "studio-store",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        contentType: state.contentType,
+        prompt: state.prompt,
+        imageCount: state.imageCount,
+        aspectRatio: state.aspectRatio,
+        videoSource: state.videoSource,
+        videoDuration: state.videoDuration,
+        videoAspectRatio: state.videoAspectRatio,
+        script: state.script,
+        voiceId: state.voiceId,
+        talkingSetting: state.talkingSetting,
+        talkingDuration: state.talkingDuration,
+        browserTab: state.browserTab,
+        browserSubFilter: state.browserSubFilter,
+      }),
+    }
+  )
+);

@@ -20,8 +20,10 @@ function contentToBrowserItem(c: ContentItem): BrowserItem {
     thumbnailUrl: c.thumbnailUrl ?? c.url,
     mediaUrl: c.url,
     prompt: c.userInput ?? c.prompt,
+    userInput: c.userInput,
     createdAt: c.createdAt,
     contentSetId: c.contentSetId,
+    creditsCost: c.creditsCost,
   };
 }
 
