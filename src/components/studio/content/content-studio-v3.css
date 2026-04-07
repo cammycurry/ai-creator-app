@@ -476,3 +476,486 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+.sv2-pills {
+  padding: 12px 16px 0;
+  display: flex;
+  gap: 5px;
+}
+
+.sv2-pill {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid #EBEBEB;
+  background: #fff;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sv2-pill:hover {
+  border-color: #C4603A;
+  color: #555;
+}
+
+.sv2-pill.on {
+  background: #C4603A;
+  color: #fff;
+  border-color: #C4603A;
+}
+
+/* ─── Create area ─────────────────────────────────────────────── */
+.sv2-create-area {
+  flex: 1;
+  padding: 12px 16px;
+  overflow-y: auto;
+}
+
+/* ─── Input card ──────────────────────────────────────────────── */
+.sv2-input-card {
+  background: #fff;
+  border: 1px solid #EBEBEB;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.sv2-input-card:focus-within {
+  border-color: #C4603A;
+}
+
+.sv2-input-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 4px;
+}
+
+.sv2-textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: #111;
+  resize: none;
+  line-height: 1.5;
+  background: transparent;
+}
+
+.sv2-textarea::placeholder {
+  color: #CCC;
+}
+
+/* ─── Inline refs ─────────────────────────────────────────────── */
+.sv2-inline-refs {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #F5F5F5;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.sv2-inline-ref {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 3px;
+  background: #F5F5F5;
+  border-radius: 8px;
+  font-size: 10px;
+  color: #555;
+}
+
+.sv2-inline-ref-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.sv2-inline-ref-x {
+  color: #CCC;
+  cursor: pointer;
+  font-size: 11px;
+  margin-left: 2px;
+}
+
+.sv2-inline-ref-x:hover {
+  color: #C4603A;
+}
+
+.sv2-add-ref-btn {
+  font-size: 10px;
+  color: #C4603A;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 8px;
+  border: 1px dashed rgba(196, 96, 58, 0.2);
+}
+
+.sv2-add-ref-btn:hover {
+  background: rgba(196, 96, 58, 0.05);
+}
+
+/* ─── Compact config row ──────────────────────────────────────── */
+.sv2-config {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #FAFAFA;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  color: #888;
+  border: 1px solid #EBEBEB;
+}
+
+.sv2-config-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sv2-config-label {
+  font-size: 11px;
+  color: #888;
+  min-width: 55px;
+}
+
+.sv2-cfg-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.sv2-cfg-pills {
+  display: flex;
+  gap: 4px;
+}
+
+.sv2-more-toggle {
+  font-size: 11px;
+  color: #BBB;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.sv2-more-toggle:hover {
+  color: #C4603A;
+}
+
+.sv2-cfg-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid #EBEBEB;
+  background: #fff;
+  color: #888;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sv2-cfg-btn.on {
+  background: #C4603A;
+  color: #fff;
+  border-color: #C4603A;
+}
+
+.sv2-cfg-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #EBEBEB;
+  background: #fff;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.sv2-cfg-pill.on {
+  background: #C4603A;
+  color: #fff;
+  border-color: #C4603A;
+}
+
+/* ─── Templates / quick starts ────────────────────────────────── */
+.sv2-tpl {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.sv2-tpl-chip {
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 10px;
+  color: #888;
+  background: #fff;
+  border: 1px solid #EBEBEB;
+  cursor: pointer;
+}
+
+.sv2-tpl-chip:hover {
+  border-color: #C4603A;
+  color: #C4603A;
+}
+
+.sv2-tpl-label {
+  font-size: 9px;
+  color: #BBB;
+  margin-bottom: 4px;
+}
+
+/* ─── Video source picker ─────────────────────────────────────── */
+.sv2-video-sources {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.sv2-vsrc {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #EBEBEB;
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+}
+
+.sv2-vsrc:hover {
+  border-color: #C4603A;
+}
+
+.sv2-vsrc.on {
+  border-color: #C4603A;
+  background: rgba(196, 96, 58, 0.04);
+}
+
+.sv2-vsrc-icon {
+  font-size: 18px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.sv2-vsrc-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #111;
+}
+
+.sv2-photo-picker {
+  margin-top: 4px;
+}
+
+.sv2-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.sv2-photo-thumb {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+.sv2-photo-thumb:hover {
+  border-color: #EBEBEB;
+}
+
+.sv2-photo-thumb.on {
+  border-color: #C4603A;
+}
+
+.sv2-vsrc-hint {
+  font-size: 9px;
+  color: #888;
+  margin-top: 1px;
+}
+
+/* ─── Voice picker ────────────────────────────────────────────── */
+.sv2-voice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.sv2-voice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #EBEBEB;
+  cursor: pointer;
+  background: #fff;
+}
+
+.sv2-voice:hover {
+  border-color: #C4603A;
+}
+
+.sv2-voice.on {
+  border-color: #C4603A;
+  background: rgba(196, 96, 58, 0.04);
+}
+
+.sv2-voice-play {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.sv2-voice.on .sv2-voice-play {
+  background: #C4603A;
+  color: #fff;
+}
+
+.sv2-voice-name {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.sv2-voice-tone {
+  font-size: 9px;
+  color: #BBB;
+}
+
+/* ─── Carousel slides ─────────────────────────────────────────── */
+.sv2-slides {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.sv2-slide {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #EBEBEB;
+  font-size: 10px;
+}
+
+.sv2-slide-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #F5F5F5;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sv2-slide:first-child .sv2-slide-num {
+  background: #C4603A;
+  color: #fff;
+}
+
+.sv2-slide-text {
+  flex: 1;
+  color: #555;
+}
+
+.sv2-slide-ref {
+  font-size: 8px;
+  color: #C4603A;
+  background: #F5F5F5;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* ─── Footer ──────────────────────────────────────────────────── */
+.sv2-footer {
+  padding: 8px 16px;
+  border-top: 1px solid #EBEBEB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+}
+
+.sv2-cost {
+  font-size: 11px;
+  color: #888;
+}
+
+.sv2-cost strong {
+  color: #111;
+}
+
+.sv2-gen {
+  padding: 8px 20px;
+  background: #C4603A;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+
+/* ─── V2 compat: Right panel + Error ─────────────────────────── */
+.sv2-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sv2-error {
+  padding: 8px 16px;
+  color: #e53e3e;
+  font-size: 12px;
+  background: rgba(229, 62, 62, 0.05);
+  border-radius: 6px;
+  margin: 0 16px 8px;
+}
+
+.sv2-gen-btn {
+  padding: 8px 20px;
+  background: #C4603A;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sv2-gen-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
