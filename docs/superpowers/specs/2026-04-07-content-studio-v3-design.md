@@ -722,6 +722,214 @@ Templates don't need sync — they're read-only for users (admin publishes, user
 
 ---
 
+## 19. Detail: Empty States
+
+**Content Browser — no content yet:**
+```
+Your content will appear here.
+Generate your first photo →
+```
+"Generate your first photo →" focuses the Creation Panel prompt field.
+
+**Content Browser — Refs tab empty:**
+```
+No references yet.
+Upload backgrounds, outfits, and poses.
+[+ Upload]
+```
+Upload button opens AddReferenceDialog.
+
+**Content Browser — Templates tab empty (no templates seeded):**
+```
+Templates coming soon.
+Check back for trending content ideas.
+```
+
+**Canvas — empty (default):**
+No separate empty state needed — canvas is hidden by default (two-panel mode). The creation panel fills the space.
+
+**Canvas — generation error:**
+Error displays in the Creation Panel footer area (above the Generate button), not in the canvas. Canvas stays in whatever state it was (empty or showing last preview). Error message has a dismiss × button.
+
+---
+
+## 20. Detail: Concurrent Generation
+
+**Rule: one generation at a time.**
+
+- While generating, the Generate button shows progress and is disabled
+- User CAN browse the Content Browser while generation is running (non-blocking UI)
+- User CAN click items in the browser to preview in Canvas (if canvas is showing results, new selection replaces them)
+- User CANNOT start a second generation until the current one completes or fails
+- For async jobs (video, talking head): the "generating" state persists across the poll cycle. User sees "Generating video... (~1 min)" in the footer.
+- If user closes the studio while a video/talking head is generating: the async job continues server-side. Next time they open the studio or dashboard, the completed video appears in their content.
+
+---
+
+## 21. Detail: Video + Carousel Playback in Canvas
+
+**Video preview:**
+- Autoplay: no (user clicks play)
+- Muted: no (plays with audio — important for talking heads)
+- Loop: yes (loops after playing)
+- Controls: play/pause, mute/unmute, progress bar. Native HTML5 video controls.
+
+**Carousel preview:**
+- Shows first slide as main preview
+- Horizontal thumbnail strip below main image
+- Click thumbnail → shows that slide full-size
+- Left/right arrow buttons on main preview
+- Slide counter: "3 / 6"
+- Caption + hashtags shown below thumbnail strip
+
+---
+
+## 22. Detail: Generation Progress UI
+
+**Photos (15-30 seconds):**
+- Generate button text: "Generating..." with spinner
+- Skeleton cards appear in Canvas (same count as imageCount)
+- No cancel — fast enough to wait
+
+**Carousel (30-60 seconds):**
+- Generate button text: "Generating [N] slides..."
+- Skeleton slide strip in Canvas
+- No cancel
+
+**Video (1-2 minutes):**
+- Generate button text: "Generating video... (~1 min)"
+- Canvas shows: large spinner + "Your video is being created" message
+- Cancel button available (calls a cancel endpoint if possible, or just hides progress and lets async job complete silently)
+
+**Talking Head (2-3 minutes):**
+- Generate button text: "Generating... (~2 min)"
+- Canvas shows: progress stages if available ("Generating voice...", "Creating image...", "Syncing lips...")
+- Cancel button available (same as video)
+
+---
+
+## 23. Detail: Content Browser Loading + Sorting
+
+**Loading state:**
+- On studio open, browser shows 2-column skeleton grid (8 skeleton cards)
+- Items load in order: your content first (most relevant), then refs, then templates
+- Each tab fetches independently — switching tabs shows loading if not yet fetched
+
+**Sorting:**
+- Default: newest first (by createdAt)
+- No explicit sort dropdown in browser (keep it simple — newest is almost always right)
+- Templates tab: sorted by popularity (most used first), grouped by trend
+
+**Pagination:**
+- Initial load: 20 items
+- "Load more" button at bottom of grid
+- OR infinite scroll (load next 20 when scrolled to bottom)
+
+---
+
+## 24. Detail: Drag and Drop
+
+The current drop zone in V2 is replaced by:
+
+**Browser-level drop zone:**
+- Drag an image/video file anywhere onto the Content Browser panel
+- Image → opens AddReferenceDialog with the image pre-filled (same as current)
+- Video → if in Video mode with Motion Transfer selected, loads as source video. Otherwise opens AddReferenceDialog.
+
+**No separate drop zone UI element.** The entire browser panel is the drop target. Shows a visual highlight (dashed border) when dragging over it.
+
+---
+
+## 25. Detail: Opening Studio with Context
+
+When studio opens from external triggers, the store is pre-populated before `contentStudioOpen` is set to `true`:
+
+**From dashboard input bar "Open studio →":**
+```typescript
+// If user typed a prompt, carry it over
+if (prompt.trim()) {
+  useUnifiedStudioStore.getState().setPrompt(prompt);
+}
+// If a content type was selected, carry it
+useUnifiedStudioStore.getState().setContentType(contentMode);
+useUIStore.getState().setContentStudioOpen(true);
+```
+
+**From dashboard content detail "Open in Studio":**
+```typescript
+// Pre-select the item for canvas preview
+useUnifiedStudioStore.getState().selectItem(browserItemFromContent(item));
+useUIStore.getState().setContentStudioOpen(true);
+```
+
+**From dashboard "Make Video" action on a photo:**
+```typescript
+useUnifiedStudioStore.getState().setContentType("video");
+useUnifiedStudioStore.getState().setVideoSource("photo");
+useUnifiedStudioStore.getState().setSourceContentId(item.id);
+useUnifiedStudioStore.getState().selectItem(browserItemFromContent(item));
+useUIStore.getState().setContentStudioOpen(true);
+```
+
+**From sidebar "Create Content":**
+```typescript
+// Clean open — no context
+useUnifiedStudioStore.getState().reset();
+useUIStore.getState().setContentStudioOpen(true);
+```
+
+---
+
+## 26. Detail: Closing Studio
+
+**Normal close (× button or Esc):**
+- If NOT generating: close immediately, reset store state
+- If generating sync operation (photo/carousel): warn "Generation in progress. Close anyway?" → Yes closes and discards results, No keeps studio open
+- If generating async operation (video/talking head): close without warning. Job continues server-side. Result appears in dashboard and Content Browser next time they open studio.
+
+**After generation completes:**
+- "Use" button: saves content (already saved to DB), closes studio, resets state
+- "Try Different": clears results, keeps settings, stays in studio
+- Closing without clicking "Use": content is already saved to DB during generation — it's not lost. Studio just closes.
+
+---
+
+## 27. Detail: Aspect Ratio Fix
+
+Currently broken — photo aspect ratio UI exists in `creation-photo.tsx` but the value is never passed to `generateContent()`.
+
+**Fix:**
+1. Add `aspectRatio` to `unified-studio-store.ts` state (default: "portrait")
+2. `creation-photo.tsx` reads/writes from store instead of local state
+3. `creation-panel.tsx` passes `aspectRatio` to `generateContent()`
+4. `generateContent()` server action accepts optional `aspectRatio` parameter
+5. Gemini generation config includes aspect ratio instruction in prompt: "vertical/portrait composition" or "square composition" or "horizontal/landscape composition"
+
+Note: Gemini doesn't have a native aspect ratio parameter. We control it via prompt instruction + post-generation crop if needed.
+
+---
+
+## 28. Detail: Quick Picks Removal
+
+The "Quick picks" collapsible section in the current creation panel (template chips like "Mirror selfie at the gym") is **removed**. The Templates tab in the Content Browser replaces this functionality with a much richer experience (visual previews, categories, trends).
+
+The talking-head script starters ("Product review", "Day in my life", "Tips & advice") can stay as small hint chips below the script textarea — they're useful for getting started with a talking head specifically.
+
+---
+
+## 29. Detail: Delete Confirmation
+
+When user clicks "Delete" on any content in Canvas:
+- Show confirmation: "Delete this [photo/video/carousel]? This can't be undone."
+- Confirm → calls `deleteContent()` server action → removes from DB → removes from browser items → canvas clears
+- For carousels: deletes the entire ContentSet + all slides
+
+When user clicks "Delete" on a reference in Canvas:
+- Show confirmation: "Delete this reference?"
+- Confirm → calls `deleteReference()` → removes from store → canvas clears
+
+---
+
 ## Out of Scope
 
 - AI agent layer (Layer 2) — designed for, not built
@@ -729,3 +937,6 @@ Templates don't need sync — they're read-only for users (admin publishes, user
 - User-published templates (admin-only for now)
 - Mobile-first responsive (basic responsive yes, mobile-optimized no)
 - Content scheduling / auto-posting
+- Generation cancellation API (server-side) — we can add cancel UI but async jobs complete regardless
+- Batch operations (select multiple items for delete, download, etc.)
+- Keyboard shortcuts beyond Esc (arrow navigation, space to play — nice to have, not now)
