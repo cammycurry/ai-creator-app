@@ -564,6 +564,164 @@ DELETE: src/components/studio/content/library-panel.tsx        — Replaced by c
 
 ---
 
+## 11. Detail: How References Work in the Studio
+
+References show up in the Content Browser under the "Refs" tab. Using them:
+
+**Attaching a ref to generation:**
+- Click a ref in the browser → Canvas shows preview with action: **"Use in Generation"**
+- Clicking "Use in Generation" attaches it to the Creation Panel (shows as inline ref thumbnail below prompt)
+- Multiple refs can be attached — backgrounds, outfits, poses stack
+- Refs can also be attached by clicking directly in the browser (toggle, like current behavior) without going through canvas
+
+**Template refs:**
+- A template's `generationConfig.referenceKeys` contains S3 keys of refs baked into the template
+- When user clicks "Generate with [creator]" on a template, these refs are auto-attached to the Creation Panel
+- User can see them in the inline refs area and remove any they don't want
+
+**Saving content as ref:**
+- Canvas action "Save as Reference" on any photo → opens the existing AddReferenceDialog
+- AI auto-analyzes the image and suggests type/tags
+- Saved ref immediately appears in the Browser's Refs tab
+
+---
+
+## 12. Detail: Settings Persistence
+
+Studio settings persist within a session (while the studio is open) and optionally across sessions.
+
+**Within session (automatic):**
+- Content type selection persists (if you're in Video mode, it stays in Video mode)
+- Aspect ratio, duration, image count persist between generations
+- Attached refs persist until explicitly detached
+- Prompt clears after successful generation (fresh start) but settings stay
+
+**Across sessions (planned):**
+- Store last-used settings per content type in localStorage
+- When studio opens, restore: last content type, aspect ratio, duration, image count
+- Refs and prompt do NOT persist across sessions (they're context-specific)
+
+---
+
+## 13. Detail: Carousel Template Pre-fill
+
+When a user clicks "Generate with [creator]" on a carousel template:
+
+1. Creation Panel switches to Carousel type
+2. `generationConfig.formatId` → format auto-selected (slides generated from format template)
+3. `generationConfig.slideCount` → slide count set
+4. `generationConfig.carouselInstructions` → global instructions pre-filled
+5. Any `referenceKeys` → attached as refs
+6. User sees the pre-configured carousel and can tweak individual slides, add/remove slides, change instructions
+7. Generate → carousel result appears in Canvas as slide strip
+
+---
+
+## 14. Detail: Download + Metadata Stripping
+
+When user clicks "Download" on any content in the Canvas:
+
+**Photos:**
+- Server generates a clean download: strips C2PA/SynthID AI metadata, injects iPhone EXIF (already built via `stripAndRewrite` in `src/lib/ai/metadata-strip.ts`)
+- Downloads as `.jpg` with clean metadata
+- Filename: `[creator-name]-[type]-[timestamp].jpg`
+
+**Videos:**
+- Direct S3 download (video metadata stripping is less critical — no standard AI watermark for Kling output)
+- Downloads as `.mp4`
+- Filename: `[creator-name]-video-[timestamp].mp4`
+
+**Carousels:**
+- "Download All" downloads a zip of all slides (each stripped)
+- Individual slide download also available from carousel view
+
+---
+
+## 15. Detail: Dashboard ↔ Studio Relationship
+
+**Content generated from dashboard input bar:**
+- Results appear in the dashboard content grid (current behavior)
+- Also visible in studio Content Browser next time it's opened (same data source — `getCreatorContent`)
+
+**Content generated from studio:**
+- Results appear in Canvas
+- Also visible in dashboard content grid when studio closes (dashboard re-fetches content)
+
+**Clicking content on dashboard:**
+- Currently opens ContentDetail modal (photo) or CarouselDetail modal (carousel)
+- These stay as-is for quick viewing
+- Add a button in the detail modal: **"Open in Studio"** → opens studio with that item selected in Canvas
+
+**"Open studio →" on dashboard input bar:**
+- Opens studio
+- If user typed a prompt, carry it to the Creation Panel prompt field
+- If a content type was selected (Photo/Video/Carousel/Voice), carry that too
+
+---
+
+## 16. Detail: Admin Template Publishing
+
+For Phase 1, admin creates templates through a workflow:
+
+1. **Generate content** using the app with demo creators (Mia, Sora, Chloe, etc.)
+2. **Identify good outputs** — photos/videos that look genuinely postable
+3. **Create template record** via:
+   - Admin panel form (new admin page `/admin/templates`)
+   - OR seed script that reads from a JSON file
+4. **Fill in:**
+   - Name: "Gym mirror selfie"
+   - Description: "Confident mirror selfie at the gym, sports bra, good lighting"
+   - Category: "gym-fitness"
+   - Trend: "mirror-selfie"
+   - Tags: ["gym", "fitness", "selfie", "mirror"]
+   - Type: IMAGE or VIDEO
+   - Media: upload the example output (S3 key)
+   - Source video: for video templates, upload the source video for motion transfer
+   - Generation config: the prompt + settings used to generate it
+5. **Publish** — set `isActive: true`
+
+For video templates specifically:
+- The `sourceVideoUrl` is the video that users will motion-transfer with their creator
+- The `mediaUrl` is the example output showing what the result looks like
+- Both are needed — one is the input, one is the preview
+
+---
+
+## 17. Detail: Content Type Badges
+
+Consistent badge system across browser and canvas:
+
+| Content Type | Badge Text | Badge Color |
+|---|---|---|
+| Photo (IMAGE) | PHOTO | default (dark bg, white text) |
+| Video (VIDEO) | VIDEO | default |
+| Talking Head (TALKING_HEAD) | VOICE | default, with 🎤 icon |
+| Carousel (ContentSet) | CAROUSEL | default, with slide count sub-badge |
+| Reference (BACKGROUND) | BG | subtle (lighter) |
+| Reference (REFERENCE) | REF | subtle |
+| Template (IMAGE) | TEMPLATE · PHOTO | terracotta accent |
+| Template (VIDEO) | TEMPLATE · VIDEO | terracotta accent |
+
+Templates get the terracotta accent to stand out as "not your content — available to use."
+
+---
+
+## 18. Detail: Library Page ↔ Studio Browser Sync
+
+Both surfaces read from the same server data:
+- **Refs:** both call `getReferences()` → same Zustand store (`creatorStore.references`)
+- **Templates:** both call `getContentTemplates()` → no shared store, each fetches independently
+
+When user takes an action in one surface:
+- **Star a ref in Library** → `toggleStarInStore` updates Zustand → studio Browser shows updated star on next render (same store)
+- **Upload ref in Library** → `addReference` updates Zustand → Browser shows new ref immediately
+- **Save public ref in Studio** → `addReference` updates Zustand → Library shows it too
+- **Delete ref in Library** → `removeReference` updates Zustand → Browser removes it
+
+Templates don't need sync — they're read-only for users (admin publishes, users browse).
+
+---
+
 ## Out of Scope
 
 - AI agent layer (Layer 2) — designed for, not built
