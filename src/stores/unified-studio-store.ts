@@ -8,6 +8,13 @@ import type { GenerationConfig } from "@/types/template";
 export type ContentType = "photo" | "carousel" | "video" | "talking-head";
 export type VideoSource = "text" | "photo" | "motion";
 
+export type RefMode = "exact" | "scene" | "vibe";
+
+export type AttachedRef = {
+  ref: ReferenceItem;
+  mode: RefMode;
+};
+
 export type BrowserItem = {
   id: string;
   kind: "content" | "reference" | "template";
@@ -46,7 +53,7 @@ type UnifiedStudioStore = {
 
   // Universal inputs
   prompt: string;
-  attachedRefs: ReferenceItem[];
+  attachedRefs: AttachedRef[];
   inspirationPhotos: { base64: string; preview: string }[];
   inspirationVideo: { base64: string; preview: string } | null;
 
@@ -87,6 +94,7 @@ type UnifiedStudioStore = {
   setPrompt: (prompt: string) => void;
   attachRef: (ref: ReferenceItem) => void;
   detachRef: (refId: string) => void;
+  setRefMode: (refId: string, mode: RefMode) => void;
   addInspirationPhoto: (photo: { base64: string; preview: string }) => void;
   removeInspirationPhoto: (index: number) => void;
   setInspirationVideo: (video: { base64: string; preview: string } | null) => void;
@@ -162,7 +170,7 @@ const INITIAL: Omit<UnifiedStudioStore,
   'setBrowserTab' | 'setBrowserSubFilter' | 'setBrowserSearch' |
   'selectItem' | 'showCanvas' | 'hideCanvas' |
   'prefillFromTemplate' | 'prefillVideoFromPhoto' | 'prefillMotionTransfer' |
-  'setAspectRatio' | 'reset'
+  'setAspectRatio' | 'reset' | 'setRefMode'
 > = {
   contentType: "photo",
   prompt: "",
@@ -205,12 +213,17 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
   setPrompt: (prompt) => set({ prompt }),
 
   attachRef: (ref) => set((s) => ({
-    attachedRefs: s.attachedRefs.some((r) => r.id === ref.id)
-      ? s.attachedRefs.filter((r) => r.id !== ref.id) // toggle off
-      : [...s.attachedRefs, ref], // toggle on
+    attachedRefs: s.attachedRefs.some((a) => a.ref.id === ref.id)
+      ? s.attachedRefs.filter((a) => a.ref.id !== ref.id)
+      : [...s.attachedRefs, { ref, mode: "exact" as RefMode }],
   })),
   detachRef: (refId) => set((s) => ({
-    attachedRefs: s.attachedRefs.filter((r) => r.id !== refId),
+    attachedRefs: s.attachedRefs.filter((a) => a.ref.id !== refId),
+  })),
+  setRefMode: (refId, mode) => set((s) => ({
+    attachedRefs: s.attachedRefs.map((a) =>
+      a.ref.id === refId ? { ...a, mode } : a
+    ),
   })),
 
   addInspirationPhoto: (photo) => set((s) => ({

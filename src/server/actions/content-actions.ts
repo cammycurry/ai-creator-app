@@ -121,7 +121,8 @@ type GenerateContentResult =
 export async function generateContent(
   creatorId: string,
   userPrompt: string,
-  imageCount: number = 1
+  imageCount: number = 1,
+  refAttachments?: { s3Key: string; mode: "exact" | "scene" | "vibe" }[]
 ): Promise<GenerateContentResult> {
   const { userId: clerkId } = await auth();
   if (!clerkId) return { success: false, error: "Not authenticated" };
@@ -165,16 +166,52 @@ export async function generateContent(
       }
     }
 
+    // Handle attached references with modes
+    let refPromptSuffix = "";
+    const refImages: { mimeType: string; data: string }[] = [];
+
+    if (refAttachments && refAttachments.length > 0) {
+      for (const att of refAttachments) {
+        if (att.mode === "exact" || att.mode === "scene") {
+          try {
+            const refBuf = await getImageBuffer(att.s3Key);
+            refImages.push({ mimeType: "image/jpeg", data: refBuf.toString("base64") });
+          } catch (e) {
+            console.error("Failed to load ref image:", e);
+            continue;
+          }
+
+          if (att.mode === "exact") {
+            refPromptSuffix += " Match the reference image exactly — same scene, setting, and composition.";
+          } else {
+            refPromptSuffix += " Use a similar setting to the reference image, but with creative freedom on pose and framing.";
+          }
+        } else if (att.mode === "vibe") {
+          try {
+            const refBuf = await getImageBuffer(att.s3Key);
+            const { analyzeReferenceVibe } = await import("./reference-actions");
+            const vibeDesc = await analyzeReferenceVibe(refBuf.toString("base64"));
+            refPromptSuffix += ` Style and mood: ${vibeDesc}`;
+          } catch (e) {
+            console.error("Failed to analyze vibe:", e);
+          }
+        }
+      }
+    }
+
+    const finalPrompt = prompt + refPromptSuffix;
+
+    const contents = [
+      { text: finalPrompt },
+      ...(baseImageBase64 ? [{ inlineData: { mimeType: "image/jpeg", data: baseImageBase64 } }] : []),
+      ...refImages.map((img) => ({ inlineData: img })),
+    ];
+
     // Generate N images in parallel, passing reference image when available
     const imagePromises = Array.from({ length: count }, () =>
       ai.models.generateContent({
         model: IMAGE_MODEL,
-        contents: baseImageBase64
-          ? [
-              { text: prompt },
-              { inlineData: { mimeType: "image/jpeg", data: baseImageBase64 } },
-            ]
-          : prompt,
+        contents,
         config: {
           responseModalities: ["TEXT", "IMAGE"],
           safetySettings: SAFETY_OFF,

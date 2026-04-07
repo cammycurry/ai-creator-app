@@ -34,6 +34,7 @@ export function CreationPanel() {
     setContentType,
     prompt,
     setPrompt,
+    attachedRefs,
     imageCount,
     selectedFormat,
     slides,
@@ -138,7 +139,16 @@ export function CreationPanel() {
 
     switch (contentType) {
       case "photo": {
-        const result = await generateContent(activeCreatorId, prompt, imageCount);
+        const refAttachments = attachedRefs.map((a) => ({
+          s3Key: a.ref.s3Key,
+          mode: a.mode,
+        }));
+        const result = await generateContent(
+          activeCreatorId,
+          prompt,
+          imageCount,
+          refAttachments.length > 0 ? refAttachments : undefined
+        );
         if (result.success) {
           setResults(result.content);
           setShowResults(true);

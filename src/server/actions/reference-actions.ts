@@ -62,6 +62,28 @@ For tags, include descriptive terms like "outfit", "pose", "product", "mood", "i
   }
 }
 
+export async function analyzeReferenceVibe(imageBase64: string): Promise<string> {
+  try {
+    const response = await ai.models.generateContent({
+      model: FLASH_MODEL,
+      contents: [
+        {
+          text: `Describe the mood, lighting, color palette, and energy of this image in 2-3 sentences. Focus on the FEELING and AESTHETIC, not the objects or people. This description will be used as a style guide for generating new images with the same vibe. Be specific about lighting quality, color tones, and emotional energy.`,
+        },
+        { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
+      ],
+    });
+
+    const text = response.candidates?.[0]?.content?.parts?.find(
+      (p: { text?: string }) => p.text
+    )?.text?.trim() ?? "";
+
+    return text || "Natural lighting, candid mood, photorealistic.";
+  } catch {
+    return "Natural lighting, candid mood, photorealistic.";
+  }
+}
+
 // ─── Helpers ─────────────────────────────────────────
 
 function toReferenceItem(
