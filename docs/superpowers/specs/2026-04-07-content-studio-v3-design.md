@@ -46,6 +46,37 @@ Three-panel workspace: Content Browser (left) → Canvas (center) → Creation P
 - On tablet (≤1024px): Content Browser collapses to icon strip, expands on click
 - On mobile (≤768px): Full-screen tabs (Browse / Create), canvas is inline
 
+### Two-Panel Default / Three-Panel on Preview
+
+The canvas is **hidden by default**. Studio opens as a two-panel layout (Browser + Creation Panel), giving the creation form maximum space.
+
+**Two-panel (default):**
+```
+┌──────────────┬──────────────────────────────────┐
+│  BROWSER     │        CREATION PANEL            │
+│              │        (full width)              │
+└──────────────┴──────────────────────────────────┘
+```
+
+**Three-panel (when previewing):**
+```
+┌──────────────┬──────────────────┬───────────────┐
+│  BROWSER     │     CANVAS       │  CREATION     │
+│              │                  │  PANEL        │
+└──────────────┴──────────────────┴───────────────┘
+```
+
+**Canvas appears when:**
+- User clicks an item in the Content Browser
+- Generation completes (results display in canvas)
+
+**Canvas hides when:**
+- User clicks × on the canvas
+- User clicks "Use" on results (content saved, canvas dismissed)
+- User starts a new generation (canvas clears, reappears with results)
+
+This means first-time users see Browser + Creation Panel — no confusing empty space. The canvas reveals itself naturally as they interact.
+
 ---
 
 ## 2. Content Browser (Left Panel)
