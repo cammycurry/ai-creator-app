@@ -68,14 +68,8 @@
   display: flex;
 }
 
-/* Two-panel default: browser 260px, creation panel fills rest */
-.sv3-body > .sv3-browser { width: 260px; flex-shrink: 0; }
-.sv3-body > .sv3-panel { flex: 1; min-width: 0; }
-
-/* Three-panel when canvas visible: browser 220px, canvas fills, creation 340px */
-.sv3-body--with-canvas > .sv3-browser { width: 220px; }
-.sv3-body--with-canvas > .sv3-canvas-wrap { flex: 1; min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
-.sv3-body--with-canvas > .sv3-panel { width: 340px; flex-shrink: 0; }
+/* Canvas wrapper */
+.sv3-canvas-wrap { height: 100%; overflow: hidden; display: flex; flex-direction: column; }
 
 /* ─── Browser Panel (left) ─────────────────────────── */
 
