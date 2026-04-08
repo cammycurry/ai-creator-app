@@ -38,6 +38,7 @@ export function ContentLibrary() {
 
   // Drag-drop state
   const [pageDragging, setPageDragging] = useState(false);
+  const [droppedImageBase64, setDroppedImageBase64] = useState<string | undefined>(undefined);
 
   // Load data on mount
   useEffect(() => {
@@ -135,7 +136,13 @@ export function ContentLibrary() {
           setPageDragging(false);
           const file = e.dataTransfer.files?.[0];
           if (file && file.type.startsWith("image/")) {
-            setAddOpen(true);
+            const reader = new FileReader();
+            reader.onload = () => {
+              const base64 = (reader.result as string).split(",")[1];
+              setDroppedImageBase64(base64);
+              setAddOpen(true);
+            };
+            reader.readAsDataURL(file);
           }
         }}
       >
@@ -417,7 +424,14 @@ export function ContentLibrary() {
       )}
 
       {/* Upload Dialog */}
-      <AddReferenceDialog open={addOpen} onOpenChange={setAddOpen} />
+      <AddReferenceDialog
+        open={addOpen}
+        onOpenChange={(open) => {
+          setAddOpen(open);
+          if (!open) setDroppedImageBase64(undefined);
+        }}
+        prefillImageBase64={droppedImageBase64}
+      />
     </div>
     </div>
   );
