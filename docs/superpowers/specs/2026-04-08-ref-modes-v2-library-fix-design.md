@@ -6,7 +6,11 @@ Upgrade reference attachment modes with "what to use" (Background/Outfit/Pose/Al
 
 ## Architecture
 
-The `AttachedRef` type gains a `what` field alongside the existing `mode`. AI auto-detects "what" from the reference's existing analysis (type + tags). Vibe mode skips the "what" picker — it extracts the whole feeling. Text description field overrides everything. Library page gets card/layout fixes from the holistic review.
+The `AttachedRef` type gains a `what` field alongside the existing `mode`. AI auto-detects "what" from the reference's existing analysis (type + tags). Vibe mode skips the "what" picker — it extracts the whole feeling. Text description field overrides everything.
+
+**Usage preferences are saved on the Reference model** — `defaultMode`, `defaultWhat`, and `usageDescription`. When a user figures out the perfect way to use a reference, those settings persist. Next time they attach it, the defaults are pre-filled. This is part of the content engine — references are tools with learned settings, not disposable inputs.
+
+Library page gets card/layout fixes from the holistic review.
 
 ---
 
@@ -60,6 +64,47 @@ User can change it. This is just the default.
 **Vibe (any):** No image passed. AI reverse-engineers the mood/aesthetic as text. No "what" picker — the whole feeling is extracted.
 
 **Text description** — always appended. Overrides or adds specificity: "but make it nighttime", "same outfit but in black", "more casual version of this pose".
+
+---
+
+## 1b. Reference Model — Saved Usage Preferences
+
+Add to the Reference model in Prisma:
+
+```prisma
+model Reference {
+  // ... existing fields ...
+
+  // Usage preferences — saved when user generates with this ref
+  defaultMode       String?   // "exact" | "similar" | "vibe" — last used mode
+  defaultWhat       String?   // "background" | "outfit" | "pose" | "all" — last used what
+  usageDescription  String?   // "but make it nighttime" — saved description
+  vibeCache         String?   // Cached vibe extraction text (so we don't re-analyze every time)
+}
+```
+
+**When the user generates with a ref:**
+1. Save the mode, what, and description back to the Reference record
+2. If mode was "vibe", also save the extracted vibe text as `vibeCache`
+3. Next time this ref is attached, pre-fill from these saved defaults
+
+**When attaching a ref:**
+1. Check if ref has `defaultMode` → use it (otherwise "exact")
+2. Check if ref has `defaultWhat` → use it (otherwise auto-detect from type/tags)
+3. Check if ref has `usageDescription` → pre-fill the description field
+
+**ReferenceItem type update:**
+```typescript
+type ReferenceItem = {
+  // ... existing fields ...
+  defaultMode: string | null;
+  defaultWhat: string | null;
+  usageDescription: string | null;
+  vibeCache: string | null;
+};
+```
+
+This makes references "smart" — they learn how you use them. A bedroom background you always use as "exact background" will default to that every time. A mood board image you always use as "vibe" will default to vibe mode with the cached extraction.
 
 ---
 
@@ -215,10 +260,14 @@ function autoDetectWhat(ref: ReferenceItem): RefWhat {
 ## 6. Files to Change
 
 ```
-MODIFY: src/stores/unified-studio-store.ts        — RefWhat type, AttachedRef update, autoDetectWhat, new actions
-MODIFY: src/components/studio/content/inline-refs.tsx — Collapsed/expanded UI, what/mode dropdowns, description input
-MODIFY: src/server/actions/content-actions.ts      — buildRefInstruction uses what + mode + description
-MODIFY: src/components/workspace/content-library.tsx — Show AI description on cards
+MODIFY: prisma/schema.prisma                           — Add defaultMode, defaultWhat, usageDescription, vibeCache to Reference
+CREATE: prisma/migrations/XXXXX_ref_usage_prefs/        — Auto-generated
+MODIFY: src/types/reference.ts                         — Add new fields to ReferenceItem
+MODIFY: src/stores/unified-studio-store.ts             — RefWhat type, AttachedRef update, autoDetectWhat, new actions
+MODIFY: src/components/studio/content/inline-refs.tsx   — Collapsed/expanded UI, what/mode dropdowns, description input
+MODIFY: src/server/actions/content-actions.ts          — buildRefInstruction uses what + mode + description, save prefs back after generation
+MODIFY: src/server/actions/reference-actions.ts        — toReferenceItem maps new fields, updateRefUsagePrefs function
+MODIFY: src/components/workspace/content-library.tsx   — Show AI description on cards
 ```
 
 ---
