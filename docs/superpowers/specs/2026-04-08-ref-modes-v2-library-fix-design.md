@@ -67,44 +67,80 @@ User can change it. This is just the default.
 
 ---
 
-## 1b. Reference Model — Saved Usage Preferences
+## 1b. Generation Recipe — Ref Settings Saved on Content
 
-Add to the Reference model in Prisma:
+Usage preferences are stored **per generation**, not on the reference itself. Each Content record saves the full "recipe" — which refs were used, with what mode, what target, and what description. This makes every generation fully reproducible and inspectable.
+
+### Schema Change
+
+Add to Content model:
 
 ```prisma
-model Reference {
+model Content {
   // ... existing fields ...
-
-  // Usage preferences — saved when user generates with this ref
-  defaultMode       String?   // "exact" | "similar" | "vibe" — last used mode
-  defaultWhat       String?   // "background" | "outfit" | "pose" | "all" — last used what
-  usageDescription  String?   // "but make it nighttime" — saved description
-  vibeCache         String?   // Cached vibe extraction text (so we don't re-analyze every time)
+  refAttachments    Json?     // Array of ref usage records for this generation
 }
 ```
 
-**When the user generates with a ref:**
-1. Save the mode, what, and description back to the Reference record
-2. If mode was "vibe", also save the extracted vibe text as `vibeCache`
-3. Next time this ref is attached, pre-fill from these saved defaults
+### refAttachments JSON Shape
 
-**When attaching a ref:**
-1. Check if ref has `defaultMode` → use it (otherwise "exact")
-2. Check if ref has `defaultWhat` → use it (otherwise auto-detect from type/tags)
-3. Check if ref has `usageDescription` → pre-fill the description field
-
-**ReferenceItem type update:**
 ```typescript
-type ReferenceItem = {
-  // ... existing fields ...
-  defaultMode: string | null;
-  defaultWhat: string | null;
-  usageDescription: string | null;
-  vibeCache: string | null;
+type ContentRefAttachment = {
+  refId: string;          // Reference.id
+  refName: string;        // Snapshot of ref name at generation time
+  refS3Key: string;       // S3 key of the ref image
+  mode: "exact" | "similar" | "vibe";
+  what: "background" | "outfit" | "pose" | "all";
+  description: string;    // User's text description
+  vibeText?: string;      // If mode was "vibe", the extracted mood text
 };
 ```
 
-This makes references "smart" — they learn how you use them. A bedroom background you always use as "exact background" will default to that every time. A mood board image you always use as "vibe" will default to vibe mode with the cached extraction.
+### When Generation Happens
+
+After successful content generation, save the ref attachments on the Content record:
+
+```typescript
+await db.content.update({
+  where: { id: content.id },
+  data: {
+    refAttachments: JSON.parse(JSON.stringify(attachments.map(a => ({
+      refId: a.ref.id,
+      refName: a.ref.name,
+      refS3Key: a.ref.s3Key,
+      mode: a.mode,
+      what: a.what,
+      description: a.description,
+      vibeText: a.vibeText,  // if vibe mode was used
+    })))),
+  },
+});
+```
+
+### Viewing Past Generation Recipe
+
+When user clicks a past generation in the Studio Canvas or Library detail:
+- Show the generated image/video
+- Below: "References used" section showing each ref with its mode, what, and description
+- Each ref is clickable — preview the ref image
+- "Regenerate with same settings" button — pre-fills the Creation Panel with the exact same refs + modes + descriptions
+
+### ContentItem Type Update
+
+```typescript
+type ContentItem = {
+  // ... existing fields ...
+  refAttachments?: ContentRefAttachment[];
+};
+```
+
+### Why This Approach
+
+- Same ref, different generations, different settings — all preserved independently
+- Full generation history: you can see exactly how any piece of content was made
+- "Try this again" or "Make similar" becomes trivial — load the recipe
+- No mutation of the Reference model — refs stay clean
+- Future: AI agent can analyze past recipes to learn what works
 
 ---
 
@@ -260,14 +296,15 @@ function autoDetectWhat(ref: ReferenceItem): RefWhat {
 ## 6. Files to Change
 
 ```
-MODIFY: prisma/schema.prisma                           — Add defaultMode, defaultWhat, usageDescription, vibeCache to Reference
-CREATE: prisma/migrations/XXXXX_ref_usage_prefs/        — Auto-generated
-MODIFY: src/types/reference.ts                         — Add new fields to ReferenceItem
-MODIFY: src/stores/unified-studio-store.ts             — RefWhat type, AttachedRef update, autoDetectWhat, new actions
-MODIFY: src/components/studio/content/inline-refs.tsx   — Collapsed/expanded UI, what/mode dropdowns, description input
-MODIFY: src/server/actions/content-actions.ts          — buildRefInstruction uses what + mode + description, save prefs back after generation
-MODIFY: src/server/actions/reference-actions.ts        — toReferenceItem maps new fields, updateRefUsagePrefs function
-MODIFY: src/components/workspace/content-library.tsx   — Show AI description on cards
+MODIFY: prisma/schema.prisma                            — Add refAttachments Json? to Content model
+CREATE: prisma/migrations/XXXXX_ref_attachments/         — Auto-generated
+MODIFY: src/types/content.ts                            — Add ContentRefAttachment type, refAttachments to ContentItem
+MODIFY: src/stores/unified-studio-store.ts              — RefWhat type, AttachedRef with what+description, autoDetectWhat, new actions
+MODIFY: src/components/studio/content/inline-refs.tsx    — Collapsed/expanded UI, what/mode dropdowns, description input
+MODIFY: src/server/actions/content-actions.ts           — buildRefInstruction uses what+mode+description, save refAttachments on Content
+MODIFY: src/server/actions/content-actions.ts           — getCreatorContent maps refAttachments
+MODIFY: src/components/studio/content/studio-canvas.tsx  — Show ref recipe on past content preview
+MODIFY: src/components/workspace/content-library.tsx    — Show AI description on ref cards
 ```
 
 ---
