@@ -9,7 +9,7 @@ import { generateSpeech } from "@/lib/elevenlabs";
 import { deductCredits, refundCredits } from "./credit-actions";
 import { CREDIT_COSTS } from "@/types/credits";
 import { PLATFORM_VOICES, type PlatformVoice } from "@/data/voices";
-import { REALISM_BASE } from "@/lib/prompts";
+import { REALISM_CONTENT } from "@/lib/prompts";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const IMAGE_MODEL = "gemini-3-pro-image-preview";
@@ -110,7 +110,7 @@ async function processTalkingHead(
   jobId: string,
   contentId: string,
   userId: string,
-  creator: { id: string; baseImageUrl: string | null; settings: unknown },
+  creator: { id: string; baseImageUrl: string | null; settings: unknown; promptSeed?: string | null },
   script: string,
   voiceId: string,
   setting: string | undefined,
@@ -131,14 +131,23 @@ async function processTalkingHead(
     // Step 2: Generate talking-head base image via Gemini → upload to S3
     const gender = ((creator.settings as Record<string, string>)?.gender ?? "Female").toLowerCase();
     const subject = gender === "male" ? "man" : "woman";
-    const settingDesc = setting ? `${setting}.` : "Clean, well-lit indoor setting.";
+    const pronoun = gender === "male" ? "He" : "She";
+    const settingDesc = setting || "Clean, well-lit indoor setting";
+
+    const character = creator.promptSeed
+      ? creator.promptSeed
+      : `That exact ${subject} from the reference image`;
 
     const talkingHeadPrompt = [
-      `That exact ${subject} from the reference image.`,
-      `Front-facing, slight head tilt, mouth slightly parted as if mid-sentence, natural expression.`,
-      `Warm lighting on face. ${settingDesc}`,
-      `Shot on iPhone, candid. ${REALISM_BASE}.`,
-    ].join(" ");
+      `${character}.`,
+      `Front-facing, slight head tilt, mouth slightly parted as if mid-sentence, natural warm expression. ${pronoun} looks gorgeous.`,
+      ``,
+      `ENVIRONMENT: ${settingDesc}. A few personal objects visible — realistic, lived-in.`,
+      ``,
+      `CAMERA: Front camera selfie angle, face fills frame, natural distance, slightly off-center.`,
+      ``,
+      `REALISM: ${REALISM_CONTENT}`,
+    ].join("\n");
 
     const refBuffer = await getImageBuffer(creator.baseImageUrl!);
     const refBase64 = refBuffer.toString("base64");

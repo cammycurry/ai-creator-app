@@ -42,8 +42,16 @@ type CreatorSettings = {
   features?: string[];
 };
 
-function buildContentPrompt(settings: CreatorSettings, enhancedPrompt: string): string {
-  // Locked traits from creator settings — injected after the enhanced prompt
+function buildContentPrompt(
+  settings: CreatorSettings,
+  enhancedPrompt: string,
+  promptSeed: string | null
+): string {
+  if (promptSeed) {
+    return `${promptSeed}\n\n${enhancedPrompt.trim()} From the reference image.`;
+  }
+
+  // Fallback for legacy creators
   const traitParts: string[] = [];
   if (settings.hairColor) traitParts.push(`${settings.hairColor.toLowerCase()} hair`);
   if (settings.hairLength) traitParts.push(`${settings.hairLength.toLowerCase()} length`);
@@ -149,10 +157,11 @@ export async function generateContent(
   if (!creator) return { success: false, error: "Creator not found" };
 
   const settings = (creator.settings ?? {}) as CreatorSettings;
+  const promptSeed = creator.promptSeed ?? null;
 
   // Enhance the user's casual input into a detailed generation prompt
   const enhanced = await enhanceContentPrompt(userPrompt);
-  const prompt = buildContentPrompt(settings, enhanced);
+  const prompt = buildContentPrompt(settings, enhanced, promptSeed);
 
   try {
     // Download creator's base reference image from S3

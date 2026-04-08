@@ -9,7 +9,7 @@ import { uploadImage, getSignedImageUrl, getImageBuffer } from "@/lib/s3";
 import { stripAndRewrite } from "@/lib/ai/metadata-strip";
 import { CAROUSEL_FORMATS, type CarouselFormat, type FormatSlide } from "@/data/carousel-formats";
 import { getScene } from "@/data/scenes";
-import { REALISM_BASE } from "@/lib/prompts";
+import { REALISM_BASE, REALISM_CONTENT } from "@/lib/prompts";
 import type { ContentSetItem, ContentItem } from "@/types/content";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
@@ -39,26 +39,35 @@ function buildSlidePrompt(
   slide: FormatSlide,
   scene: ReturnType<typeof getScene>,
   gender: string,
+  promptSeed: string | null,
   userInstructions?: string
 ): string {
   const subject = gender.toLowerCase() === "male" ? "man" : "woman";
+  const pronoun = gender.toLowerCase() === "male" ? "He" : "She";
   const outfit = slide.outfitHint || scene?.outfitDefault || "casual outfit";
   const setting = scene?.setting ?? "natural setting";
   const lighting = scene?.lighting ?? "natural lighting";
-  const camera = scene?.cameraStyle ?? "shot on iPhone, candid";
+  const camera = scene?.cameraStyle ?? "iPhone selfie angle, off-center composition";
+
+  const character = promptSeed
+    ? promptSeed
+    : `That exact ${subject} from the reference image`;
 
   const parts = [
-    `That exact ${subject} from the reference image.`,
-    `${setting}. ${lighting}.`,
-    `Wearing ${outfit}. ${slide.moodHint}.`,
-    `${camera}. ${REALISM_BASE}.`,
+    `${character}. ${setting}. ${lighting}. Wearing ${outfit}. ${slide.moodHint || "natural expression"}. ${pronoun} looks gorgeous.`,
+    ``,
+    `ENVIRONMENT: ${setting} with realistic environmental details — everyday objects visible, lived-in feeling.`,
+    ``,
+    `CAMERA: ${camera}.`,
+    ``,
+    `REALISM: ${REALISM_CONTENT}`,
   ];
 
   if (userInstructions?.trim()) {
     parts.push(userInstructions.trim());
   }
 
-  return parts.join(" ");
+  return parts.join("\n");
 }
 
 // ─── Generate a single slide image ─────
@@ -179,6 +188,7 @@ export async function generateCarousel(
   }
 
   const gender = (creator.settings as Record<string, string>)?.gender ?? "Female";
+  const promptSeed = creator.promptSeed ?? null;
 
   // Create content set record
   const contentSet = await db.contentSet.create({
@@ -216,7 +226,7 @@ export async function generateCarousel(
         const editedDesc = slideEdits?.[slide.position];
         const prompt = editedDesc
           ? `That exact ${gender.toLowerCase() === "male" ? "man" : "woman"} from the reference image. ${editedDesc}. Shot on iPhone, candid. ${REALISM_BASE}.`
-          : buildSlidePrompt(slide, scene, gender, userInstructions);
+          : buildSlidePrompt(slide, scene, gender, promptSeed, userInstructions);
 
         return generateSlideImage(prompt, refImage, user.id, creatorId, i, slideRefImages[slide.position]).then(async (result) => {
           if (!result) return null;
@@ -390,20 +400,29 @@ export async function regenerateSlide(
   const slideContext = content.slideContext as { role: string; sceneHint: string; outfitHint: string; moodHint: string } | null;
   const gender = (creator.settings as Record<string, string>)?.gender ?? "Female";
   const subject = gender.toLowerCase() === "male" ? "man" : "woman";
+  const pronoun = gender.toLowerCase() === "male" ? "He" : "She";
+  const regenPromptSeed = creator.promptSeed ?? null;
 
   // Scene-only prompt — NO meta-context (slide numbers, format names, etc.)
   // Those get rendered as text in the image by Gemini.
   const scene = slideContext ? getScene(slideContext.sceneHint) : null;
 
-  const parts = [
-    `That exact ${subject} from the reference image.`,
-    scene ? `${scene.setting}. ${scene.lighting}.` : "",
-    slideContext ? `Wearing ${slideContext.outfitHint}. ${slideContext.moodHint}.` : "",
-    feedback ? feedback : "Generate a different version.",
-    `Shot on iPhone, candid. ${REALISM_BASE}.`,
-  ].filter(Boolean);
+  const character = regenPromptSeed
+    ? regenPromptSeed
+    : `That exact ${subject} from the reference image`;
 
-  const prompt = parts.join(" ");
+  const parts = [
+    `${character}.`,
+    scene ? `${scene.setting}. ${scene.lighting}.` : "",
+    slideContext ? `Wearing ${slideContext.outfitHint}. ${slideContext.moodHint}. ${pronoun} looks gorgeous.` : "",
+    feedback ? feedback : "Generate a different version.",
+    ``,
+    `CAMERA: ${scene?.cameraStyle ?? "iPhone selfie angle, off-center composition"}.`,
+    ``,
+    `REALISM: ${REALISM_CONTENT}`,
+  ].filter((p) => p !== undefined);
+
+  const prompt = parts.join("\n");
 
   const result = await generateSlideImage(prompt, refImage, user.id, creator.id, content.slideIndex ?? 0);
   if (!result) return { success: false, error: "Failed to regenerate slide" };
