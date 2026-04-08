@@ -45,6 +45,24 @@ function CanvasInfo({ item }: { item: import("@/stores/unified-studio-store").Br
               )}
             </div>
           )}
+          {item.refAttachments && item.refAttachments.length > 0 && (
+            <div style={{ marginTop: 6, padding: 6, background: "#FAFAFA", borderRadius: 6, fontSize: 10 }}>
+              <div style={{ fontWeight: 600, color: "#888", marginBottom: 4 }}>References used:</div>
+              {item.refAttachments.map((att: any, i: number) => (
+                <div key={i} style={{ display: "flex", gap: 4, alignItems: "center", marginBottom: 2 }}>
+                  <span style={{ color: "#C4603A" }}>
+                    {att.mode === "vibe" ? "✨" : att.what === "background" ? "🏠" : att.what === "outfit" ? "👕" : att.what === "pose" ? "🤸" : "📌"}
+                  </span>
+                  <span style={{ color: "#555" }}>
+                    {att.refName} — {att.mode}{att.mode !== "vibe" ? ` ${att.what}` : ""}
+                  </span>
+                  {att.description && (
+                    <span style={{ color: "#999", fontStyle: "italic" }}>"{att.description}"</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 

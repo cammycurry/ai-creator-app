@@ -45,6 +45,7 @@ export type BrowserItem = {
   contentSetId?: string;
   creditsCost?: number;
   s3Keys?: string[];
+  refAttachments?: any[];
 };
 
 export type SlideConfig = {

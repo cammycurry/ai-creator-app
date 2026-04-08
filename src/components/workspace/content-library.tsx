@@ -277,6 +277,11 @@ export function ContentLibrary() {
                   </button>
                   <div className="lib-card-overlay">
                     <div className="lib-card-overlay-name">{ref.name}</div>
+                    {ref.description && (
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.7)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {ref.description}
+                      </div>
+                    )}
                     <div className="lib-card-overlay-usage">Used {ref.usageCount} time{ref.usageCount !== 1 ? "s" : ""}</div>
                   </div>
                 </div>
@@ -406,6 +411,11 @@ export function ContentLibrary() {
                   </button>
                   <div className="lib-card-overlay">
                     <div className="lib-card-overlay-name">{ref.name}</div>
+                    {ref.description && (
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.7)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {ref.description}
+                      </div>
+                    )}
                     <div className="lib-card-overlay-usage">Used {ref.usageCount} time{ref.usageCount !== 1 ? "s" : ""}</div>
                   </div>
                 </div>
