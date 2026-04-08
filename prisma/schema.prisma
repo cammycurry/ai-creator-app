@@ -110,6 +110,9 @@ model Content {
   modelUsed          String?
   creditsCost        Int     @default(0)
 
+  // Ref recipe
+  refAttachments  Json?     // Array of ref usage records: [{refId, mode, what, description, ...}]
+
   // Metadata
   caption String?
   tags    String[]

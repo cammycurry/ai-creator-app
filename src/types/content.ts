@@ -1,3 +1,13 @@
+export type ContentRefAttachment = {
+  refId: string;
+  refName: string;
+  refS3Key: string;
+  mode: "exact" | "similar" | "vibe";
+  what: "background" | "outfit" | "pose" | "all";
+  description: string;
+  vibeText?: string;
+};
+
 export type ContentSetItem = {
   id: string;
   creatorId: string;
@@ -27,4 +37,5 @@ export type ContentItem = {
   createdAt: string;
   contentSetId?: string;
   slideIndex?: number;
+  refAttachments?: ContentRefAttachment[];
 };

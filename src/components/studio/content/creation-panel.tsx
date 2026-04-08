@@ -148,15 +148,19 @@ export function CreationPanel() {
 
     switch (contentType) {
       case "photo": {
-        const refAttachments = attachedRefs.map((a) => ({
+        const refAtts = attachedRefs.map((a) => ({
+          refId: a.ref.id,
+          refName: a.ref.name,
           s3Key: a.ref.s3Key,
           mode: a.mode,
+          what: a.what,
+          description: a.description,
         }));
         const result = await generateContent(
           activeCreatorId,
           prompt,
           imageCount,
-          refAttachments.length > 0 ? refAttachments : undefined
+          refAtts.length > 0 ? refAtts : undefined
         );
         if (result.success) {
           setResults(result.content);

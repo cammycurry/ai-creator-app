@@ -8,12 +8,22 @@ import type { GenerationConfig } from "@/types/template";
 export type ContentType = "photo" | "carousel" | "video" | "talking-head";
 export type VideoSource = "text" | "photo" | "motion";
 
-export type RefMode = "exact" | "scene" | "vibe";
+export type RefMode = "exact" | "similar" | "vibe";
+export type RefWhat = "background" | "outfit" | "pose" | "all";
 
 export type AttachedRef = {
   ref: ReferenceItem;
   mode: RefMode;
+  what: RefWhat;
+  description: string;
 };
+
+function autoDetectWhat(ref: ReferenceItem): RefWhat {
+  if (ref.type === "BACKGROUND") return "background";
+  if (ref.tags.includes("outfit")) return "outfit";
+  if (ref.tags.includes("pose")) return "pose";
+  return "all";
+}
 
 export type BrowserItem = {
   id: string;
@@ -95,6 +105,8 @@ type UnifiedStudioStore = {
   attachRef: (ref: ReferenceItem) => void;
   detachRef: (refId: string) => void;
   setRefMode: (refId: string, mode: RefMode) => void;
+  setRefWhat: (refId: string, what: RefWhat) => void;
+  setRefDescription: (refId: string, description: string) => void;
   addInspirationPhoto: (photo: { base64: string; preview: string }) => void;
   removeInspirationPhoto: (index: number) => void;
   setInspirationVideo: (video: { base64: string; preview: string } | null) => void;
@@ -170,7 +182,7 @@ const INITIAL: Omit<UnifiedStudioStore,
   'setBrowserTab' | 'setBrowserSubFilter' | 'setBrowserSearch' |
   'selectItem' | 'showCanvas' | 'hideCanvas' |
   'prefillFromTemplate' | 'prefillVideoFromPhoto' | 'prefillMotionTransfer' |
-  'setAspectRatio' | 'reset' | 'setRefMode'
+  'setAspectRatio' | 'reset' | 'setRefMode' | 'setRefWhat' | 'setRefDescription'
 > = {
   contentType: "photo",
   prompt: "",
@@ -215,7 +227,7 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
   attachRef: (ref) => set((s) => ({
     attachedRefs: s.attachedRefs.some((a) => a.ref.id === ref.id)
       ? s.attachedRefs.filter((a) => a.ref.id !== ref.id)
-      : [...s.attachedRefs, { ref, mode: "exact" as RefMode }],
+      : [...s.attachedRefs, { ref, mode: "exact" as RefMode, what: autoDetectWhat(ref), description: "" }],
   })),
   detachRef: (refId) => set((s) => ({
     attachedRefs: s.attachedRefs.filter((a) => a.ref.id !== refId),
@@ -224,6 +236,12 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
     attachedRefs: s.attachedRefs.map((a) =>
       a.ref.id === refId ? { ...a, mode } : a
     ),
+  })),
+  setRefWhat: (refId, what) => set((s) => ({
+    attachedRefs: s.attachedRefs.map((a) => a.ref.id === refId ? { ...a, what } : a),
+  })),
+  setRefDescription: (refId, description) => set((s) => ({
+    attachedRefs: s.attachedRefs.map((a) => a.ref.id === refId ? { ...a, description } : a),
   })),
 
   addInspirationPhoto: (photo) => set((s) => ({

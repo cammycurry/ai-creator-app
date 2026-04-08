@@ -10,7 +10,7 @@ import { stripAndRewrite } from "@/lib/ai/metadata-strip";
 import { calculateCost, sumCosts } from "@/lib/cost";
 import { CONTENT_ENHANCE_PROMPT } from "@/lib/prompts";
 import OpenAI from "openai";
-import type { ContentItem } from "@/types/content";
+import type { ContentItem, ContentRefAttachment } from "@/types/content";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const IMAGE_MODEL = "gemini-3-pro-image-preview";
@@ -131,7 +131,14 @@ export async function generateContent(
   creatorId: string,
   userPrompt: string,
   imageCount: number = 1,
-  refAttachments?: { s3Key: string; mode: "exact" | "scene" | "vibe" }[]
+  refAttachments?: {
+    refId: string;
+    refName: string;
+    s3Key: string;
+    mode: "exact" | "similar" | "vibe";
+    what: "background" | "outfit" | "pose" | "all";
+    description: string;
+  }[]
 ): Promise<GenerateContentResult> {
   const { userId: clerkId } = await auth();
   if (!clerkId) return { success: false, error: "Not authenticated" };
@@ -179,10 +186,11 @@ export async function generateContent(
     // Handle attached references with modes
     let refPromptSuffix = "";
     const refImages: { mimeType: string; data: string }[] = [];
+    const savedRefAttachments: ContentRefAttachment[] = [];
 
     if (refAttachments && refAttachments.length > 0) {
       for (const att of refAttachments) {
-        if (att.mode === "exact" || att.mode === "scene") {
+        if (att.mode === "exact" || att.mode === "similar") {
           try {
             const refBuf = await getImageBuffer(att.s3Key);
             refImages.push({ mimeType: "image/jpeg", data: refBuf.toString("base64") });
@@ -191,17 +199,49 @@ export async function generateContent(
             continue;
           }
 
+          const whatLabel: Record<string, string> = {
+            background: "background/setting",
+            outfit: "outfit/clothing",
+            pose: "pose/body position",
+            all: "everything",
+          };
+
           if (att.mode === "exact") {
-            refPromptSuffix += " Match the reference image exactly — same scene, setting, and composition.";
+            refPromptSuffix += ` Match the ${whatLabel[att.what] ?? "reference"} from the reference image exactly.`;
           } else {
-            refPromptSuffix += " Use a similar setting to the reference image, but with creative freedom on pose and framing.";
+            refPromptSuffix += ` Use a similar ${whatLabel[att.what] ?? "style"} to the reference image, with creative freedom.`;
           }
+
+          if (att.description?.trim()) {
+            refPromptSuffix += ` ${att.description.trim()}.`;
+          }
+
+          savedRefAttachments.push({
+            refId: att.refId,
+            refName: att.refName,
+            refS3Key: att.s3Key,
+            mode: att.mode,
+            what: att.what,
+            description: att.description || "",
+          });
+
         } else if (att.mode === "vibe") {
           try {
             const refBuf = await getImageBuffer(att.s3Key);
             const { analyzeReferenceVibe } = await import("./reference-actions");
-            const vibeDesc = await analyzeReferenceVibe(refBuf.toString("base64"));
-            refPromptSuffix += ` Style and mood: ${vibeDesc}`;
+            const vibeText = await analyzeReferenceVibe(refBuf.toString("base64"));
+            const desc = att.description?.trim() ? ` ${att.description.trim()}.` : "";
+            refPromptSuffix += ` Style and mood: ${vibeText}.${desc}`;
+
+            savedRefAttachments.push({
+              refId: att.refId,
+              refName: att.refName,
+              refS3Key: att.s3Key,
+              mode: "vibe",
+              what: att.what,
+              description: att.description || "",
+              vibeText,
+            });
           } catch (e) {
             console.error("Failed to analyze vibe:", e);
           }
@@ -309,6 +349,18 @@ export async function generateContent(
       });
     }
 
+    // Save ref recipe on content records
+    if (savedRefAttachments.length > 0) {
+      await Promise.all(
+        contentItems.map((item) =>
+          db.content.update({
+            where: { id: item.id },
+            data: { refAttachments: JSON.parse(JSON.stringify(savedRefAttachments)) },
+          })
+        )
+      );
+    }
+
     // Update reference usage stats
     if (refAttachments && refAttachments.length > 0) {
       const refRecords = await db.reference.findMany({
@@ -384,6 +436,7 @@ export async function getCreatorContent(creatorId: string): Promise<ContentItem[
       userInput: c.userInput ?? undefined,
       creditsCost: c.creditsCost,
       createdAt: c.createdAt.toISOString(),
+      refAttachments: c.refAttachments as ContentRefAttachment[] | undefined,
     }))
   );
 }
@@ -454,6 +507,7 @@ export async function getRecentContent(
       createdAt: item.createdAt.toISOString(),
       contentSetId: item.contentSetId ?? undefined,
       slideIndex: item.slideIndex ?? undefined,
+      refAttachments: item.refAttachments as ContentRefAttachment[] | undefined,
     }))
   );
 }
