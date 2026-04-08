@@ -62,6 +62,9 @@ model Creator {
   // Reference images for consistency
   referenceImages Json @default("[]")
 
+  // Dense identity paragraph for consistent generation
+  promptSeed    String?
+
   // Voice
   voiceId       String?
   voiceProvider String?
@@ -401,7 +404,7 @@ model ContentTemplate {
   @@index([isActive, popularity])
 }
 
-// Admin-generated images — pipeline tracking
+// Admin-generated images — pipeline tracking + prompt journal
 model AdminMedia {
   id        String   @id @default(cuid())
   s3Key     String   @unique
@@ -416,10 +419,16 @@ model AdminMedia {
   pipelineStage String @default("inbox") // inbox, review, approved, published, rejected
   pipelineOrder Int    @default(0)
 
+  // Prompt journal — what worked and why
+  rating    Int?     // 1-5 stars, how good is this output
+  feedback  String?  // "loved the lighting", "too AI", "great skin texture", etc.
+  promptTags String[] // ["natural-hair", "warm-smile", "c-cup", "curly"] — what prompt elements worked
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([pipelineStage])
   @@index([mediaType])
   @@index([starred])
+  @@index([rating])
 }

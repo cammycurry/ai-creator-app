@@ -32,6 +32,36 @@ export const EYES_OPEN = "Eyes open, looking directly at camera";
 export const REALISM_BASE = `${EYES_OPEN}. Visible pores, photorealistic`;
 export const REALISM_FRECKLES = `${EYES_OPEN}. Visible pores, light freckles, photorealistic`;
 
+// ─── Validated Realism Anchors (from A/B/C testing) ──
+// These 6 improve realism WITHOUT hurting attractiveness.
+// See: docs/reference/PROMPT-AB-TEST-RESULTS.md
+export const REALISM_CONTENT = [
+  "Visible fabric texture with natural wrinkles where body bends",
+  "Baby hairs and flyaways catching light",
+  "Visible pores, photorealistic",
+].join(". ") + ".";
+
+// ─── Camera Profiles ────────────────────────────────
+export const CAMERA_SELFIE = "iPhone front camera selfie, arm extended at natural distance, slightly off-center composition, face fills upper third, natural selfie angle slightly above eye level";
+export const CAMERA_REAR = "iPhone rear camera, natural depth of field, background slightly soft, medium distance, full upper body, true-to-life proportions";
+export const CAMERA_MIRROR = "Mirror selfie with iPhone rear camera, mirror edge partially visible, phone at chest level, slight tilt";
+
+// ─── Seed Generation Prompt ──────────────────────────
+export const SEED_GENERATION_PROMPT = `Analyze this person and write a dense, specific physical description paragraph that could be used to consistently recreate them in future AI image generations.
+
+Include:
+- Hair: color, length, texture, style, notable features (highlights, part line, baby hairs)
+- Eyes: color, shape, lash density, brow shape
+- Skin: tone (include approximate hex code), texture, any marks (freckles, beauty marks, moles)
+- Face: jawline shape, lip fullness, nose shape, face shape
+- Build: body type, notable features
+- Vibe: how they carry themselves, their energy
+
+Format: One dense paragraph, 80-120 words. Start with "That exact [age estimate]-year-old [gender] with..."
+Do NOT include clothing, setting, or pose. Only describe the PERSON.
+Be specific enough that this description alone could recreate the same person every time.
+Emphasize their most attractive and distinctive features — this person should look gorgeous in every generation.`;
+
 // ─── Banned Words ────────────────────────────────────
 // NEVER use these in any prompt. Tested — they hurt output quality.
 //
@@ -215,15 +245,34 @@ function buildTraitSummary(traits: StudioTraits): string {
 
 export function buildSampleContentPrompts(gender: string | null): string[] {
   const subject = gender?.toLowerCase() === "male" ? "man" : "woman";
+  const pronoun = gender?.toLowerCase() === "male" ? "He" : "She";
   const gymOutfit = gender?.toLowerCase() === "male"
-    ? "tank top and joggers" : "matching sports set";
-  const goingOutOutfit = gender?.toLowerCase() === "male"
-    ? "fitted shirt and dark jeans" : "fitted dress and heels";
+    ? "tank top and joggers" : "matching black sports set";
 
   return [
-    `That exact ${subject} from the reference image. Relaxed and confident at a trendy coffee shop, wearing a casual oversized sweater. Looking at their phone with a subtle smile, iced latte on the table. Shot on iPhone, candid, warm natural light from the window. Visible pores, photorealistic.`,
-    `That exact ${subject} from the reference image. Post-workout glow, wearing ${gymOutfit}. Mirror selfie in a modern gym, slightly sweaty, confident expression. Shot on iPhone, candid, gym fluorescent lighting. Visible pores, photorealistic.`,
-    `That exact ${subject} from the reference image. Dressed up for a night out, ${goingOutOutfit}. Standing on a city street at golden hour, looking back at the camera. Shot on iPhone, candid, golden hour lighting. Visible pores, photorealistic.`,
+    `That exact ${subject} from the reference image. Relaxed at a trendy coffee shop, wearing an oversized cream sweater, holding iced latte, looking at phone with a warm smile. ${pronoun} looks absolutely gorgeous.
+
+ENVIRONMENT: Wooden table with napkin and pastry plate, earbuds case, warm pendant lights above, other customers blurred in background. Coffee shop menu board partially visible.
+
+CAMERA: Selfie front camera, arm extended, off-center composition, window light on face from the left.
+
+REALISM: Sweater fabric texture visible, baby hairs catching window light. Visible pores, photorealistic.`,
+
+    `That exact ${subject} from the reference image. Post-workout energy, wearing ${gymOutfit}, slightly sweaty, powerful confident expression. ${pronoun} looks incredible — strong and sexy.
+
+ENVIRONMENT: Modern gym mirrors, dumbbells on rack in background, water bottle on bench, towel draped over equipment, rubber floor visible.
+
+CAMERA: Mirror selfie, phone at chest height, slight upward angle, off-center, mirror edge visible.
+
+REALISM: Compression fabric texture on waistband, baby hairs at temples catching gym light. Visible pores, photorealistic.`,
+
+    `That exact ${subject} from the reference image. Walking on a city sidewalk at golden hour, wearing a fitted outfit, looking back at camera with a playful expression. ${pronoun} looks stunning.
+
+ENVIRONMENT: Storefronts with warm window light, parked cars, other pedestrians blurred, crosswalk lines, tree shadows on pavement.
+
+CAMERA: Rear camera, medium distance, natural depth, background slightly soft with golden bokeh.
+
+REALISM: Hair catching golden backlight with flyaways visible, fabric moving naturally with stride. Visible pores, photorealistic.`,
   ];
 }
 
@@ -284,30 +333,52 @@ Output ONLY the prompt. No explanations, no quotes, no markdown.`;
 // This is for content generation — full creative freedom on outfit, setting, pose.
 // User types "coffee shop selfie" → this turns it into a full scene description.
 
-export const CONTENT_ENHANCE_PROMPT = `You turn casual content ideas into detailed image generation prompts for an AI influencer's Instagram content.
+export const CONTENT_ENHANCE_PROMPT = `You turn casual content ideas into structured image generation prompts for an AI influencer's Instagram content.
 
-The person's appearance (face, body, hair, eyes) is handled by a reference image — you do NOT describe the person's physical features. You describe the SCENE, OUTFIT, POSE, and MOOD.
-
-FORMAT — lead with the scene/action, then outfit, then camera:
-"[Scene/action description]. [Outfit description]. [Mood/expression]. Shot on iPhone, candid. [Lighting]. Visible pores, photorealistic."
+The person's appearance is handled by a reference image and identity description — you do NOT describe the person's physical features. You describe the SCENE, OUTFIT, ACTION, and ENVIRONMENT.
 
 RULES:
-- 30-60 words max. Descriptive but concise.
-- Always "Shot on iPhone, candid" — this is Instagram UGC, not a photoshoot
-- Describe the SETTING in detail: what's in the background, what they're doing
-- Describe the OUTFIT: be specific (colors, style, fit)
-- Describe the MOOD: expression, energy, vibe
-- Natural lighting by default. Mention specific lighting only if the scene demands it (golden hour, night, gym fluorescent)
-- NEVER describe the person's face, body type, hair color, or ethnicity (the reference handles this)
-- NEVER use: "Canon EOS R5", "studio lighting", "professional photography" — this is iPhone UGC
-- If the input is just a scene name ("gym", "beach"), create a full Instagram-worthy moment around it
+- 80-120 words total across all sections
+- NEVER say "Shot on iPhone" (causes UI overlay bugs). Describe camera characteristics directly.
+- Include 3+ environmental objects that make the scene feel REAL and lived-in
+- Describe specific lighting (warm lamp + cool window, golden hour directional, gym fluorescent)
+- Always reinforce that the person looks gorgeous/stunning/beautiful
+- NEVER describe face, body type, hair color, or ethnicity (reference handles this)
+- NEVER use: "Canon EOS R5", "studio lighting", "professional photography"
+
+OUTPUT FORMAT (use these exact section labels):
+
+[Scene and action]. She looks [gorgeous/stunning/incredible].
+
+ENVIRONMENT: [3+ specific real objects — charger cable, water bottle, hair tie on wrist, AirPods, throw blanket, etc. Room/location details that make it lived-in.]
+
+CAMERA: [iPhone selfie/rear/mirror angle, composition, distance. Off-center for selfies. Describe the angle, not the device name.]
+
+REALISM: Fabric wrinkles where body bends, baby hairs catching light. Visible pores, photorealistic.
 
 EXAMPLES:
-- Input: "gym selfie" → "Mirror selfie in a modern gym, wearing a black matching sports set, post-workout glow, slightly sweaty, confident smile. Shot on iPhone, candid. Gym fluorescent lighting, mirrors in background. Visible pores, photorealistic."
-- Input: "coffee" → "Sitting at a window table in a trendy coffee shop, holding an iced latte, wearing an oversized cream sweater, looking at phone with a relaxed smile. Shot on iPhone, candid. Warm natural window light. Visible pores, photorealistic."
-- Input: "beach sunset" → "Walking along the shoreline at sunset, wearing a white sundress, barefoot, wind in hair, looking back at camera. Shot on iPhone, candid. Golden hour warm tones. Visible pores, photorealistic."
 
-Output ONLY the enhanced prompt. No explanations, no quotes, no markdown.`;
+Input: "gym selfie"
+Output:
+Post-workout mirror selfie, sports bra and leggings, glistening with light sweat, confident powerful expression. She looks absolutely gorgeous — strong and sexy.
+
+ENVIRONMENT: Gym equipment in background, water bottle on bench, AirPods case on folded towel, gym bag strap at edge of frame. Rubber floor mats visible.
+
+CAMERA: Mirror selfie, phone at waist level, slight upward angle. Off-center composition, mirror edge visible on left side.
+
+REALISM: Compression visible on waistband seams, baby hairs at temples catching gym light. Visible pores, photorealistic.
+
+Input: "laying in bed"
+Output:
+Laying in bed scrolling phone, wearing an oversized t-shirt, messy morning hair, sleepy but gorgeous smile. She looks stunning — effortlessly beautiful.
+
+ENVIRONMENT: Unmade white sheets, phone charger cable on nightstand, water bottle, warm morning light through sheer curtains casting soft shadows.
+
+CAMERA: Selfie from above, arm extended, slightly off-center, face fills upper portion of frame. Natural morning light on face.
+
+REALISM: T-shirt fabric drapes naturally with visible wrinkles, stray hairs across pillow. Visible pores, photorealistic.
+
+Output ONLY the structured prompt. No explanations, no quotes, no markdown.`;
 
 // ─── Safety Filter Softening ─────────────────────────
 // If Gemini blocks a prompt, strip these words and retry once.

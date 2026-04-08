@@ -19,6 +19,7 @@ import {
   buildVariationPrompt,
   buildReferencePrompt,
   ENHANCE_SYSTEM_PROMPT,
+  SEED_GENERATION_PROMPT,
   wrapWithSilhouette,
   wrapWithSilhouetteAndRefs,
   softenPrompt,
@@ -28,6 +29,34 @@ import { calculateCost, sumCosts } from "@/lib/cost";
 
 // Gemini client — Nano Banana Pro (image generation)
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+
+async function generatePromptSeed(baseImageS3Key: string): Promise<string | null> {
+  try {
+    const buf = await getImageBuffer(baseImageS3Key);
+    const base64 = buf.toString("base64");
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-preview-05-20",
+      contents: [
+        { text: SEED_GENERATION_PROMPT },
+        { inlineData: { mimeType: "image/jpeg", data: base64 } },
+      ],
+    });
+
+    const text = response.candidates?.[0]?.content?.parts?.find(
+      (p: { text?: string }) => p.text
+    )?.text?.trim();
+
+    if (text && text.length > 50) {
+      console.log("[PROMPT SEED] Generated:", text.substring(0, 100) + "...");
+      return text;
+    }
+    return null;
+  } catch (error) {
+    console.error("[PROMPT SEED] Generation failed:", error);
+    return null;
+  }
+}
 
 // Grok client — fast, non-reasoning for prompt enhancement
 const grok = new OpenAI({
@@ -486,6 +515,17 @@ export async function finalizeCreator(data: {
         ] as unknown as Record<string, string>[],
       },
     });
+
+    // Generate prompt seed from the selected base image
+    if (creator.baseImageUrl) {
+      const seed = await generatePromptSeed(creator.baseImageUrl);
+      if (seed) {
+        await db.creator.update({
+          where: { id: creator.id },
+          data: { promptSeed: seed },
+        });
+      }
+    }
 
     return { success: true, creatorId: creator.id };
   } catch (error) {
