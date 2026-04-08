@@ -124,10 +124,14 @@ export function ContentLibrary() {
       </div>
       <div
         className={`lib-page${pageDragging ? " lib-page-dragging" : ""}`}
-        onDragOver={(e) => { e.preventDefault(); setPageDragging(true); }}
-        onDragLeave={() => setPageDragging(false)}
+        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setPageDragging(true); }}
+        onDragLeave={(e) => {
+          // Only clear if actually leaving the container, not entering a child
+          if (e.currentTarget === e.target) setPageDragging(false);
+        }}
         onDrop={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           setPageDragging(false);
           const file = e.dataTransfer.files?.[0];
           if (file && file.type.startsWith("image/")) {
