@@ -5,6 +5,7 @@ import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { db } from "@/lib/db";
 import { uploadImage, getSignedImageUrl, getImageBuffer } from "@/lib/s3";
 import { deductCredits } from "./credit-actions";
+import { incrementReferenceUsage } from "./reference-actions";
 import { stripAndRewrite } from "@/lib/ai/metadata-strip";
 import { calculateCost, sumCosts } from "@/lib/cost";
 import { CONTENT_ENHANCE_PROMPT } from "@/lib/prompts";
@@ -306,6 +307,17 @@ export async function generateContent(
         creditsCost: CREDIT_PER_IMAGE,
         createdAt: content.createdAt.toISOString(),
       });
+    }
+
+    // Update reference usage stats
+    if (refAttachments && refAttachments.length > 0) {
+      const refRecords = await db.reference.findMany({
+        where: { imageUrl: { in: refAttachments.map((a) => a.s3Key) } },
+        select: { id: true },
+      });
+      if (refRecords.length > 0) {
+        await incrementReferenceUsage(refRecords.map((r) => r.id));
+      }
     }
 
     // Log generation job with actual cost

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { useCreatorStore } from "@/stores/creator-store";
 import { generateContent } from "@/server/actions/content-actions";
@@ -63,6 +64,14 @@ export function CreationPanel() {
   const { activeCreatorId, getActiveCreator, setCredits } = useCreatorStore();
   const creator = getActiveCreator();
   const creatorName = creator?.name ?? "them";
+
+  const pollRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
 
   function getCreditCost(): number {
     switch (contentType) {
@@ -200,10 +209,10 @@ export function CreationPanel() {
         }
         if (result.success) {
           setGeneratingProgress("Generating video...");
-          const poll = setInterval(async () => {
+          pollRef.current = setInterval(async () => {
             const status = await checkVideoStatus(result.jobId);
             if (status.status === "COMPLETED") {
-              clearInterval(poll);
+              clearInterval(pollRef.current!);
               setResults([{
                 id: result.contentId,
                 type: "VIDEO",
@@ -219,7 +228,7 @@ export function CreationPanel() {
               useUnifiedStudioStore.getState().showCanvas();
               setGenerating(false);
             } else if (status.status === "FAILED") {
-              clearInterval(poll);
+              clearInterval(pollRef.current!);
               setError(status.error ?? "Video generation failed");
               setGenerating(false);
             }
@@ -242,10 +251,10 @@ export function CreationPanel() {
         );
         if (result.success) {
           setGeneratingProgress("Generating talking head...");
-          const poll = setInterval(async () => {
+          pollRef.current = setInterval(async () => {
             const status = await checkVideoStatus(result.jobId);
             if (status.status === "COMPLETED") {
-              clearInterval(poll);
+              clearInterval(pollRef.current!);
               setResults([{
                 id: result.contentId,
                 type: "TALKING_HEAD",
@@ -261,7 +270,7 @@ export function CreationPanel() {
               useUnifiedStudioStore.getState().showCanvas();
               setGenerating(false);
             } else if (status.status === "FAILED") {
-              clearInterval(poll);
+              clearInterval(pollRef.current!);
               setError(status.error ?? "Generation failed");
               setGenerating(false);
             }
