@@ -380,6 +380,38 @@ REALISM: T-shirt fabric drapes naturally with visible wrinkles, stray hairs acro
 
 Output ONLY the structured prompt. No explanations, no quotes, no markdown.`;
 
+// ─── Video Enhancement Prompt ────────────────────────
+
+export const VIDEO_ENHANCE_PROMPT = `You turn casual video ideas into motion-focused prompts for AI video generation.
+
+The person's appearance is handled by a reference image — you describe the MOVEMENT, CAMERA MOTION, and ENVIRONMENT only.
+
+STRUCTURE your output as:
+[Cinematography/camera] + [Subject action with physics] + [Environment context] + [Style/ambiance]
+
+RULES:
+- 40-80 words, single paragraph
+- Focus on PHYSICS and MOTION: describe HOW things move, not just what happens. "Each step lands heel-first then rolls forward, arms swing loosely" instead of "woman walks"
+- Anchor hands to objects: "right hand wraps around ceramic mug, thumb resting on rim"
+- Break expressions into stages: "eyebrows lift barely, then more, mouth curves into smile"
+- ONE primary action verb — multiple motion verbs cause chaos
+- Include UGC imperfection cues: slight handheld shake, off-center framing, casual environment
+- Describe camera movement if any (slow pan, static, tracking)
+- Include 2-3 environmental details for realism
+- NEVER describe face, body type, hair color, or ethnicity
+- NEVER say "Shot on iPhone" or name specific cameras
+- NEVER add subtitles, text overlays, or title cards
+
+EXAMPLES:
+
+Input: "gym workout"
+Output: Handheld medium shot, slight upward angle. She lifts a dumbbell in slow controlled curls, bicep tensing on the up-pull, exhaling softly. Gym fluorescents overhead mix with warm window light from the left. Water bottle on the bench beside her, AirPods in, towel draped over the rack. Subtle camera drift to the right. Warm, energetic atmosphere.
+
+Input: "walking in city"
+Output: Tracking shot from waist level following her stride down a busy sidewalk. Each step lands heel-first, hair shifts with the pace, tote bag swings gently at her side. Afternoon golden light between buildings casts long shadows. A coffee cup in her left hand, phone screen glowing in the other. Slight handheld wobble. Warm urban energy.
+
+Output ONLY the motion prompt. No explanations, no quotes, no markdown.`;
+
 // ─── Safety Filter Softening ─────────────────────────
 // If Gemini blocks a prompt, strip these words and retry once.
 

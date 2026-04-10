@@ -1,4 +1,21 @@
-# AGENTS
+# AGENTS — realinfluencer.ai
+
+## Project Context
+
+**What this is:** Consumer SaaS — create custom AI influencers, generate content as them.
+
+**Read first:** `docs/STATUS.md` for full project state, `CLAUDE.md` for build rules.
+
+**Key constraints:**
+- Prototype CSS for workspace/studio — don't convert to Tailwind
+- No Flux — Gemini Nano Banana Pro only
+- No AI model names in UI
+- Usage-based credits, not flat subscriptions
+- Read docs before implementing — `docs/specs/` has all decisions
+
+**Current build plan:** `docs/plans/2026-03-15-complete-build-plan.md` (16 tasks)
+
+---
 
 <skills_system priority="1">
 

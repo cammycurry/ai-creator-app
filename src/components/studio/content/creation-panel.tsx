@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { useCreatorStore } from "@/stores/creator-store";
-import { generateContent } from "@/server/actions/content-actions";
+import { generateContent, getCreatorContent } from "@/server/actions/content-actions";
 import { generateCarousel } from "@/server/actions/carousel-actions";
 import {
   generateVideoFromText,
@@ -15,6 +15,7 @@ import { generateTalkingHead } from "@/server/actions/talking-head-actions";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
 import { CREDIT_COSTS } from "@/types/credits";
 import { InlineRefs } from "./inline-refs";
+import { PickReferenceDialog } from "./pick-reference-dialog";
 import { CreationPhoto } from "./creation-photo";
 import { CreationCarousel } from "./creation-carousel";
 import { CreationVideo } from "./creation-video";
@@ -29,6 +30,34 @@ const CONTENT_TYPES = [
 
 const SCRIPT_STARTERS = ["Product review", "Day in my life", "Tips & advice"];
 
+const VIDEO_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const TALKING_HEAD_TIMEOUT_MS = 8 * 60 * 1000; // 8 minutes
+
+function getProgressMessage(elapsedMs: number, type: "video" | "talking-head"): string {
+  const label = type === "talking-head" ? "talking head" : "video";
+  if (elapsedMs < 15_000) return `Starting ${label} generation...`;
+  if (elapsedMs < 60_000) return `Creating your ${label}...`;
+  if (elapsedMs < 180_000) return `Still working — ${label}s can take 2-3 minutes...`;
+  return `Almost there — finalizing your ${label}...`;
+}
+
+function friendlyError(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (lower.includes("rate limit") || lower.includes("too many")) {
+    return "Too many requests. Please wait a moment and try again.";
+  }
+  if (lower.includes("nsfw") || lower.includes("safety") || lower.includes("content policy") || lower.includes("inappropriate") || lower.includes("explicit")) {
+    return "Your prompt was flagged as too explicit. Try describing the scene, outfit, or setting instead of body details. Your credits have been refunded.";
+  }
+  if (lower.includes("timeout") || lower.includes("timed out")) {
+    return "Generation timed out. Please try again with a simpler prompt.";
+  }
+  if (lower.includes("not enough credits") || lower.includes("insufficient")) {
+    return raw; // Already user-friendly
+  }
+  return `Generation failed. Your credits have been refunded. (${raw.slice(0, 80)})`;
+}
+
 export function CreationPanel() {
   const {
     contentType,
@@ -42,9 +71,10 @@ export function CreationPanel() {
     carouselInstructions,
     videoSource,
     sourceContentId,
-    inspirationVideo,
+    motionSourceUrl,
     videoDuration,
     videoAspectRatio,
+    videoQuality,
     script,
     setScript,
     voiceId,
@@ -66,6 +96,7 @@ export function CreationPanel() {
   const creatorName = creator?.name ?? "them";
 
   const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const [refPickerOpen, setRefPickerOpen] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -80,6 +111,9 @@ export function CreationPanel() {
       case "carousel":
         return slides.length || 0;
       case "video":
+        if (videoQuality === "premium") {
+          return videoDuration === 5 ? CREDIT_COSTS.VIDEO_5S_PREMIUM : CREDIT_COSTS.VIDEO_10S_PREMIUM;
+        }
         return videoDuration === 5 ? CREDIT_COSTS.VIDEO_5S : CREDIT_COSTS.VIDEO_10S;
       case "talking-head":
         return talkingDuration === 15 ? CREDIT_COSTS.TALKING_HEAD : CREDIT_COSTS.TALKING_HEAD_30S;
@@ -100,15 +134,21 @@ export function CreationPanel() {
     }
   }
 
+  // Check if any attached ref is missing required type/mode selection
+  const hasIncompleteRefs = attachedRefs.some((a) =>
+    a.refType === null || (a.refType === "scene" && a.mode === null)
+  );
+
   function isDisabled(): boolean {
     if (generating) return true;
+    if (hasIncompleteRefs) return true;
     switch (contentType) {
       case "photo":
         return !prompt.trim();
       case "carousel":
         return !selectedFormat;
       case "video":
-        if (videoSource === "photo" && !sourceContentId) return true;
+        if (videoSource === "motion" && !motionSourceUrl) return true;
         return !prompt.trim();
       case "talking-head":
         return !script.trim() || !voiceId;
@@ -148,14 +188,16 @@ export function CreationPanel() {
 
     switch (contentType) {
       case "photo": {
-        const refAtts = attachedRefs.map((a) => ({
-          refId: a.ref.id,
-          refName: a.ref.name,
-          s3Key: a.ref.s3Key,
-          mode: a.mode,
-          what: a.what,
-          description: a.description,
-        }));
+        const refAtts = attachedRefs
+          .filter((a) => a.refType !== null)
+          .map((a) => ({
+            refId: a.ref.id,
+            refName: a.ref.name,
+            s3Key: a.ref.s3Key,
+            refType: a.refType as "scene" | "product",
+            mode: (a.mode ?? "exact") as "exact" | "inspired",
+            description: a.description,
+          }));
         const result = await generateContent(
           activeCreatorId,
           prompt,
@@ -203,17 +245,40 @@ export function CreationPanel() {
         break;
       }
       case "video": {
+        const videoRefAtts = attachedRefs
+          .filter((a) => a.refType !== null)
+          .map((a) => ({
+            refId: a.ref.id,
+            refName: a.ref.name,
+            s3Key: a.ref.s3Key,
+            refType: a.refType as "scene" | "product",
+            mode: (a.mode ?? "exact") as "exact" | "inspired",
+            description: a.description,
+          }));
+        const videoRefs = videoRefAtts.length > 0 ? videoRefAtts : undefined;
         let result;
-        if (videoSource === "photo" && sourceContentId) {
-          result = await generateVideoFromImage(activeCreatorId, sourceContentId, prompt, videoDuration);
-        } else if (videoSource === "motion" && inspirationVideo) {
-          result = await generateVideoMotionTransfer(activeCreatorId, inspirationVideo.preview, prompt, videoDuration);
+        if (videoSource === "motion" && motionSourceUrl) {
+          result = await generateVideoMotionTransfer(activeCreatorId, motionSourceUrl, prompt, videoDuration);
+        } else if (sourceContentId) {
+          result = await generateVideoFromImage(activeCreatorId, sourceContentId, prompt, videoDuration, videoAspectRatio, videoRefs, videoQuality);
         } else {
-          result = await generateVideoFromText(activeCreatorId, prompt, videoDuration, videoAspectRatio);
+          result = await generateVideoFromText(activeCreatorId, prompt, videoDuration, videoAspectRatio, videoRefs, videoQuality);
         }
         if (result.success) {
-          setGeneratingProgress("Generating video...");
+          const startTime = Date.now();
+          setGeneratingProgress("Starting video generation...");
           pollRef.current = setInterval(async () => {
+            const elapsed = Date.now() - startTime;
+            setGeneratingProgress(getProgressMessage(elapsed, "video"));
+
+            // Timeout — stop polling but video may still complete in background
+            if (elapsed > VIDEO_TIMEOUT_MS) {
+              clearInterval(pollRef.current!);
+              setError("Taking longer than expected. Your video will appear in My Content when ready.");
+              setGenerating(false);
+              return;
+            }
+
             const status = await checkVideoStatus(result.jobId);
             if (status.status === "COMPLETED") {
               clearInterval(pollRef.current!);
@@ -222,6 +287,7 @@ export function CreationPanel() {
                 type: "VIDEO",
                 status: "COMPLETED",
                 url: status.videoUrl ?? "",
+                thumbnailUrl: status.thumbnailUrl,
                 creatorId: activeCreatorId,
                 s3Keys: [],
                 source: "FREEFORM",
@@ -231,9 +297,15 @@ export function CreationPanel() {
               setShowResults(true);
               useUnifiedStudioStore.getState().showCanvas();
               setGenerating(false);
+              if (activeCreatorId) {
+                const items = await getCreatorContent(activeCreatorId);
+                useCreatorStore.getState().setContent(items);
+              }
+              const refreshed = await getWorkspaceData();
+              setCredits(refreshed.balance);
             } else if (status.status === "FAILED") {
               clearInterval(pollRef.current!);
-              setError(status.error ?? "Video generation failed");
+              setError(friendlyError(status.error ?? "Video generation failed"));
               setGenerating(false);
             }
           }, 5000);
@@ -241,7 +313,7 @@ export function CreationPanel() {
           setCredits(data.balance);
           return;
         } else {
-          setError(result.error);
+          setError(friendlyError(result.error));
         }
         break;
       }
@@ -254,8 +326,19 @@ export function CreationPanel() {
           talkingDuration
         );
         if (result.success) {
-          setGeneratingProgress("Generating talking head...");
+          const startTime = Date.now();
+          setGeneratingProgress("Starting talking head generation...");
           pollRef.current = setInterval(async () => {
+            const elapsed = Date.now() - startTime;
+            setGeneratingProgress(getProgressMessage(elapsed, "talking-head"));
+
+            if (elapsed > TALKING_HEAD_TIMEOUT_MS) {
+              clearInterval(pollRef.current!);
+              setError("Taking longer than expected. Your talking head will appear in My Content when ready.");
+              setGenerating(false);
+              return;
+            }
+
             const status = await checkVideoStatus(result.jobId);
             if (status.status === "COMPLETED") {
               clearInterval(pollRef.current!);
@@ -264,6 +347,7 @@ export function CreationPanel() {
                 type: "TALKING_HEAD",
                 status: "COMPLETED",
                 url: status.videoUrl ?? "",
+                thumbnailUrl: status.thumbnailUrl,
                 creatorId: activeCreatorId,
                 s3Keys: [],
                 source: "FREEFORM",
@@ -273,9 +357,15 @@ export function CreationPanel() {
               setShowResults(true);
               useUnifiedStudioStore.getState().showCanvas();
               setGenerating(false);
+              if (activeCreatorId) {
+                const items = await getCreatorContent(activeCreatorId);
+                useCreatorStore.getState().setContent(items);
+              }
+              const refreshed = await getWorkspaceData();
+              setCredits(refreshed.balance);
             } else if (status.status === "FAILED") {
               clearInterval(pollRef.current!);
-              setError(status.error ?? "Generation failed");
+              setError(friendlyError(status.error ?? "Generation failed"));
               setGenerating(false);
             }
           }, 5000);
@@ -283,7 +373,7 @@ export function CreationPanel() {
           setCredits(data.balance);
           return;
         } else {
-          setError(result.error);
+          setError(friendlyError(result.error));
         }
         break;
       }
@@ -328,7 +418,6 @@ export function CreationPanel() {
             }
             rows={4}
           />
-          <InlineRefs />
         </div>
 
         {/* Type-specific config */}
@@ -336,6 +425,43 @@ export function CreationPanel() {
         {contentType === "carousel" && <CreationCarousel />}
         {contentType === "video" && <CreationVideo />}
         {contentType === "talking-head" && <CreationTalking />}
+
+        {/* References — inline cards with + Add button */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#555" }}>References</span>
+            <button
+              onClick={() => setRefPickerOpen(true)}
+              style={{
+                display: "flex", alignItems: "center", gap: 3,
+                padding: "3px 10px", fontSize: 10, fontWeight: 600,
+                background: "#F5F5F5", border: "1px solid #EBEBEB", borderRadius: 4,
+                cursor: "pointer", color: "#555", fontFamily: "inherit",
+              }}
+            >
+              + Add
+            </button>
+          </div>
+          <InlineRefs />
+          {attachedRefs.length === 0 && (
+            <div
+              onClick={() => setRefPickerOpen(true)}
+              style={{
+                padding: "12px", borderRadius: 8,
+                border: "1px dashed #E0E0E0", background: "#FAFAFA",
+                fontSize: 11, color: "#BBB", textAlign: "center", cursor: "pointer",
+              }}
+            >
+              + Add a scene or product reference
+            </div>
+          )}
+          {hasIncompleteRefs && (
+            <div style={{ fontSize: 10, color: "#C4603A", marginTop: 4 }}>
+              Select type and mode for each reference before generating.
+            </div>
+          )}
+        </div>
+        <PickReferenceDialog open={refPickerOpen} onOpenChange={setRefPickerOpen} />
 
         {/* Script starter chips for talking head */}
         {contentType === "talking-head" && (

@@ -1,5 +1,7 @@
 # Reference Modes V2 + Library Fix — Design Spec
 
+> **DEPRECATED (2026-04-09):** This spec's reference mode system (exact/similar/vibe × background/outfit/pose/all) has been replaced by a simplified system: Scene (exact/inspired) + Product/Outfit (exact) + Motion (exact). See `docs/plans/2026-04-09-generation-pipeline-master-plan.md` and `docs/plans/BACKLOG.md` for the new design. The library fix portions of this spec are still valid.
+
 ## Goal
 
 Upgrade reference attachment modes with "what to use" (Background/Outfit/Pose/All) + "how closely" (Exact/Similar/Vibe) + optional text description. Fix library page issues. Make the ref system intuitive — AI picks smart defaults, user overrides when needed.

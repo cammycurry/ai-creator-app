@@ -135,8 +135,8 @@ export async function generateContent(
     refId: string;
     refName: string;
     s3Key: string;
-    mode: "exact" | "similar" | "vibe";
-    what: "background" | "outfit" | "pose" | "all";
+    refType: "scene" | "product";
+    mode: "exact" | "inspired";
     description: string;
   }[]
 ): Promise<GenerateContentResult> {
@@ -190,62 +190,34 @@ export async function generateContent(
 
     if (refAttachments && refAttachments.length > 0) {
       for (const att of refAttachments) {
-        if (att.mode === "exact" || att.mode === "similar") {
-          try {
-            const refBuf = await getImageBuffer(att.s3Key);
-            refImages.push({ mimeType: "image/jpeg", data: refBuf.toString("base64") });
-          } catch (e) {
-            console.error("Failed to load ref image:", e);
-            continue;
-          }
-
-          const whatLabel: Record<string, string> = {
-            background: "background/setting",
-            outfit: "outfit/clothing",
-            pose: "pose/body position",
-            all: "everything",
-          };
-
-          if (att.mode === "exact") {
-            refPromptSuffix += ` Match the ${whatLabel[att.what] ?? "reference"} from the reference image exactly.`;
-          } else {
-            refPromptSuffix += ` Use a similar ${whatLabel[att.what] ?? "style"} to the reference image, with creative freedom.`;
-          }
-
-          if (att.description?.trim()) {
-            refPromptSuffix += ` ${att.description.trim()}.`;
-          }
-
-          savedRefAttachments.push({
-            refId: att.refId,
-            refName: att.refName,
-            refS3Key: att.s3Key,
-            mode: att.mode,
-            what: att.what,
-            description: att.description || "",
-          });
-
-        } else if (att.mode === "vibe") {
-          try {
-            const refBuf = await getImageBuffer(att.s3Key);
-            const { analyzeReferenceVibe } = await import("./reference-actions");
-            const vibeText = await analyzeReferenceVibe(refBuf.toString("base64"));
-            const desc = att.description?.trim() ? ` ${att.description.trim()}.` : "";
-            refPromptSuffix += ` Style and mood: ${vibeText}.${desc}`;
-
-            savedRefAttachments.push({
-              refId: att.refId,
-              refName: att.refName,
-              refS3Key: att.s3Key,
-              mode: "vibe",
-              what: att.what,
-              description: att.description || "",
-              vibeText,
-            });
-          } catch (e) {
-            console.error("Failed to analyze vibe:", e);
-          }
+        try {
+          const refBuf = await getImageBuffer(att.s3Key);
+          refImages.push({ mimeType: "image/jpeg", data: refBuf.toString("base64") });
+        } catch (e) {
+          console.error("Failed to load ref image:", e);
+          continue;
         }
+
+        if (att.refType === "product") {
+          refPromptSuffix += ` Wearing/holding the exact item from the reference image.`;
+        } else if (att.mode === "exact") {
+          refPromptSuffix += ` Match the scene/background from the reference image exactly.`;
+        } else {
+          refPromptSuffix += ` Inspired by the scene/setting in the reference image, with creative freedom.`;
+        }
+
+        if (att.description?.trim()) {
+          refPromptSuffix += ` ${att.description.trim()}.`;
+        }
+
+        savedRefAttachments.push({
+          refId: att.refId,
+          refName: att.refName,
+          refS3Key: att.s3Key,
+          refType: att.refType,
+          mode: att.mode,
+          description: att.description || "",
+        });
       }
     }
 

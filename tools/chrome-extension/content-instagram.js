@@ -66,47 +66,112 @@ function updateUI() {
 }
 
 // ── Profile Page: Add to Collection ───────────────────────────────────
-function showProfileButton() {
+async function showProfileButton() {
+  const handle = window.location.pathname.replace(/^\/|\/$/g, "");
+
+  const container = document.createElement("div");
+  container.id = "mc-ig-profile-btn";
+  container.className = "mc-float-container";
+
   const btn = document.createElement("button");
-  btn.id = "mc-ig-profile-btn";
   btn.className = "mc-save-btn";
   btn.textContent = "Add to Collection";
-  btn.style.cssText = "position:fixed;bottom:24px;left:24px;z-index:2147483647;padding:10px 18px;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);background:#4361ee;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;";
   btn.addEventListener("click", () => handleSaveAccount(btn));
-  document.body.appendChild(btn);
+
+  const bulkBtn = document.createElement("button");
+  bulkBtn.className = "mc-save-btn mc-bulk-btn";
+  bulkBtn.textContent = "Save All Posts";
+  bulkBtn.addEventListener("click", () => handleBulkSaveAllPosts(bulkBtn));
+
+  const refreshBtn = document.createElement("button");
+  refreshBtn.className = "mc-save-btn mc-refresh-btn";
+  refreshBtn.textContent = "↻ Stats";
+  refreshBtn.title = "Refresh engagement stats for saved posts";
+  refreshBtn.addEventListener("click", () => handleRefreshStats(refreshBtn, handle));
+
+  container.appendChild(btn);
+  container.appendChild(bulkBtn);
+  container.appendChild(refreshBtn);
+  document.body.appendChild(container);
+
+  // Check if account + posts are already saved
+  if (handle) {
+    try {
+      const check = await chrome.runtime.sendMessage({
+        type: "refCheckAccount",
+        data: { action: "checkAccount", handle },
+      });
+      if (check?.exists) {
+        btn.textContent = `Update Account`;
+        if (check.savedPosts > 0) {
+          bulkBtn.textContent = `Save More Posts (${check.savedPosts} saved)`;
+        }
+      }
+    } catch {}
+  }
+}
+
+function setBtnState(btn, state, text) {
+  btn.classList.remove("mc-saving", "mc-success", "mc-error", "mc-faded");
+  if (state) btn.classList.add(...state.split(" "));
+  btn.textContent = text;
 }
 
 async function handleSaveAccount(btn) {
+  const handle = window.location.pathname.replace(/^\/|\/$/g, "");
   btn.disabled = true;
-  btn.textContent = "Saving...";
-  btn.style.background = "#e6a817";
+  setBtnState(btn, "mc-saving", "Fetching profile...");
 
-  const metadata = scrapeProfileMetadata();
-  if (!metadata.handle) {
-    btn.textContent = "Could not detect account";
-    btn.style.background = "#e63946";
-    setTimeout(() => { btn.textContent = "Add to Collection"; btn.style.background = "#4361ee"; btn.disabled = false; }, 3000);
+  // Get rich data from API
+  let apiProfile = null;
+  try {
+    const result = await chrome.runtime.sendMessage({
+      type: "fetchUserPosts",
+      handle,
+      maxPosts: 0, // don't need posts, just profile data
+    });
+    apiProfile = result?.profileData || null;
+  } catch {}
+
+  const domMetadata = scrapeProfileMetadata();
+  const accountData = {
+    action: "saveAccount",
+    handle: handle || domMetadata.handle,
+    name: apiProfile?.name || domMetadata.name,
+    bio: apiProfile?.bio || domMetadata.bio,
+    followers: apiProfile?.followers ?? domMetadata.followers,
+    following: apiProfile?.following ?? domMetadata.following,
+    postCount: apiProfile?.postCount ?? domMetadata.postCount,
+    profilePicUrl: apiProfile?.profilePicUrl || domMetadata.profilePicUrl,
+    isVerified: apiProfile?.isVerified || false,
+    isPrivate: apiProfile?.isPrivate || false,
+    isBusiness: apiProfile?.isBusiness || false,
+    categoryName: apiProfile?.categoryName || null,
+    externalUrl: apiProfile?.externalUrl || null,
+  };
+
+  if (!accountData.handle) {
+    setBtnState(btn, "mc-error", "Could not detect account");
+    setTimeout(() => { setBtnState(btn, null, "Add to Collection"); btn.disabled = false; }, 3000);
     return;
   }
 
   try {
     const result = await chrome.runtime.sendMessage({
       type: "refSaveAccount",
-      data: { action: "saveAccount", ...metadata },
+      data: accountData,
     });
     if (result?.ok) {
-      btn.textContent = result.isNew ? "Added!" : "Updated!";
-      btn.style.background = "#06d6a0";
-      showToast(`${metadata.handle} added to collection`);
+      setBtnState(btn, "mc-success", result.isNew ? "Added!" : "Updated!");
+      showToast(`${accountData.handle} ${result.isNew ? "added to" : "updated in"} collection`);
     } else {
       throw new Error(result?.error || "Save failed");
     }
   } catch (err) {
-    btn.textContent = "Error";
-    btn.style.background = "#e63946";
+    setBtnState(btn, "mc-error", "Error");
     showToast(`Error: ${err.message}`);
   }
-  setTimeout(() => { btn.textContent = "Add to Collection"; btn.style.background = "#4361ee"; btn.disabled = false; }, 3000);
+  setTimeout(() => { setBtnState(btn, null, "Update Account"); btn.disabled = false; }, 3000);
 }
 
 function scrapeProfileMetadata() {
@@ -169,6 +234,325 @@ function parseStatNumber(str) {
   return Math.round(num);
 }
 
+// ── Profile Page: Save All Posts ──────────────────────────────────────
+async function handleBulkSaveAllPosts(btn) {
+  const handle = window.location.pathname.replace(/^\/|\/$/g, "");
+  if (!handle) return;
+
+  btn.disabled = true;
+  setBtnState(btn, "mc-saving", "Fetching posts...");
+
+  // Try API first, fall back to DOM scraping
+  let shortcodes = [];
+  let profileData = null;
+
+  // Method 1: Background API fetch
+  try {
+    const result = await chrome.runtime.sendMessage({
+      type: "fetchUserPosts",
+      handle,
+      maxPosts: 200,
+    });
+    shortcodes = result?.shortcodes || [];
+    profileData = result?.profileData || null;
+    console.log(`[ref] API returned ${shortcodes.length} shortcodes`);
+  } catch {}
+
+  // Method 2: Also scrape DOM and merge (catches posts API might have missed)
+  const domCodes = scrapeGridShortcodes();
+  if (domCodes.length > 0) {
+    const existing = new Set(shortcodes);
+    for (const code of domCodes) {
+      if (!existing.has(code)) shortcodes.push(code);
+    }
+    console.log(`[ref] After DOM merge: ${shortcodes.length} total shortcodes`);
+  }
+
+  // Save account with API data or DOM fallback
+  const apiProfile = profileData || {};
+  const domMetadata = scrapeProfileMetadata();
+  const accountData = {
+    action: "saveAccount",
+    handle,
+    name: apiProfile.name || domMetadata.name,
+    bio: apiProfile.bio || domMetadata.bio,
+    followers: apiProfile.followers ?? domMetadata.followers,
+    following: apiProfile.following ?? domMetadata.following,
+    postCount: apiProfile.postCount ?? domMetadata.postCount,
+    profilePicUrl: apiProfile.profilePicUrl || domMetadata.profilePicUrl,
+    isVerified: apiProfile.isVerified || false,
+    isPrivate: apiProfile.isPrivate || false,
+    isBusiness: apiProfile.isBusiness || false,
+    categoryName: apiProfile.categoryName || null,
+    externalUrl: apiProfile.externalUrl || null,
+  };
+  await chrome.runtime.sendMessage({ type: "refSaveAccount", data: accountData }).catch(() => {});
+
+  if (shortcodes.length === 0) {
+    setBtnState(btn, "mc-error", "No posts found");
+    showToast("Could not find posts. Try scrolling down to load more, then try again.");
+    setTimeout(() => { setBtnState(btn, null, "Save All Posts"); btn.disabled = false; }, 3000);
+    return;
+  }
+
+  // Check which posts we already have saved
+  setBtnState(btn, "mc-saving", `Checking ${shortcodes.length} posts...`);
+  let toSave = shortcodes;
+  try {
+    const checkRes = await chrome.runtime.sendMessage({
+      type: "refCheckPosts",
+      data: { action: "checkPosts", shortcodes },
+    });
+    if (checkRes?.savedShortcodes?.length > 0) {
+      const savedSet = new Set(checkRes.savedShortcodes);
+      toSave = shortcodes.filter((c) => !savedSet.has(c));
+    }
+  } catch {}
+
+  let skipped = shortcodes.length - toSave.length;
+
+  if (toSave.length === 0) {
+    const scrollMore = confirm(
+      `All ${shortcodes.length} found posts are already saved.\n\nScroll down to load more posts from the grid?`
+    );
+    if (scrollMore) {
+      setBtnState(btn, "mc-saving", "Scrolling to load more...");
+      const moreShortcodes = await autoScrollAndScrape(500, (msg) => setBtnState(btn, "mc-saving", msg));
+      const existing = new Set(shortcodes);
+      for (const code of moreShortcodes) {
+        if (!existing.has(code)) { shortcodes.push(code); existing.add(code); }
+      }
+      // Re-check
+      try {
+        const checkRes2 = await chrome.runtime.sendMessage({
+          type: "refCheckPosts",
+          data: { action: "checkPosts", shortcodes },
+        });
+        if (checkRes2?.savedShortcodes?.length > 0) {
+          const savedSet2 = new Set(checkRes2.savedShortcodes);
+          toSave = shortcodes.filter((c) => !savedSet2.has(c));
+          skipped = shortcodes.length - toSave.length;
+        }
+      } catch {}
+      window.scrollTo(0, 0);
+
+      if (toSave.length === 0) {
+        setBtnState(btn, "mc-success", `All ${shortcodes.length} saved`);
+        showToast("No new posts found after scrolling.");
+        btn.disabled = false;
+        return;
+      }
+      showToast(`Found ${toSave.length} new posts after scrolling!`);
+    } else {
+      setBtnState(btn, null, `Save More Posts (${shortcodes.length} saved)`);
+      btn.disabled = false;
+      return;
+    }
+  }
+
+  // Ask user how many to save
+  const maxToSave = prompt(
+    `Found ${shortcodes.length} posts (${skipped} already saved, ${toSave.length} new).\n\nHow many new posts to save?\n• Enter a number (e.g. 40)\n• Type "scroll" to auto-scroll and find more posts first\n• Leave blank for all ${toSave.length}`,
+    String(toSave.length)
+  );
+
+  if (maxToSave === null) {
+    setBtnState(btn, null, "Save All Posts");
+    btn.disabled = false;
+    return;
+  }
+
+  // If user typed "scroll", auto-scroll to load more posts then re-check
+  if (maxToSave.toLowerCase().trim() === "scroll") {
+    setBtnState(btn, "mc-saving", "Scrolling to load more posts...");
+    const moreShortcodes = await autoScrollAndScrape(500, (msg) => setBtnState(btn, "mc-saving", msg));
+
+    // Merge with what we already have
+    const existing = new Set(shortcodes);
+    for (const code of moreShortcodes) {
+      if (!existing.has(code)) { shortcodes.push(code); existing.add(code); }
+    }
+
+    // Re-check which are new
+    try {
+      const checkRes = await chrome.runtime.sendMessage({
+        type: "refCheckPosts",
+        data: { action: "checkPosts", shortcodes },
+      });
+      if (checkRes?.savedShortcodes?.length > 0) {
+        const savedSet = new Set(checkRes.savedShortcodes);
+        toSave = shortcodes.filter((c) => !savedSet.has(c));
+        skipped = shortcodes.length - toSave.length;
+      } else {
+        toSave = shortcodes;
+        skipped = 0;
+      }
+    } catch {}
+
+    if (toSave.length === 0) {
+      setBtnState(btn, "mc-success", `All ${shortcodes.length} saved`);
+      showToast("All posts already saved!");
+      btn.disabled = false;
+      // Scroll back to top
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    showToast(`Found ${shortcodes.length} total (${toSave.length} new). Saving...`);
+    window.scrollTo(0, 0);
+  }
+
+  const limit = parseInt(maxToSave) || toSave.length;
+  const batch = toSave.slice(0, limit);
+
+  showToast(`Saving ${batch.length} new posts...`);
+  let saved = 0;
+  let failed = 0;
+
+  for (let i = 0; i < batch.length; i++) {
+    const code = batch[i];
+    setBtnState(btn, "mc-saving", `Saving ${i + 1}/${batch.length}...`);
+
+    try {
+      const res = await chrome.runtime.sendMessage({
+        type: "bulkSavePost",
+        handle,
+        shortcode: code,
+      });
+      if (res?.ok && res.saved > 0) {
+        saved += res.saved;
+      } else {
+        failed++;
+        console.warn(`[ref] Failed to save ${code}:`, res?.error || "unknown");
+        // Show first error to user
+        if (failed === 1 && res?.error) {
+          showToast(`Error on ${code}: ${res.error}`);
+        }
+      }
+    } catch (e) {
+      failed++;
+      console.warn(`[ref] Exception saving ${code}:`, e);
+    }
+
+    // Small delay to avoid rate limiting
+    if (i < batch.length - 1) {
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+
+  const total = saved + skipped;
+  setBtnState(btn, "mc-success", `Done! ${total} total`);
+  showToast(`Saved ${saved} new image(s)${skipped > 0 ? `, ${skipped} already had` : ""}${failed > 0 ? `, ${failed} failed` : ""}`);
+  btn.disabled = false;
+}
+
+// ── Refresh Stats for saved posts ─────────────────────────────────────
+async function handleRefreshStats(btn, handle) {
+  btn.disabled = true;
+  setBtnState(btn, "mc-saving", "Finding posts...");
+
+  // Get all saved shortcodes for this account
+  const result = await chrome.runtime.sendMessage({
+    type: "fetchUserPosts",
+    handle,
+    maxPosts: 0,
+  });
+
+  // We need the saved shortcodes, not the IG ones
+  let shortcodes = [];
+  try {
+    // Get shortcodes from the API check (all posts for this account)
+    const check = await chrome.runtime.sendMessage({
+      type: "refCheckAccount",
+      data: { action: "checkAccount", handle },
+    });
+    // We don't have a way to get shortcodes from checkAccount, so use fetchUserPosts
+    const fetchResult = await chrome.runtime.sendMessage({
+      type: "fetchUserPosts",
+      handle,
+      maxPosts: 200,
+    });
+    shortcodes = fetchResult?.shortcodes || [];
+
+    // Also merge DOM
+    const domCodes = scrapeGridShortcodes();
+    const existing = new Set(shortcodes);
+    for (const code of domCodes) {
+      if (!existing.has(code)) shortcodes.push(code);
+    }
+  } catch {}
+
+  if (shortcodes.length === 0) {
+    setBtnState(btn, "mc-error", "No posts found");
+    setTimeout(() => { setBtnState(btn, null, "↻ Stats"); btn.disabled = false; }, 3000);
+    return;
+  }
+
+  setBtnState(btn, "mc-saving", `Refreshing ${shortcodes.length} posts...`);
+
+  const res = await chrome.runtime.sendMessage({
+    type: "refreshPostStats",
+    handle,
+    shortcodes,
+  });
+
+  if (res?.ok) {
+    setBtnState(btn, "mc-success", `Updated ${res.updated}`);
+    showToast(`Refreshed stats for ${res.updated} posts${res.failed > 0 ? ` (${res.failed} failed)` : ""}`);
+  } else {
+    setBtnState(btn, "mc-error", "Failed");
+    showToast(`Error: ${res?.error || "Unknown error"}`);
+  }
+
+  setTimeout(() => { setBtnState(btn, null, "↻ Stats"); btn.disabled = false; }, 3000);
+}
+
+// Scrape shortcodes from the visible post grid on a profile page
+function scrapeGridShortcodes() {
+  const codes = [];
+  const seen = new Set();
+  const links = document.querySelectorAll('a[href*="/p/"], a[href*="/reel/"]');
+  for (const link of links) {
+    const href = link.getAttribute("href") || "";
+    const match = href.match(/\/(p|reel)\/([A-Za-z0-9_-]+)/);
+    if (match && !seen.has(match[2])) {
+      seen.add(match[2]);
+      codes.push(match[2]);
+    }
+  }
+  console.log(`[ref] Scraped ${codes.length} shortcodes from grid DOM`);
+  return codes;
+}
+
+// Auto-scroll to load more posts, then scrape
+async function autoScrollAndScrape(targetCount, statusFn) {
+  let lastCount = 0;
+  let staleRounds = 0;
+  const maxStale = 5; // stop after 5 scrolls with no new posts
+
+  while (staleRounds < maxStale) {
+    const current = scrapeGridShortcodes();
+    if (statusFn) statusFn(`Scrolling... found ${current.length} posts`);
+
+    if (current.length >= targetCount) {
+      return current.slice(0, targetCount);
+    }
+
+    if (current.length === lastCount) {
+      staleRounds++;
+    } else {
+      staleRounds = 0;
+    }
+    lastCount = current.length;
+
+    // Scroll down
+    window.scrollTo(0, document.body.scrollHeight);
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+
+  return scrapeGridShortcodes();
+}
+
 // ── Post Page: Save Button ────────────────────────────────────────────
 async function showPostButton() {
   const shortcode = getCurrentShortcode();
@@ -176,8 +560,7 @@ async function showPostButton() {
 
   const btn = document.createElement("button");
   btn.id = "mc-ig-float-btn";
-  btn.className = "mc-save-btn";
-  btn.style.cssText = "position:fixed;bottom:24px;left:24px;z-index:2147483647;padding:10px 18px;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);background:#4361ee;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;";
+  btn.className = "mc-save-btn mc-float-btn";
   btn.textContent = "Save";
   btn.disabled = true;
   document.body.appendChild(btn);
@@ -190,9 +573,7 @@ async function showPostButton() {
     });
     if (check?.saved) {
       __mc_saved_codes.set(shortcode, new Set(check.savedIndexes));
-      btn.textContent = `Saved (${check.savedIndexes.length})`;
-      btn.style.background = "#06d6a0";
-      btn.style.opacity = "0.85";
+      setBtnState(btn, "mc-success mc-faded", `Saved (${check.savedIndexes.length})`);
       // Still allow re-save (might have new carousel slides)
     }
   } catch {}
@@ -208,15 +589,13 @@ async function handleSavePost(btn) {
 
   __mc_saving = true;
   btn.disabled = true;
-  btn.textContent = "Finding media...";
-  btn.style.background = "#e6a817";
+  setBtnState(btn, "mc-saving", "Finding media...");
 
   const handle = extractUsernameFromPage();
   const mediaItems = await extractMediaForPage();
 
   if (mediaItems.length === 0) {
-    btn.textContent = "No media found";
-    btn.style.background = "#e63946";
+    setBtnState(btn, "mc-error", "No media found");
     showToast("No media found. Try scrolling the carousel, then click Save.");
     setTimeout(() => { __mc_saving = false; updateUI(); }, 3000);
     return;
@@ -227,8 +606,7 @@ async function handleSavePost(btn) {
   const toSave = mediaItems.filter((m) => !savedSet.has(m.carouselIndex ?? 0));
 
   if (toSave.length === 0) {
-    btn.textContent = "Already saved";
-    btn.style.background = "#06d6a0";
+    setBtnState(btn, "mc-success", "Already saved");
     showToast("All slides already saved!");
     __mc_saving = false;
     return;
@@ -240,7 +618,7 @@ async function handleSavePost(btn) {
   for (let i = 0; i < toSave.length; i++) {
     const item = toSave[i];
     const ci = item.carouselIndex ?? 0;
-    btn.textContent = `Saving ${i + 1}/${toSave.length}...`;
+    setBtnState(btn, "mc-saving", `Saving ${i + 1}/${toSave.length}...`);
 
     try {
       // Step 1: Get presigned URL
@@ -268,12 +646,12 @@ async function handleSavePost(btn) {
       }
 
       // Step 2: Download the media
-      btn.textContent = `Downloading ${i + 1}/${toSave.length}...`;
+      setBtnState(btn, "mc-saving", `Downloading ${i + 1}/${toSave.length}...`);
       const blob = await downloadMediaAsDataUri(item);
       if (!blob) throw new Error("Download failed");
 
       // Step 3: Upload to S3
-      btn.textContent = `Uploading ${i + 1}/${toSave.length}...`;
+      setBtnState(btn, "mc-saving", `Uploading ${i + 1}/${toSave.length}...`);
       const uploadRes = await chrome.runtime.sendMessage({
         type: "refUploadToS3",
         uploadUrl: saveRes.uploadUrl,
@@ -313,12 +691,10 @@ async function handleSavePost(btn) {
 
   if (saved > 0) {
     const totalSaved = (__mc_saved_codes.get(shortcode)?.size) || saved;
-    btn.textContent = `Saved (${totalSaved})`;
-    btn.style.background = "#06d6a0";
+    setBtnState(btn, "mc-success", `Saved (${totalSaved})`);
     showToast(`Saved ${saved} image(s)${failed > 0 ? ` (${failed} failed)` : ""}`);
   } else {
-    btn.textContent = "Save failed";
-    btn.style.background = "#e63946";
+    setBtnState(btn, "mc-error", "Save failed");
     showToast(`Failed to save. ${failed} item(s) failed.`);
     setTimeout(() => updateUI(), 3000);
   }
@@ -439,15 +815,27 @@ function isIcon(src) {
 }
 
 function extractUsernameFromPage() {
+  // Method 1: Look for @handle in og:title (e.g. "Mia (@miaaababiii) on Instagram")
   const ogTitle = document.querySelector('meta[property="og:title"]');
   if (ogTitle?.content) {
-    const match = ogTitle.content.match(/@?(\w+)/);
-    if (match) return match[1];
+    const atMatch = ogTitle.content.match(/@([A-Za-z0-9_.]+)/);
+    if (atMatch) return atMatch[1];
   }
-  const pathMatch = window.location.pathname.match(/^\/([^/?]+)\/?(?:p|reel)?/);
-  if (pathMatch && !["explore", "direct", "accounts", "stories", "reels"].includes(pathMatch[1])) {
+
+  // Method 2: Look for the username link in the post header
+  const usernameLink = document.querySelector('article a[href^="/"][role="link"] span') ||
+    document.querySelector('header a[href^="/"][role="link"]');
+  if (usernameLink?.textContent) {
+    const text = usernameLink.textContent.trim().replace(/^@/, "");
+    if (/^[A-Za-z0-9_.]+$/.test(text) && text.length > 1) return text;
+  }
+
+  // Method 3: URL path (works on profile pages)
+  const pathMatch = window.location.pathname.match(/^\/([A-Za-z0-9_.]+)\/?(?:p|reel)?/);
+  if (pathMatch && !["explore", "direct", "accounts", "stories", "reels", "p", "reel"].includes(pathMatch[1])) {
     return pathMatch[1];
   }
+
   return null;
 }
 
@@ -457,14 +845,9 @@ function showToast(msg) {
   t = document.createElement("div");
   t.id = "mc-toast";
   t.textContent = msg;
-  Object.assign(t.style, {
-    position: "fixed", bottom: "24px", right: "24px", background: "#1a1a2e", color: "#fff",
-    padding: "12px 20px", borderRadius: "10px", fontSize: "14px", zIndex: "2147483647",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.4)", transition: "opacity 0.3s", opacity: "0",
-  });
   document.body.appendChild(t);
-  requestAnimationFrame(() => (t.style.opacity = "1"));
-  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 400); }, 3000);
+  requestAnimationFrame(() => t.classList.add("mc-toast-visible"));
+  setTimeout(() => { t.classList.remove("mc-toast-visible"); setTimeout(() => t.remove(), 400); }, 3000);
 }
 
 if (document.readyState === "loading") {

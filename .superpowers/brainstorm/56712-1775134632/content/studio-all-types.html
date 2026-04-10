@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Content Studio — All Generation Types</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background: #FAFAFA; color: #111; padding: 16px; }
+  h2 { font-size: 18px; font-weight: 700; margin: 24px 0 4px; }
+  .sub { font-size: 12px; color: #888; margin-bottom: 16px; }
+
+  .studio-frame {
+    background: #fff; border-radius: 14px; border: 1px solid #EBEBEB;
+    overflow: hidden; margin-bottom: 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  /* Header */
+  .sf-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #EBEBEB; }
+  .sf-head-l { display: flex; align-items: center; gap: 8px; }
+  .sf-x { width: 26px; height: 26px; border-radius: 6px; border: none; background: #F5F5F5; color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .sf-title { font-size: 13px; font-weight: 700; }
+  .sf-badge { font-size: 10px; color: #888; background: #F5F5F5; padding: 2px 8px; border-radius: 10px; }
+
+  .sf-body { display: flex; min-height: 380px; }
+
+  /* Left: toolbox */
+  .sf-left { width: 200px; background: #FAFAFA; border-right: 1px solid #EBEBEB; padding: 10px; font-size: 11px; overflow-y: auto; }
+  .sf-section-label { font-size: 9px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; margin-top: 10px; }
+  .sf-section-label:first-child { margin-top: 0; }
+  .sf-section-hint { font-size: 10px; color: #BBB; margin-bottom: 6px; line-height: 1.4; }
+  .sf-ref-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 8px; }
+  .sf-ref {
+    aspect-ratio: 1; border-radius: 6px; cursor: pointer; position: relative;
+    border: 2px solid transparent; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .sf-ref.on { border-color: #C4603A; }
+  .sf-ref-icon { font-size: 14px; }
+  .sf-ref-name { font-size: 7px; color: #888; margin-top: 1px; }
+  .sf-ref-check { position: absolute; top: 1px; right: 1px; width: 12px; height: 12px; border-radius: 50%; background: #C4603A; color: #fff; font-size: 7px; display: flex; align-items: center; justify-content: center; }
+  .sf-add { border: 1px dashed #DDD; border-radius: 6px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; color: #CCC; font-size: 12px; cursor: pointer; }
+
+  .sf-pub-row { display: flex; gap: 3px; overflow-x: auto; margin-bottom: 4px; }
+  .sf-pub-item { width: 36px; height: 36px; border-radius: 4px; flex-shrink: 0; cursor: pointer; border: 2px solid transparent; }
+  .sf-pub-item:hover { border-color: #C4603A; }
+
+  .sf-history-item { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 5px; cursor: pointer; margin-bottom: 3px; }
+  .sf-history-item:hover { background: #F0F0F0; }
+  .sf-h-thumb { width: 28px; height: 28px; border-radius: 3px; flex-shrink: 0; }
+  .sf-h-text { font-size: 9px; color: #888; line-height: 1.2; overflow: hidden; }
+  .sf-h-type { font-size: 8px; color: #C4603A; font-weight: 600; }
+
+  /* Right: create */
+  .sf-right { flex: 1; display: flex; flex-direction: column; }
+
+  .sf-pills { padding: 12px 16px 0; display: flex; gap: 5px; }
+  .sf-pill {
+    padding: 6px 12px; border-radius: 16px; font-size: 11px; font-weight: 500;
+    border: 1px solid #EBEBEB; background: #fff; color: #888; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .sf-pill:hover { border-color: #C4603A; color: #555; }
+  .sf-pill.on { background: #C4603A; color: #fff; border-color: #C4603A; }
+
+  .sf-create-area { flex: 1; padding: 12px 16px; overflow-y: auto; }
+
+  /* Input card */
+  .sf-input-card {
+    background: #fff; border: 1px solid #EBEBEB; border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 12px;
+  }
+  .sf-input-card:focus-within { border-color: #C4603A; }
+  .sf-input-label { font-size: 12px; font-weight: 600; color: #111; margin-bottom: 4px; }
+  .sf-textarea {
+    width: 100%; border: none; outline: none; font-size: 13px; font-family: inherit;
+    color: #111; resize: none; line-height: 1.5; background: transparent;
+  }
+  .sf-textarea::placeholder { color: #CCC; }
+
+  /* Visual ref thumbnails INLINE in the creation area */
+  .sf-inline-refs { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #F5F5F5; flex-wrap: wrap; align-items: center; }
+  .sf-inline-ref {
+    display: flex; align-items: center; gap: 5px; padding: 3px 8px 3px 3px;
+    background: #F5F5F5; border-radius: 8px; font-size: 10px; color: #555;
+  }
+  .sf-inline-ref-thumb { width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0; }
+  .sf-inline-ref-x { color: #CCC; cursor: pointer; font-size: 11px; margin-left: 2px; }
+  .sf-inline-ref-x:hover { color: #C4603A; }
+  .sf-add-ref-btn { font-size: 10px; color: #C4603A; cursor: pointer; padding: 3px 8px; border-radius: 8px; border: 1px dashed #C4603A33; }
+  .sf-add-ref-btn:hover { background: rgba(196,96,58,0.05); }
+
+  /* Compact config */
+  .sf-config { display: flex; gap: 6px; align-items: center; padding: 8px 12px; background: #FAFAFA; border-radius: 8px; margin-bottom: 12px; font-size: 11px; color: #888; }
+  .sf-cfg-btn {
+    width: 26px; height: 26px; border-radius: 6px; border: 1px solid #EBEBEB;
+    background: #fff; color: #888; font-size: 11px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sf-cfg-btn.on { background: #C4603A; color: #fff; border-color: #C4603A; }
+  .sf-cfg-pill { padding: 4px 10px; border-radius: 12px; border: 1px solid #EBEBEB; background: #fff; cursor: pointer; font-size: 10px; }
+  .sf-cfg-pill.on { background: #C4603A; color: #fff; border-color: #C4603A; }
+
+  /* Templates */
+  .sf-tpl { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+  .sf-tpl-chip { padding: 4px 10px; border-radius: 14px; font-size: 10px; color: #888; background: #fff; border: 1px solid #EBEBEB; cursor: pointer; }
+  .sf-tpl-chip:hover { border-color: #C4603A; color: #C4603A; }
+  .sf-tpl-label { font-size: 9px; color: #BBB; margin-bottom: 4px; }
+
+  /* Video source picker */
+  .sf-video-sources { display: flex; gap: 6px; margin-bottom: 10px; }
+  .sf-vsrc { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #EBEBEB; background: #fff; cursor: pointer; text-align: center; }
+  .sf-vsrc:hover { border-color: #C4603A; }
+  .sf-vsrc.on { border-color: #C4603A; background: rgba(196,96,58,0.04); }
+  .sf-vsrc-icon { font-size: 18px; display: block; margin-bottom: 3px; }
+  .sf-vsrc-label { font-size: 10px; font-weight: 600; color: #111; }
+  .sf-vsrc-hint { font-size: 9px; color: #888; margin-top: 1px; }
+
+  /* Voice picker compact */
+  .sf-voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 10px; }
+  .sf-voice {
+    display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 6px;
+    border: 1px solid #EBEBEB; cursor: pointer; background: #fff;
+  }
+  .sf-voice:hover { border-color: #C4603A; }
+  .sf-voice.on { border-color: #C4603A; background: rgba(196,96,58,0.04); }
+  .sf-voice-play { width: 22px; height: 22px; border-radius: 50%; background: #F5F5F5; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #888; flex-shrink: 0; }
+  .sf-voice.on .sf-voice-play { background: #C4603A; color: #fff; }
+  .sf-voice-name { font-size: 10px; font-weight: 600; }
+  .sf-voice-tone { font-size: 9px; color: #BBB; }
+
+  /* Slide rows */
+  .sf-slides { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .sf-slide { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: #fff; border-radius: 6px; border: 1px solid #EBEBEB; font-size: 10px; }
+  .sf-slide-num { width: 20px; height: 20px; border-radius: 50%; background: #F5F5F5; color: #888; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+  .sf-slide:first-child .sf-slide-num { background: #C4603A; color: #fff; }
+  .sf-slide-text { flex: 1; color: #555; }
+  .sf-slide-ref { font-size: 8px; color: #C4603A; background: #F5F5F5; padding: 1px 5px; border-radius: 4px; }
+
+  /* Footer */
+  .sf-footer { padding: 8px 16px; border-top: 1px solid #EBEBEB; display: flex; align-items: center; justify-content: space-between; background: #fff; }
+  .sf-cost { font-size: 11px; color: #888; }
+  .sf-cost strong { color: #111; }
+  .sf-gen { padding: 8px 20px; background: #C4603A; border: none; border-radius: 8px; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+  .divider { height: 1px; background: #EBEBEB; margin: 32px 0 8px; }
+</style>
+</head>
+<body>
+
+<h2>📷 Photo Mode</h2>
+<p class="sub">Refs show as visual thumbnails inline with the prompt. Sidebar has your world + history.</p>
+
+<div class="studio-frame">
+  <div class="sf-head">
+    <div class="sf-head-l"><button class="sf-x">&times;</button><span class="sf-title">Create Content</span><span class="sf-badge">maria &middot; Fitness</span></div>
+    <span style="font-size: 11px; color: #888;">867 credits</span>
+  </div>
+  <div class="sf-body">
+    <div class="sf-left">
+      <div class="sf-section-label">Your World</div>
+      <div class="sf-section-hint">Click to add to generation</div>
+      <div class="sf-ref-grid">
+        <div class="sf-ref on" style="background: #f0e8e5;"><span class="sf-ref-icon">🛏️</span><span class="sf-ref-name">Bedroom</span><span class="sf-ref-check">✓</span></div>
+        <div class="sf-ref" style="background: #e5f0e5;"><span class="sf-ref-icon">🏋️</span><span class="sf-ref-name">Gym</span></div>
+        <div class="sf-ref" style="background: #e5e5f0;"><span class="sf-ref-icon">☕</span><span class="sf-ref-name">Café</span></div>
+        <div class="sf-ref" style="background: #f0ece5;"><span class="sf-ref-icon">🥤</span><span class="sf-ref-name">Protein</span></div>
+        <div class="sf-ref" style="background: #f0e5e8;"><span class="sf-ref-icon">👗</span><span class="sf-ref-name">Sports Set</span></div>
+        <div class="sf-add">+</div>
+      </div>
+      <div class="sf-section-label">Public Library</div>
+      <div class="sf-pub-row">
+        <div class="sf-pub-item" style="background: linear-gradient(135deg, #d4c4b0, #c0a890);"></div>
+        <div class="sf-pub-item" style="background: linear-gradient(135deg, #b0c4b0, #90a890);"></div>
+        <div class="sf-pub-item" style="background: linear-gradient(135deg, #b0b0c4, #9090a8);"></div>
+        <div class="sf-pub-item" style="background: linear-gradient(135deg, #c4b0b0, #a89090);"></div>
+      </div>
+      <div class="sf-section-label">Recent</div>
+      <div class="sf-history-item"><div class="sf-h-thumb" style="background: linear-gradient(135deg, #d4a89a, #c49080);"></div><div class="sf-h-text"><div class="sf-h-type">📷 Photo</div>Gym mirror selfie</div></div>
+      <div class="sf-history-item"><div class="sf-h-thumb" style="background: linear-gradient(135deg, #9aad8a, #80a070);"></div><div class="sf-h-text"><div class="sf-h-type">🎥 Video</div>City golden hour walk</div></div>
+    </div>
+    <div class="sf-right">
+      <div class="sf-pills">
+        <button class="sf-pill on">📷 Photo</button>
+        <button class="sf-pill">📸 Carousel</button>
+        <button class="sf-pill">🎥 Video</button>
+        <button class="sf-pill">🎤 Talking Head</button>
+      </div>
+      <div class="sf-create-area">
+        <div class="sf-input-card">
+          <div class="sf-input-label">What should maria do?</div>
+          <textarea class="sf-textarea" rows="2" placeholder="Morning coffee in my bedroom, cozy sweater, candid smile..."></textarea>
+          <div class="sf-inline-refs">
+            <div class="sf-inline-ref">
+              <div class="sf-inline-ref-thumb" style="background: linear-gradient(135deg, #f0e8e5, #e8ddd8);"></div>
+              🛏️ Bedroom <span class="sf-inline-ref-x">&times;</span>
+            </div>
+            <span class="sf-add-ref-btn">+ ref</span>
+          </div>
+        </div>
+        <div class="sf-config">
+          <span>Photos:</span>
+          <button class="sf-cfg-btn on">1</button>
+          <button class="sf-cfg-btn">2</button>
+          <button class="sf-cfg-btn">3</button>
+          <button class="sf-cfg-btn">4</button>
+        </div>
+        <div class="sf-tpl-label">Quick starts</div>
+        <div class="sf-tpl">
+          <span class="sf-tpl-chip">💪 Gym Selfie</span>
+          <span class="sf-tpl-chip">☕ Coffee</span>
+          <span class="sf-tpl-chip">🌇 Golden Hour</span>
+          <span class="sf-tpl-chip">🌊 Beach</span>
+          <span class="sf-tpl-chip">👗 Outfit</span>
+        </div>
+      </div>
+      <div class="sf-footer">
+        <span class="sf-cost"><strong>1 credit</strong></span>
+        <button class="sf-gen">Generate →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+<h2>📸 Carousel Mode</h2>
+<p class="sub">Pick a format → see slides → refs auto-match to slides based on scene (gym ref → gym slides).</p>
+
+<div class="studio-frame">
+  <div class="sf-head">
+    <div class="sf-head-l"><button class="sf-x">&times;</button><span class="sf-title">Create Content</span><span class="sf-badge">maria</span></div>
+    <span style="font-size: 11px; color: #888;">867 credits</span>
+  </div>
+  <div class="sf-body">
+    <div class="sf-left" style="font-size: 10px;">
+      <div class="sf-section-label">Your World</div>
+      <div class="sf-ref-grid">
+        <div class="sf-ref on" style="background: #e5f0e5;"><span class="sf-ref-icon">🏋️</span><span class="sf-ref-name">Gym</span><span class="sf-ref-check">✓</span></div>
+        <div class="sf-ref on" style="background: #f0ece5;"><span class="sf-ref-icon">🥤</span><span class="sf-ref-name">Protein</span><span class="sf-ref-check">✓</span></div>
+        <div class="sf-ref" style="background: #f0e8e5;"><span class="sf-ref-icon">🛏️</span><span class="sf-ref-name">Bedroom</span></div>
+        <div class="sf-ref" style="background: #e5e5f0;"><span class="sf-ref-icon">☕</span><span class="sf-ref-name">Café</span></div>
+        <div class="sf-ref" style="background: #f0e5e8;"><span class="sf-ref-icon">👗</span><span class="sf-ref-name">Sports Set</span></div>
+        <div class="sf-add">+</div>
+      </div>
+      <div class="sf-section-label">Recent</div>
+      <div class="sf-history-item"><div class="sf-h-thumb" style="background: linear-gradient(135deg, #d4a89a, #c49080);"></div><div class="sf-h-text"><div class="sf-h-type">📷 Photo</div>Gym mirror selfie</div></div>
+    </div>
+    <div class="sf-right">
+      <div class="sf-pills">
+        <button class="sf-pill">📷 Photo</button>
+        <button class="sf-pill on">📸 Carousel</button>
+        <button class="sf-pill">🎥 Video</button>
+        <button class="sf-pill">🎤 Talking Head</button>
+      </div>
+      <div class="sf-create-area">
+        <div class="sf-tpl-label">Pick a format</div>
+        <div class="sf-tpl" style="margin-bottom: 10px;">
+          <span class="sf-tpl-chip" style="border-color: #C4603A; color: #C4603A;">💪 Gym Photo Dump</span>
+          <span class="sf-tpl-chip">🌆 City Day</span>
+          <span class="sf-tpl-chip">✨ GRWM</span>
+          <span class="sf-tpl-chip">🌊 Beach Day</span>
+          <span class="sf-tpl-chip">👗 Outfit</span>
+          <span class="sf-tpl-chip">🛍️ Product</span>
+        </div>
+        <div class="sf-slides">
+          <div class="sf-slide"><span class="sf-slide-num">1</span><span class="sf-slide-text">Gym Mirror Selfie — confident, checking outfit</span><span class="sf-slide-ref">🏋️ Gym (auto)</span></div>
+          <div class="sf-slide"><span class="sf-slide-num">2</span><span class="sf-slide-text">Workout Action — mid-movement, intense</span><span class="sf-slide-ref">🏋️ Gym (auto)</span></div>
+          <div class="sf-slide"><span class="sf-slide-num">3</span><span class="sf-slide-text">Post-Workout Glow — relaxed, accomplished</span></div>
+          <div class="sf-slide"><span class="sf-slide-num">4</span><span class="sf-slide-text">Protein Shake — casual, refueling</span><span class="sf-slide-ref">🥤 Protein (auto)</span></div>
+          <div class="sf-slide"><span class="sf-slide-num">5</span><span class="sf-slide-text">Car Selfie — leaving gym, hoodie on</span></div>
+        </div>
+        <div class="sf-input-card">
+          <div class="sf-input-label">Additional instructions</div>
+          <textarea class="sf-textarea" rows="1" placeholder="e.g. wearing all black, outdoor gym, golden hour..."></textarea>
+        </div>
+      </div>
+      <div class="sf-footer">
+        <span class="sf-cost"><strong>5 credits</strong> &middot; 5 slides</span>
+        <button class="sf-gen">Generate Carousel →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+<h2>🎥 Video Mode</h2>
+<p class="sub">Three sources: describe a scene, animate a photo, or transfer motion from a video. Each is a clear card.</p>
+
+<div class="studio-frame">
+  <div class="sf-head">
+    <div class="sf-head-l"><button class="sf-x">&times;</button><span class="sf-title">Create Content</span><span class="sf-badge">maria</span></div>
+    <span style="font-size: 11px; color: #888;">867 credits</span>
+  </div>
+  <div class="sf-body">
+    <div class="sf-left" style="font-size: 10px;">
+      <div class="sf-section-label">Your World</div>
+      <div class="sf-ref-grid">
+        <div class="sf-ref on" style="background: #e5f0e5;"><span class="sf-ref-icon">🏋️</span><span class="sf-ref-name">Gym</span><span class="sf-ref-check">✓</span></div>
+        <div class="sf-ref" style="background: #f0e8e5;"><span class="sf-ref-icon">🛏️</span><span class="sf-ref-name">Bedroom</span></div>
+        <div class="sf-ref" style="background: #e5e5f0;"><span class="sf-ref-icon">☕</span><span class="sf-ref-name">Café</span></div>
+        <div class="sf-ref" style="background: #f0ece5;"><span class="sf-ref-icon">🥤</span><span class="sf-ref-name">Protein</span></div>
+        <div class="sf-ref" style="background: #f0e5e8;"><span class="sf-ref-icon">👗</span><span class="sf-ref-name">Sports Set</span></div>
+        <div class="sf-add">+</div>
+      </div>
+      <div class="sf-section-label">Recent</div>
+      <div class="sf-history-item"><div class="sf-h-thumb" style="background: linear-gradient(135deg, #9aad8a, #80a070);"></div><div class="sf-h-text"><div class="sf-h-type">🎥 Video</div>City golden hour walk</div></div>
+    </div>
+    <div class="sf-right">
+      <div class="sf-pills">
+        <button class="sf-pill">📷 Photo</button>
+        <button class="sf-pill">📸 Carousel</button>
+        <button class="sf-pill on">🎥 Video</button>
+        <button class="sf-pill">🎤 Talking Head</button>
+      </div>
+      <div class="sf-create-area">
+        <!-- Video source cards -->
+        <div class="sf-video-sources">
+          <div class="sf-vsrc on">
+            <span class="sf-vsrc-icon">✍️</span>
+            <div class="sf-vsrc-label">From Text</div>
+            <div class="sf-vsrc-hint">Describe a scene</div>
+          </div>
+          <div class="sf-vsrc">
+            <span class="sf-vsrc-icon">🖼️</span>
+            <div class="sf-vsrc-label">From Photo</div>
+            <div class="sf-vsrc-hint">Animate a photo</div>
+          </div>
+          <div class="sf-vsrc">
+            <span class="sf-vsrc-icon">🕺</span>
+            <div class="sf-vsrc-label">Motion Transfer</div>
+            <div class="sf-vsrc-hint">Copy a dance/movement</div>
+          </div>
+        </div>
+
+        <div class="sf-input-card">
+          <div class="sf-input-label">What happens in the video?</div>
+          <textarea class="sf-textarea" rows="2" placeholder="Walking through the gym, checking outfit in mirror, confident stride..."></textarea>
+          <div class="sf-inline-refs">
+            <div class="sf-inline-ref">
+              <div class="sf-inline-ref-thumb" style="background: linear-gradient(135deg, #e5f0e5, #d8e8d8);"></div>
+              🏋️ Gym <span class="sf-inline-ref-x">&times;</span>
+            </div>
+            <span class="sf-add-ref-btn">+ ref</span>
+          </div>
+        </div>
+
+        <div class="sf-config">
+          <span>Duration:</span>
+          <button class="sf-cfg-pill on">5s &middot; 3cr</button>
+          <button class="sf-cfg-pill">10s &middot; 5cr</button>
+          <span style="margin-left: 8px;">Ratio:</span>
+          <button class="sf-cfg-pill on">9:16</button>
+          <button class="sf-cfg-pill">1:1</button>
+          <button class="sf-cfg-pill">16:9</button>
+        </div>
+      </div>
+      <div class="sf-footer">
+        <span class="sf-cost"><strong>3 credits</strong> &middot; 5s video</span>
+        <button class="sf-gen">Generate Video →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+<h2>🎤 Talking Head Mode</h2>
+<p class="sub">Script replaces prompt. Voice picker. Background setting. Duration toggle.</p>
+
+<div class="studio-frame">
+  <div class="sf-head">
+    <div class="sf-head-l"><button class="sf-x">&times;</button><span class="sf-title">Create Content</span><span class="sf-badge">maria</span></div>
+    <span style="font-size: 11px; color: #888;">867 credits</span>
+  </div>
+  <div class="sf-body">
+    <div class="sf-left" style="font-size: 10px;">
+      <div class="sf-section-label">Your World</div>
+      <div class="sf-ref-grid">
+        <div class="sf-ref on" style="background: #f0e8e5;"><span class="sf-ref-icon">🛏️</span><span class="sf-ref-name">Bedroom</span><span class="sf-ref-check">✓</span></div>
+        <div class="sf-ref" style="background: #e5f0e5;"><span class="sf-ref-icon">🏋️</span><span class="sf-ref-name">Gym</span></div>
+        <div class="sf-ref" style="background: #e5e5f0;"><span class="sf-ref-icon">☕</span><span class="sf-ref-name">Café</span></div>
+        <div class="sf-add">+</div>
+      </div>
+      <div class="sf-section-label">Recent</div>
+      <div class="sf-history-item"><div class="sf-h-thumb" style="background: linear-gradient(135deg, #8a9aad, #7080a0);"></div><div class="sf-h-text"><div class="sf-h-type">🎤 Talking Head</div>Protein review script</div></div>
+    </div>
+    <div class="sf-right">
+      <div class="sf-pills">
+        <button class="sf-pill">📷 Photo</button>
+        <button class="sf-pill">📸 Carousel</button>
+        <button class="sf-pill">🎥 Video</button>
+        <button class="sf-pill on">🎤 Talking Head</button>
+      </div>
+      <div class="sf-create-area">
+        <div class="sf-input-card">
+          <div class="sf-input-label">What should maria say?</div>
+          <textarea class="sf-textarea" rows="4" placeholder="Hey guys! So I've been using this protein powder for the past month and honestly? Game changer..."></textarea>
+          <div class="sf-inline-refs">
+            <div class="sf-inline-ref">
+              <div class="sf-inline-ref-thumb" style="background: linear-gradient(135deg, #f0e8e5, #e8ddd8);"></div>
+              🛏️ Bedroom (background) <span class="sf-inline-ref-x">&times;</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sf-section-label" style="padding: 0 0 6px; margin-top: 0;">Voice</div>
+        <div class="sf-voice-grid">
+          <div class="sf-voice on"><div class="sf-voice-play">▶</div><div><div class="sf-voice-name">Rachel</div><div class="sf-voice-tone">Calm, natural</div></div></div>
+          <div class="sf-voice"><div class="sf-voice-play">▶</div><div><div class="sf-voice-name">Bella</div><div class="sf-voice-tone">Warm, friendly</div></div></div>
+          <div class="sf-voice"><div class="sf-voice-play">▶</div><div><div class="sf-voice-name">Domi</div><div class="sf-voice-tone">Energetic</div></div></div>
+          <div class="sf-voice"><div class="sf-voice-play">▶</div><div><div class="sf-voice-name">Elli</div><div class="sf-voice-tone">Professional</div></div></div>
+        </div>
+
+        <div class="sf-config">
+          <span>Duration:</span>
+          <button class="sf-cfg-pill on">15s &middot; 8cr</button>
+          <button class="sf-cfg-pill">30s &middot; 12cr</button>
+        </div>
+      </div>
+      <div class="sf-footer">
+        <span class="sf-cost"><strong>8 credits</strong> &middot; 15s talking head</span>
+        <button class="sf-gen">Generate Talking Head →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+<h2>Key Design Decisions</h2>
+<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding-bottom: 40px;">
+  <div style="background: #fff; border-radius: 8px; padding: 12px; border: 1px solid #EBEBEB; font-size: 12px;">
+    <strong style="color: #C4603A;">Refs are visual thumbnails inline.</strong>
+    <span style="color: #888;"> When you select a bedroom ref, you see the bedroom thumbnail right in the input area. Not a text tag — a real image.</span>
+  </div>
+  <div style="background: #fff; border-radius: 8px; padding: 12px; border: 1px solid #EBEBEB; font-size: 12px;">
+    <strong style="color: #C4603A;">Sidebar = Your World + Public Library + Recent.</strong>
+    <span style="color: #888;"> Account-wide refs (shared across creators), public curated refs, and your last generations. All in one compact panel.</span>
+  </div>
+  <div style="background: #fff; border-radius: 8px; padding: 12px; border: 1px solid #EBEBEB; font-size: 12px;">
+    <strong style="color: #C4603A;">Video has 3 clear source cards.</strong>
+    <span style="color: #888;"> "From Text" / "From Photo" / "Motion Transfer" — each is a visual card, not a dropdown. Motion transfer explains itself.</span>
+  </div>
+  <div style="background: #fff; border-radius: 8px; padding: 12px; border: 1px solid #EBEBEB; font-size: 12px;">
+    <strong style="color: #C4603A;">Carousel auto-matches refs to slides.</strong>
+    <span style="color: #888;"> Select gym ref → it auto-appears on gym-related slides. "(auto)" badge. User can override.</span>
+  </div>
+  <div style="background: #fff; border-radius: 8px; padding: 12px; border: 1px solid #EBEBEB; font-size: 12px;">
+    <strong style="color: #C4603A;">History = click to reload.</strong>
+    <span style="color: #888;"> Click any recent generation → loads all settings (type, prompt, refs, config) back into the studio. Regenerate with tweaks.</span>
+  </div>
+</div>
+
+</body>
+</html>

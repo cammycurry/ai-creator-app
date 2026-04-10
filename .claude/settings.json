@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(pnpm *)",
+      "Bash(pnpx prisma *)",
+      "Bash(npx prettier *)",
+      "Bash(npx tsc *)",
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(python3 *)",
+      "Bash(npx tsx *)",
+      "Bash(npx next *)",
+      "Bash(npm ls *)",
+      "Bash(curl *)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "mcp__shadcn__get_project_registries",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); FILE=$(echo \"$INPUT\" | jq -r '.tool_input.file_path // empty'); if [ -n \"$FILE\" ] && echo \"$FILE\" | grep -qE '\\.(ts|tsx|js|jsx|css|json)$'; then npx prettier --write \"$FILE\" 2>/dev/null; fi"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display notification \"Claude needs your attention\" with title \"Claude Code\"'"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); TRANSCRIPT=$(echo \"$INPUT\" | jq -r '.transcript_path // empty'); if [ -n \"$TRANSCRIPT\" ] && [ -f \"$TRANSCRIPT\" ]; then mkdir -p ~/.claude/backups && cp \"$TRANSCRIPT\" ~/.claude/backups/session-$(date +%s).jsonl; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{"type":"server-started","port":58537,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:58537","screen_dir":"/Users/camcurry/projects/ai-creator-app/.superpowers/brainstorm/95764-1774807725/content","state_dir":"/Users/camcurry/projects/ai-creator-app/.superpowers/brainstorm/95764-1774807725/state"}
+{"type":"screen-added","file":"/Users/camcurry/projects/ai-creator-app/.superpowers/brainstorm/95764-1774807725/content/studio-layout-options.html"}
+{"type":"screen-added","file":"/Users/camcurry/projects/ai-creator-app/.superpowers/brainstorm/95764-1774807725/content/unified-studio-flow.html"}
+{"type":"screen-added","file":"/Users/camcurry/projects/ai-creator-app/.superpowers/brainstorm/95764-1774807725/content/reference-system-deep.html"}
+{"type":"screen-added","file":"/Users/camcurry/projects/ai-creator-app/.superpowers/brainstorm/95764-1774807725/content/waiting.html"}
+{"type":"server-stopped","reason":"idle timeout"}

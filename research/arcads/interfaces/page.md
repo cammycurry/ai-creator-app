@@ -1,0 +1,1 @@
+simple onboarding and imdinglessly simple to genearte its like a chatgpt but for ads is hwat hey aer going for.. i kinda wnat to do this but for influeners and have ti a little more guides.. 

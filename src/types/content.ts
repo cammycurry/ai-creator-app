@@ -2,10 +2,9 @@ export type ContentRefAttachment = {
   refId: string;
   refName: string;
   refS3Key: string;
-  mode: "exact" | "similar" | "vibe";
-  what: "background" | "outfit" | "pose" | "all";
+  refType: "scene" | "product";
+  mode: "exact" | "inspired";
   description: string;
-  vibeText?: string;
 };
 
 export type ContentSetItem = {

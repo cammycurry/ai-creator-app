@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:prompt": "npx tsx scripts/test-prompt.ts",
+    "test:video": "npx tsx scripts/test-video-pipeline.ts",
     "dashboard": "npx tsx scripts/dashboard.ts",
     "test:batch": "npx tsx scripts/batch-test.ts"
   },
@@ -41,6 +42,7 @@
     "prisma": "^7.5.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-resizable-panels": "^4.9.0",
     "shadcn": "^4.0.5",
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",

@@ -1,0 +1,111 @@
+<h2>Creator Dashboard — Header Cleanup</h2>
+<p class="subtitle">What should the top of the creator page look like? The buttons need clear purpose.</p>
+
+<div class="cards" style="gap: 28px;">
+
+  <!-- Option A: Minimal -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)" style="flex: 1; min-width: 420px;">
+    <div class="card-image" style="padding: 0; overflow: hidden;">
+      <div style="background: #faf9f7; padding: 24px; font-family: system-ui; font-size: 13px; color: #333;">
+        <!-- Creator header -->
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #e8d5c4, #d4a574);"></div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 600;">maria</div>
+            <div style="font-size: 13px; color: #999;">Fitness &middot; 12 items</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="background: #C4603A; color: white; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;">Create Content</div>
+            <div style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid #e0dbd5; display: flex; align-items: center; justify-content: center; color: #999; font-size: 14px; cursor: pointer;">&#9998;</div>
+            <div style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid #e0dbd5; display: flex; align-items: center; justify-content: center; color: #999; font-size: 16px; cursor: pointer;">&hellip;</div>
+          </div>
+        </div>
+
+        <!-- Content grid preview -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: 13px; color: #999;">12 items</div>
+          <div style="display: flex; gap: 6px;">
+            <div style="background: #333; color: white; padding: 4px 10px; border-radius: 14px; font-size: 11px;">All</div>
+            <div style="background: #f0ebe5; padding: 4px 10px; border-radius: 14px; font-size: 11px;">Photos</div>
+            <div style="background: #f0ebe5; padding: 4px 10px; border-radius: 14px; font-size: 11px;">Videos</div>
+            <div style="background: #f0ebe5; padding: 4px 10px; border-radius: 14px; font-size: 11px;">Carousels</div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #e8d5c4, #d4a574); position: relative;">
+            <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px;">PHOTO</div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #d8e0d4, #98b090); position: relative;">
+            <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px;">PHOTO</div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #dce4e8, #90b0c8); position: relative;">
+            <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px;">VIDEO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A: Minimal — Just Content</h3>
+      <p>Creator name + avatar + "Create Content" button (opens studio) + edit icon (creator settings) + "..." (delete, export). Below is the content grid with type filters (All/Photos/Videos/Carousels). No tabs. Clean and focused.</p>
+    </div>
+  </div>
+
+  <!-- Option B: With floating bar -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)" style="flex: 1; min-width: 420px;">
+    <div class="card-image" style="padding: 0; overflow: hidden;">
+      <div style="background: #faf9f7; padding: 24px; font-family: system-ui; font-size: 13px; color: #333;">
+        <!-- Creator header -->
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #e8d5c4, #d4a574);"></div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 600;">maria</div>
+            <div style="font-size: 13px; color: #999;">Fitness &middot; 12 items</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid #e0dbd5; display: flex; align-items: center; justify-content: center; color: #999; font-size: 14px;">&#9998;</div>
+            <div style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid #e0dbd5; display: flex; align-items: center; justify-content: center; color: #999; font-size: 16px;">&hellip;</div>
+          </div>
+        </div>
+
+        <!-- Floating input bar -->
+        <div style="background: #fff; border: 1.5px solid #e0dbd5; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <div style="flex: 1; color: #bbb; font-size: 14px;">What should maria do?</div>
+          <div style="display: flex; gap: 6px;">
+            <div style="padding: 4px 10px; border-radius: 14px; font-size: 11px; background: #f0ebe5;">Photo</div>
+            <div style="padding: 4px 10px; border-radius: 14px; font-size: 11px; background: #f0ebe5;">Video</div>
+          </div>
+          <div style="background: #C4603A; color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;">Generate</div>
+        </div>
+        <div style="text-align: center; margin-bottom: 14px;">
+          <span style="font-size: 11px; color: #C4603A; cursor: pointer;">Open full studio &rarr;</span>
+        </div>
+
+        <!-- Content grid -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="font-size: 13px; color: #999;">12 items</div>
+          <div style="display: flex; gap: 6px;">
+            <div style="background: #333; color: white; padding: 4px 10px; border-radius: 14px; font-size: 11px;">All</div>
+            <div style="background: #f0ebe5; padding: 4px 10px; border-radius: 14px; font-size: 11px;">Photos</div>
+            <div style="background: #f0ebe5; padding: 4px 10px; border-radius: 14px; font-size: 11px;">Videos</div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #e8d5c4, #d4a574); position: relative;">
+            <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px;">PHOTO</div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #d8e0d4, #98b090); position: relative;">
+            <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px;">PHOTO</div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #dce4e8, #90b0c8); position: relative;">
+            <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px;">VIDEO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B: Floating Bar + Studio Link</h3>
+      <p>Quick input bar right on the dashboard — type and generate fast. "Open full studio" link below it for power mode. Edit + "..." for settings. Floating bar IS the quick path, studio is the deep path. Clear relationship.</p>
+    </div>
+  </div>
+
+</div>

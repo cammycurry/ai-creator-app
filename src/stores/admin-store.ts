@@ -18,7 +18,8 @@ type AdminStore = {
 
   // Lightbox
   lightboxSrc: string | null;
-  openLightbox: (src: string) => void;
+  lightboxType: "image" | "video";
+  openLightbox: (src: string, type?: "image" | "video") => void;
   closeLightbox: () => void;
 };
 
@@ -46,6 +47,7 @@ export const useAdminStore = create<AdminStore>((set) => ({
   clearCompare: () => set({ compareIds: [] }),
 
   lightboxSrc: null,
-  openLightbox: (src) => set({ lightboxSrc: src }),
+  lightboxType: "image" as const,
+  openLightbox: (src, type = "image") => set({ lightboxSrc: src, lightboxType: type }),
   closeLightbox: () => set({ lightboxSrc: null }),
 }));

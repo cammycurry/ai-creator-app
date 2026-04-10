@@ -1,0 +1,1187 @@
+[
+  {
+    "index": 1,
+    "filename": "female-latina-curvy-1775709492275.jpg",
+    "s3Key": "admin/creators/seed/female-latina-curvy-1775709492275.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Lifestyle/Fashion",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:38:12.860Z",
+    "personPrompt": "Soft & Sweet 22-year-old Latina woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Full-figured build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Soft & Sweet 22-year-old Latina woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Full-figured build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "22",
+      "ethnicity": "Latina",
+      "build": "full figure",
+      "chestSize": "large",
+      "vibes": [
+        "Soft"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-latina-curvy-1775709492275.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 2,
+    "filename": "female-latina-curvy-1775709468727.jpg",
+    "s3Key": "admin/creators/seed/female-latina-curvy-1775709468727.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Lifestyle/Fashion",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:37:49.445Z",
+    "personPrompt": "Baddie 20-year-old Latina woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Full-figured build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Baddie 20-year-old Latina woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Full-figured build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "20",
+      "ethnicity": "Latina",
+      "build": "full figure",
+      "chestSize": "large",
+      "vibes": [
+        "Baddie"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-latina-curvy-1775709468727.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 3,
+    "filename": "female-european-athletic-1775709446744.jpg",
+    "s3Key": "admin/creators/seed/female-european-athletic-1775709446744.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:37:27.318Z",
+    "personPrompt": "Fitness 23-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Athletic build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Fitness 23-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Athletic build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "23",
+      "ethnicity": "European",
+      "build": "athletic",
+      "chestSize": "medium-large",
+      "vibes": [
+        "Fitness"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-athletic-1775709446744.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 4,
+    "filename": "female-european-athletic-1775709426528.jpg",
+    "s3Key": "admin/creators/seed/female-european-athletic-1775709426528.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:37:07.241Z",
+    "personPrompt": "Baddie 23-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Athletic build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Baddie 23-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Athletic build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "23",
+      "ethnicity": "European",
+      "build": "athletic",
+      "chestSize": "medium-large",
+      "vibes": [
+        "Baddie"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-athletic-1775709426528.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 5,
+    "filename": "female-european-athletic-1775709403352.jpg",
+    "s3Key": "admin/creators/seed/female-european-athletic-1775709403352.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:36:44.007Z",
+    "personPrompt": "Girl Next Door 22-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Athletic build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Girl Next Door 22-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Athletic build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "22",
+      "ethnicity": "European",
+      "build": "athletic",
+      "chestSize": "medium-large",
+      "vibes": [
+        "Girl"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-athletic-1775709403352.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 6,
+    "filename": "female-european-slim-thick-1775709382224.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709382224.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:36:22.781Z",
+    "personPrompt": "Sultry 23-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Sultry 23-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "23",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "medium-large",
+      "vibes": [
+        "Sultry"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709382224.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 7,
+    "filename": "female-european-slim-thick-1775709359764.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709359764.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:36:00.430Z",
+    "personPrompt": "Girl Next Door 24-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Girl Next Door 24-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "24",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "medium-large",
+      "vibes": [
+        "Girl"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709359764.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 8,
+    "filename": "female-european-slim-thick-1775709338801.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709338801.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:35:39.424Z",
+    "personPrompt": "Natural Beauty 22-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Natural Beauty 22-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "22",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "large",
+      "vibes": [
+        "Natural"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709338801.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 9,
+    "filename": "female-european-slim-thick-1775709317772.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709317772.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:35:18.322Z",
+    "personPrompt": "Glamorous 22-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Glamorous 22-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "22",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "large",
+      "vibes": [
+        "Glamorous"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709317772.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 10,
+    "filename": "female-european-slim-thick-1775709296199.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709296199.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:34:56.868Z",
+    "personPrompt": "Baddie 22-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Baddie 22-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "22",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "large",
+      "vibes": [
+        "Baddie"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709296199.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 11,
+    "filename": "female-european-slim-thick-1775709273626.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709273626.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:34:34.276Z",
+    "personPrompt": "Fitness 24-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Fitness 24-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "24",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "large",
+      "vibes": [
+        "Fitness"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709273626.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 12,
+    "filename": "female-european-slim-thick-1775709251035.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709251035.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:34:11.566Z",
+    "personPrompt": "Sexy confident 23-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Sexy confident 23-year-old European woman, large C-cup breasts with visible cleavage, chest filling the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "23",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "medium-large",
+      "vibes": [
+        "Sexy"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709251035.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 13,
+    "filename": "female-european-slim-thick-1775709229614.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709229614.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:33:50.223Z",
+    "personPrompt": "Soft & Sweet 21-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Soft & Sweet 21-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "21",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "large",
+      "vibes": [
+        "Soft"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709229614.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 14,
+    "filename": "female-european-slim-thick-1775709207529.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709207529.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:33:28.128Z",
+    "personPrompt": "Natural Beauty 26-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Natural Beauty 26-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "26",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "large",
+      "vibes": [
+        "Natural"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709207529.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  },
+  {
+    "index": 15,
+    "filename": "female-european-slim-thick-1775709184667.jpg",
+    "s3Key": "admin/creators/seed/female-european-slim-thick-1775709184667.jpg",
+    "source": "seed-mix",
+    "mediaType": "creator",
+    "pipelineStage": "inbox",
+    "sourceHandle": "Fitness/Lifestyle",
+    "starred": false,
+    "rating": null,
+    "feedback": null,
+    "promptTags": null,
+    "notes": null,
+    "createdAt": "2026-04-09T09:33:05.385Z",
+    "personPrompt": "Glamorous 24-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "silhouetteWrapper": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. [PERSON_PROMPT_INSERTED_HERE]",
+    "fullPromptSentToGemini": "Composition: The reference image is a layout template.\nIt shows a gray featureless silhouette on a white background that defines the exact framing, body position, crop level, and pose.\nStrictly match the silhouette's composition — do not change the framing, crop, or body position.\nFrame from the top of the head to the belly button ONLY. Crop at the belly button — do not show hips, waist, or anything below.\nIMPORTANT: All clothing must be fully visible and covering. No nudity, no exposed underwear, no see-through clothing.\nPose: Front-facing, standing straight, arms relaxed at sides. Face looking directly at camera. Calm, confident, attractive expression.\nSubject: Replace the gray silhouette with a real photorealistic person. Glamorous 24-year-old European woman, very large DD-cup breasts with deep cleavage, extremely busty, breasts straining against the sports bra. Slim with wide hips and narrow waist build. tight white sports bra and black leggings. Canon EOS R5. Eyes open, looking directly at camera. Visible pores, photorealistic.",
+    "geminiApiCall": {
+      "model": "gemini-3-pro-image-preview",
+      "contents": [
+        {
+          "type": "text",
+          "value": "[fullPromptSentToGemini above]"
+        },
+        {
+          "type": "inlineData",
+          "description": "Silhouette composition template image (src/assets/composition-template.jpg) — gray featureless silhouette on white background, waist-up crop, front-facing pose. This is the ONLY image sent. No Instagram reference photos."
+        }
+      ],
+      "config": {
+        "responseModalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "safetySettings": [
+          {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE"
+          },
+          {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE"
+          }
+        ]
+      }
+    },
+    "inputTraits": {
+      "gender": "Female",
+      "age": "24",
+      "ethnicity": "European",
+      "build": "slim thick",
+      "chestSize": "large",
+      "vibes": [
+        "Glamorous"
+      ],
+      "note": "These are the StudioTraits that were passed to buildWizardPrompt(). The function maps them to the prompt text above using hardcoded mappings for build descriptions, chest size descriptions, and clothing."
+    },
+    "postProcessing": {
+      "step1": "Extract base64 image data from response.candidates[0].content.parts[].inlineData.data",
+      "step2": "Convert base64 to Buffer",
+      "step3": "Run through sharp().jpeg({ quality: 95 }).toBuffer() — strips ALL metadata (C2PA, SynthID, EXIF, XMP, IPTC)",
+      "step4": "Upload cleaned buffer to S3 at key: admin/creators/seed/female-european-slim-thick-1775709184667.jpg",
+      "step5": "Create AdminMedia record in PostgreSQL database"
+    },
+    "notIncluded": {
+      "noInstagramPhotos": "No Instagram reference photos are sent to Gemini. The prompt is TEXT ONLY + the silhouette template image.",
+      "noHairOrEyeDescription": "buildWizardPrompt does NOT specify hair color, hair style, eye color, or facial features. Gemini decides these based on the ethnicity and vibe.",
+      "noGrokMetaPrompting": "This batch used buildWizardPrompt directly. No Grok/Flash meta-prompting was used.",
+      "noBackgroundDescription": "The silhouette wrapper handles the white background. The person prompt never mentions background."
+    }
+  }
+]

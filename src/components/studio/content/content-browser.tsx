@@ -85,6 +85,8 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
       // Filter out carousel slides (they belong to sets)
       const standalone = items.filter((c) => !c.contentSetId);
       setContentItems(standalone.map(contentToBrowserItem));
+      // Also push to creator store so other components (video picker, etc.) can access content
+      useCreatorStore.getState().setContent(items);
       setLoading(false);
     });
   }, [creator?.id, showResults]);

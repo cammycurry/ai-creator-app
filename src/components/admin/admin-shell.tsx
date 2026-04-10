@@ -4,7 +4,7 @@ import { AdminSidebar } from "./admin-sidebar";
 import { useAdminStore } from "@/stores/admin-store";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const { lightboxSrc, closeLightbox } = useAdminStore();
+  const { lightboxSrc, lightboxType, closeLightbox } = useAdminStore();
 
   return (
     <div className="flex h-screen bg-zinc-950 text-zinc-100">
@@ -17,11 +17,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 cursor-pointer"
           onClick={closeLightbox}
         >
-          <img
-            src={lightboxSrc}
-            alt=""
-            className="max-h-[90vh] max-w-[90vw] rounded-lg"
-          />
+          {lightboxType === "video" ? (
+            <video
+              src={lightboxSrc}
+              controls
+              autoPlay
+              className="max-h-[90vh] max-w-[90vw] rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <img
+              src={lightboxSrc}
+              alt=""
+              className="max-h-[90vh] max-w-[90vw] rounded-lg"
+            />
+          )}
         </div>
       )}
     </div>

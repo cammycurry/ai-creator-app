@@ -22,22 +22,22 @@ export default async function AdminDashboard() {
 
       <div className="mt-10 flex gap-3">
         <Link
-          href="/admin/prompt-lab"
+          href="/admin/generate"
           className="rounded-md bg-[#C4603A] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#d4704a]"
         >
-          Run a prompt test
+          Generate
+        </Link>
+        <Link
+          href="/admin/references"
+          className="rounded-md border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800"
+        >
+          References
         </Link>
         <Link
           href="/admin/credits"
           className="rounded-md border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800"
         >
           Grant credits
-        </Link>
-        <Link
-          href="/admin/jobs?status=FAILED"
-          className="rounded-md border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800"
-        >
-          View failed jobs
         </Link>
       </div>
 

@@ -8,22 +8,15 @@ import type { GenerationConfig } from "@/types/template";
 export type ContentType = "photo" | "carousel" | "video" | "talking-head";
 export type VideoSource = "text" | "photo" | "motion";
 
-export type RefMode = "exact" | "similar" | "vibe";
-export type RefWhat = "background" | "outfit" | "pose" | "all";
+export type RefMode = "exact" | "inspired";
+export type RefType = "scene" | "product";
 
 export type AttachedRef = {
   ref: ReferenceItem;
-  mode: RefMode;
-  what: RefWhat;
+  refType: RefType | null;  // null = not yet selected (required before generating)
+  mode: RefMode | null;     // null = not yet selected (required for scene type)
   description: string;
 };
-
-function autoDetectWhat(ref: ReferenceItem): RefWhat {
-  if (ref.type === "BACKGROUND") return "background";
-  if (ref.tags.includes("outfit")) return "outfit";
-  if (ref.tags.includes("pose")) return "pose";
-  return "all";
-}
 
 export type BrowserItem = {
   id: string;
@@ -81,6 +74,7 @@ type UnifiedStudioStore = {
   videoSource: VideoSource;
   videoDuration: 5 | 10;
   videoAspectRatio: "9:16" | "1:1" | "16:9";
+  videoQuality: "standard" | "premium";
   sourceContentId: string | null;
   motionSourceUrl: string | null;
 
@@ -106,7 +100,7 @@ type UnifiedStudioStore = {
   attachRef: (ref: ReferenceItem) => void;
   detachRef: (refId: string) => void;
   setRefMode: (refId: string, mode: RefMode) => void;
-  setRefWhat: (refId: string, what: RefWhat) => void;
+  setRefType: (refId: string, refType: RefType) => void;
   setRefDescription: (refId: string, description: string) => void;
   addInspirationPhoto: (photo: { base64: string; preview: string }) => void;
   removeInspirationPhoto: (index: number) => void;
@@ -124,6 +118,7 @@ type UnifiedStudioStore = {
   setVideoSource: (source: VideoSource) => void;
   setVideoDuration: (duration: 5 | 10) => void;
   setVideoAspectRatio: (ratio: "9:16" | "1:1" | "16:9") => void;
+  setVideoQuality: (quality: "standard" | "premium") => void;
   setSourceContentId: (id: string | null) => void;
   setMotionSourceUrl: (url: string | null) => void;
 
@@ -176,14 +171,14 @@ const INITIAL: Omit<UnifiedStudioStore,
   'addInspirationPhoto' | 'removeInspirationPhoto' | 'setInspirationVideo' |
   'setImageCount' | 'selectCarouselFormat' | 'updateSlide' | 'attachSlideRef' |
   'detachSlideRef' | 'setSlideCount' | 'setCarouselInstructions' |
-  'setVideoSource' | 'setVideoDuration' | 'setVideoAspectRatio' | 'setSourceContentId' | 'setMotionSourceUrl' |
+  'setVideoSource' | 'setVideoDuration' | 'setVideoAspectRatio' | 'setVideoQuality' | 'setSourceContentId' | 'setMotionSourceUrl' |
   'setScript' | 'setVoiceId' | 'setTalkingSetting' | 'setTalkingDuration' |
   'setGenerating' | 'setGeneratingProgress' | 'setError' |
   'setShowResults' | 'setResults' | 'setResultContentSet' |
   'setBrowserTab' | 'setBrowserSubFilter' | 'setBrowserSearch' |
   'selectItem' | 'showCanvas' | 'hideCanvas' |
   'prefillFromTemplate' | 'prefillVideoFromPhoto' | 'prefillMotionTransfer' |
-  'setAspectRatio' | 'reset' | 'setRefMode' | 'setRefWhat' | 'setRefDescription'
+  'setAspectRatio' | 'reset' | 'setRefMode' | 'setRefType' | 'setRefDescription'
 > = {
   contentType: "photo",
   prompt: "",
@@ -198,6 +193,7 @@ const INITIAL: Omit<UnifiedStudioStore,
   videoSource: "text",
   videoDuration: 5,
   videoAspectRatio: "9:16",
+  videoQuality: "standard",
   sourceContentId: null,
   motionSourceUrl: null,
   script: "",
@@ -228,7 +224,7 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
   attachRef: (ref) => set((s) => ({
     attachedRefs: s.attachedRefs.some((a) => a.ref.id === ref.id)
       ? s.attachedRefs.filter((a) => a.ref.id !== ref.id)
-      : [...s.attachedRefs, { ref, mode: "exact" as RefMode, what: autoDetectWhat(ref), description: "" }],
+      : [...s.attachedRefs, { ref, refType: null, mode: null, description: "" }],
   })),
   detachRef: (refId) => set((s) => ({
     attachedRefs: s.attachedRefs.filter((a) => a.ref.id !== refId),
@@ -238,8 +234,8 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
       a.ref.id === refId ? { ...a, mode } : a
     ),
   })),
-  setRefWhat: (refId, what) => set((s) => ({
-    attachedRefs: s.attachedRefs.map((a) => a.ref.id === refId ? { ...a, what } : a),
+  setRefType: (refId, refType) => set((s) => ({
+    attachedRefs: s.attachedRefs.map((a) => a.ref.id === refId ? { ...a, refType } : a),
   })),
   setRefDescription: (refId, description) => set((s) => ({
     attachedRefs: s.attachedRefs.map((a) => a.ref.id === refId ? { ...a, description } : a),
@@ -314,6 +310,7 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
   setVideoSource: (videoSource) => set({ videoSource }),
   setVideoDuration: (videoDuration) => set({ videoDuration }),
   setVideoAspectRatio: (videoAspectRatio) => set({ videoAspectRatio }),
+  setVideoQuality: (videoQuality) => set({ videoQuality }),
   setSourceContentId: (sourceContentId) => set({ sourceContentId }),
   setMotionSourceUrl: (motionSourceUrl) => set({ motionSourceUrl }),
 
@@ -334,7 +331,7 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
   setBrowserSubFilter: (browserSubFilter) => set({ browserSubFilter }),
   setBrowserSearch: (browserSearch) => set({ browserSearch }),
 
-  selectItem: (selectedItem) => set({ selectedItem, canvasVisible: selectedItem !== null }),
+  selectItem: (selectedItem) => set({ selectedItem, canvasVisible: selectedItem !== null, showResults: false }),
   showCanvas: () => set({ canvasVisible: true }),
   hideCanvas: () => set({ canvasVisible: false, selectedItem: null }),
 

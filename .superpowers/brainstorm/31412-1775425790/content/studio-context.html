@@ -1,0 +1,167 @@
+<h2>Content Studio — Role in New Design</h2>
+<p class="subtitle">The studio is the manual control panel. Input bar is the quick path. Same engine underneath.</p>
+
+<div style="max-width: 900px; margin: 0 auto;">
+
+  <!-- How you get there -->
+  <div class="section">
+    <h3>How Users Reach the Studio</h3>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 200px; background: #f8f8f8; border: 1px solid #EBEBEB; border-radius: 8px; padding: 16px;">
+        <div style="font-weight: 600; font-size: 13px; margin-bottom: 6px;">From Input Bar</div>
+        <div style="font-size: 12px; color: #666;">"Open studio &rarr;" link — when they want more control than just typing</div>
+      </div>
+      <div style="flex: 1; min-width: 200px; background: #f8f8f8; border: 1px solid #EBEBEB; border-radius: 8px; padding: 16px;">
+        <div style="font-weight: 600; font-size: 13px; margin-bottom: 6px;">From Sidebar</div>
+        <div style="font-size: 12px; color: #666;">"Create Content" button — direct access to full studio</div>
+      </div>
+      <div style="flex: 1; min-width: 200px; background: #f8f8f8; border: 1px solid #EBEBEB; border-radius: 8px; padding: 16px;">
+        <div style="font-weight: 600; font-size: 13px; margin-bottom: 6px;">From Content Detail</div>
+        <div style="font-size: 12px; color: #666;">"Make Video" / "Make Carousel" on existing content</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Studio mockup -->
+  <div class="section">
+    <h3>Content Studio (Full-Screen Overlay)</h3>
+    <div class="mockup">
+      <div class="mockup-header">Content Studio &mdash; Manual Control Panel</div>
+      <div class="mockup-body" style="padding: 0; background: #FAFAFA;">
+        <div style="display: flex; min-height: 420px; font-family: system-ui; font-size: 12px;">
+
+          <!-- Left panel: Library -->
+          <div style="width: 220px; background: #fff; border-right: 1px solid #EBEBEB; padding: 16px; overflow-y: auto;">
+            <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Library</div>
+            <div style="font-size: 10px; color: #BBB; margin-bottom: 6px;">Click to use in generation</div>
+
+            <!-- Ref grid -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 16px;">
+              <div style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(135deg, #e8d5c4, #d4a574);"></div>
+              <div style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(135deg, #d8e0d4, #98b090);"></div>
+              <div style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(135deg, #dce4e8, #90b0c8);"></div>
+              <div style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(135deg, #e4dce8, #b0a0c0);"></div>
+              <div style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(135deg, #e0d8cc, #b8a898);"></div>
+              <div style="aspect-ratio: 1; border-radius: 6px; border: 1.5px dashed #DDD; display: flex; align-items: center; justify-content: center; color: #CCC; font-size: 16px;">+</div>
+            </div>
+
+            <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Public Library</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 16px;">
+              <div style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(135deg, #f5e6d0, #e0a060);"></div>
+              <div style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(135deg, #d0e0f0, #6090c0);"></div>
+              <div style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(135deg, #e8e0d0, #c0a880);"></div>
+            </div>
+
+            <div style="font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Recent</div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 4px; cursor: pointer;">
+                <div style="width: 28px; height: 28px; border-radius: 4px; background: linear-gradient(135deg, #e8d5c4, #d4a574); flex-shrink: 0;"></div>
+                <div>
+                  <div style="font-size: 10px;">&#128247; Photo</div>
+                  <div style="font-size: 9px; color: #BBB;">gym selfie</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 4px; cursor: pointer;">
+                <div style="width: 28px; height: 28px; border-radius: 4px; background: linear-gradient(135deg, #d8e0d4, #98b090); flex-shrink: 0;"></div>
+                <div>
+                  <div style="font-size: 10px;">&#127909; Video</div>
+                  <div style="font-size: 9px; color: #BBB;">walking city</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right panel: Creation -->
+          <div style="flex: 1; display: flex; flex-direction: column; padding: 20px;">
+
+            <!-- Type pills -->
+            <div style="display: flex; gap: 6px; margin-bottom: 16px;">
+              <div style="padding: 6px 14px; border-radius: 20px; font-size: 12px; background: #111; color: white; font-weight: 500;">Photo</div>
+              <div style="padding: 6px 14px; border-radius: 20px; font-size: 12px; background: #F5F5F5; color: #888;">Carousel</div>
+              <div style="padding: 6px 14px; border-radius: 20px; font-size: 12px; background: #F5F5F5; color: #888;">Video</div>
+              <div style="padding: 6px 14px; border-radius: 20px; font-size: 12px; background: #F5F5F5; color: #888;">Talking Head</div>
+            </div>
+
+            <!-- Prompt -->
+            <div style="background: #fff; border: 1px solid #EBEBEB; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+              <div style="font-size: 11px; color: #888; margin-bottom: 6px;">What should maria do?</div>
+              <div style="min-height: 60px; color: #BBB; font-size: 13px;">e.g. gym selfie, coffee shop, beach sunset...</div>
+              <!-- Attached refs would show here -->
+              <div style="display: flex; gap: 4px; margin-top: 8px;">
+                <div style="width: 32px; height: 32px; border-radius: 4px; background: linear-gradient(135deg, #e8d5c4, #d4a574); border: 2px solid #C4603A;"></div>
+              </div>
+            </div>
+
+            <!-- Config -->
+            <div style="background: #fff; border: 1px solid #EBEBEB; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 11px; color: #888;">Image count</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="width: 24px; height: 24px; border: 1px solid #EBEBEB; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888;">-</div>
+                  <span style="font-size: 13px; font-weight: 500;">2</span>
+                  <div style="width: 24px; height: 24px; border: 1px solid #EBEBEB; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888;">+</div>
+                </div>
+              </div>
+              <div style="font-size: 10px; color: #BBB; cursor: pointer;">&#9656; More options</div>
+            </div>
+
+            <div style="flex: 1;"></div>
+
+            <!-- Footer -->
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 12px; color: #888;">2 credits</span>
+              <div style="background: #111; color: white; padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer;">Generate 2 Photos &rarr;</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- What stays vs changes -->
+  <div class="section">
+    <h3>Studio Changes</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div>
+        <h4 style="color: #4CAF50; margin-bottom: 8px;">Stays the Same</h4>
+        <ul style="font-size: 13px; line-height: 1.8; color: #666;">
+          <li>Full-screen overlay</li>
+          <li>Left panel: Library (refs + public + recent)</li>
+          <li>Right panel: Type pills + prompt + config</li>
+          <li>Per-type config (carousel slides, video source, voice picker)</li>
+          <li>Results view with iteration</li>
+          <li>All 4 content types</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color: #C4603A; margin-bottom: 8px;">Already Updated</h4>
+        <ul style="font-size: 13px; line-height: 1.8; color: #666;">
+          <li>Account-level refs (not per-creator) &#10003;</li>
+          <li>Public library is real (not "coming soon") &#10003;</li>
+          <li>Simplified reference types &#10003;</li>
+        </ul>
+        <h4 style="color: #60a5fa; margin-top: 12px; margin-bottom: 8px;">Future (Agent Layer)</h4>
+        <ul style="font-size: 13px; line-height: 1.8; color: #666;">
+          <li>Chat-style interface replaces/augments input</li>
+          <li>AI selects refs, configures settings</li>
+          <li>Approve/reject generation proposals</li>
+          <li>Iterative conversation about content</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Relationship diagram -->
+  <div class="section">
+    <h3>How They Work Together</h3>
+    <div style="background: #f8f8f8; border: 1px solid #EBEBEB; border-radius: 10px; padding: 20px; font-size: 13px; color: #555; line-height: 2;">
+      <div><strong>Input bar</strong> &rarr; type prompt + pick type &rarr; generates directly into content grid</div>
+      <div><strong>Input bar</strong> &rarr; "Open studio" &rarr; studio opens with prompt pre-filled</div>
+      <div><strong>Studio</strong> &rarr; attach refs, configure, generate &rarr; results view &rarr; content lands in grid</div>
+      <div><strong>Content card</strong> &rarr; click &rarr; detail view &rarr; "Make Video" / "Remix" &rarr; studio opens with context</div>
+      <div style="margin-top: 8px; color: #BBB;">All paths call the same generation engine functions.</div>
+    </div>
+  </div>
+
+</div>

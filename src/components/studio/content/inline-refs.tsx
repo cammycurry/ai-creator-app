@@ -1,131 +1,127 @@
 "use client";
 
-import { useState } from "react";
-import { useUnifiedStudioStore, type RefMode, type RefWhat } from "@/stores/unified-studio-store";
-
-const MODE_LABELS: Record<RefMode, string> = {
-  exact: "Exact",
-  similar: "Similar",
-  vibe: "Vibe",
-};
-
-const WHAT_LABELS: Record<RefWhat, string> = {
-  background: "BG",
-  outfit: "Outfit",
-  pose: "Pose",
-  all: "All",
-};
+import { useUnifiedStudioStore, type RefMode, type RefType } from "@/stores/unified-studio-store";
 
 export function InlineRefs() {
-  const { attachedRefs, detachRef, setRefMode, setRefWhat, setRefDescription, inspirationPhotos, removeInspirationPhoto } = useUnifiedStudioStore();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { attachedRefs, detachRef, setRefMode, setRefType, setRefDescription, inspirationPhotos, removeInspirationPhoto } = useUnifiedStudioStore();
 
   if (attachedRefs.length === 0 && inspirationPhotos.length === 0) return null;
 
   return (
-    <div className="sv2-inline-refs">
-      {attachedRefs.map(({ ref, mode, what, description }) => {
-        const isExpanded = expandedId === ref.id;
-        const isVibe = mode === "vibe";
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      {attachedRefs.map(({ ref, refType, mode, description }) => {
+        const isProduct = refType === "product";
+        const needsType = refType === null;
+        const needsMode = refType === "scene" && mode === null;
 
         return (
           <div
             key={ref.id}
-            className="sv2-inline-ref"
             style={{
-              flexDirection: "column",
-              alignItems: "stretch",
-              padding: isExpanded ? "6px 8px" : "3px 8px 3px 3px",
-              cursor: "pointer",
-              gap: isExpanded ? 4 : 1,
+              padding: "8px 10px",
+              borderRadius: 8,
+              background: "#FAFAFA",
+              border: (needsType || needsMode) ? "1px solid #C4603A" : "1px solid #EBEBEB",
             }}
-            onClick={() => setExpandedId(isExpanded ? null : ref.id)}
           >
-            {/* Row 1: Thumbnail + name + badges + close */}
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <div
-                className="sv2-inline-ref-thumb"
-                style={{ background: ref.imageUrl ? `url(${ref.imageUrl}) center/cover` : "#F5F5F5" }}
-              />
-              <span style={{ fontSize: 10, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+            {/* Row 1: thumbnail + name + remove */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 4, flexShrink: 0,
+                background: ref.imageUrl ? `url(${ref.imageUrl}) center/cover` : "#DDD",
+              }} />
+              <span style={{ fontSize: 11, fontWeight: 500, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {ref.name}
               </span>
-              {!isExpanded && (
-                <span style={{ fontSize: 8, color: isVibe ? "#C4603A" : "#AAA", whiteSpace: "nowrap" }}>
-                  {isVibe ? "✨ Vibe" : `${WHAT_LABELS[what]} · ${MODE_LABELS[mode]}`}
-                </span>
-              )}
               <button
-                className="sv2-inline-ref-x"
-                onClick={(e) => { e.stopPropagation(); detachRef(ref.id); }}
+                onClick={() => detachRef(ref.id)}
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: "#BBB", padding: 0, lineHeight: 1 }}
               >
                 &times;
               </button>
             </div>
 
-            {/* Expanded controls */}
-            {isExpanded && (
-              <>
-                {/* Mode + What dropdowns */}
-                <div style={{ display: "flex", gap: 4 }} onClick={(e) => e.stopPropagation()}>
-                  {!isVibe && (
-                    <select
-                      value={what}
-                      onChange={(e) => setRefWhat(ref.id, e.target.value as RefWhat)}
-                      style={{
-                        fontSize: 9, padding: "2px 4px", border: "1px solid #EBEBEB",
-                        borderRadius: 4, background: "#F9F9F9", color: "#666",
-                        cursor: "pointer", fontFamily: "inherit", outline: "none",
-                      }}
-                    >
-                      <option value="background">Background</option>
-                      <option value="outfit">Outfit</option>
-                      <option value="pose">Pose</option>
-                      <option value="all">Everything</option>
-                    </select>
-                  )}
-                  <select
-                    value={mode}
-                    onChange={(e) => setRefMode(ref.id, e.target.value as RefMode)}
-                    style={{
-                      fontSize: 9, padding: "2px 4px", border: "1px solid #EBEBEB",
-                      borderRadius: 4,
-                      background: isVibe ? "rgba(196,96,58,0.08)" : "#F9F9F9",
-                      color: isVibe ? "#C4603A" : "#666",
-                      cursor: "pointer", fontFamily: "inherit", outline: "none",
-                    }}
-                  >
-                    <option value="exact">Exact</option>
-                    <option value="similar">Similar</option>
-                    <option value="vibe">✨ Vibe</option>
-                  </select>
-                </div>
+            {/* Row 2: Type selection — REQUIRED */}
+            <div style={{ display: "flex", gap: 4, marginBottom: needsType ? 0 : 4 }}>
+              <button
+                className={`sv2-cfg-pill${refType === "scene" ? " on" : ""}`}
+                style={{ fontSize: 10, padding: "3px 10px" }}
+                onClick={() => setRefType(ref.id, "scene" as RefType)}
+              >
+                Scene
+              </button>
+              <button
+                className={`sv2-cfg-pill${refType === "product" ? " on" : ""}`}
+                style={{ fontSize: 10, padding: "3px 10px" }}
+                onClick={() => {
+                  setRefType(ref.id, "product" as RefType);
+                  setRefMode(ref.id, "exact" as RefMode);
+                }}
+              >
+                Product / Outfit
+              </button>
+              {needsType && (
+                <span style={{ fontSize: 9, color: "#C4603A", alignSelf: "center", marginLeft: 4 }}>← pick one</span>
+              )}
+            </div>
 
-                {/* Description input */}
-                <input
-                  value={description}
-                  onChange={(e) => setRefDescription(ref.id, e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder={isVibe ? "describe the vibe..." : "e.g. but make it nighttime"}
-                  style={{
-                    fontSize: 9, padding: "3px 6px", border: "1px solid #EBEBEB",
-                    borderRadius: 4, background: "#FAFAFA", color: "#555",
-                    fontFamily: "inherit", outline: "none", width: "100%",
-                  }}
-                />
-              </>
+            {/* Row 3: Mode selection — REQUIRED for scene */}
+            {refType === "scene" && (
+              <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
+                <button
+                  className={`sv2-cfg-pill${mode === "exact" ? " on" : ""}`}
+                  style={{ fontSize: 10, padding: "3px 10px" }}
+                  onClick={() => setRefMode(ref.id, "exact" as RefMode)}
+                >
+                  Exact
+                </button>
+                <button
+                  className={`sv2-cfg-pill${mode === "inspired" ? " on" : ""}`}
+                  style={{ fontSize: 10, padding: "3px 10px" }}
+                  onClick={() => setRefMode(ref.id, "inspired" as RefMode)}
+                >
+                  Inspired by
+                </button>
+                {needsMode && (
+                  <span style={{ fontSize: 9, color: "#C4603A", alignSelf: "center", marginLeft: 4 }}>← pick one</span>
+                )}
+              </div>
+            )}
+
+            {/* Row 4: Description — only show after type is selected */}
+            {refType !== null && (
+              <input
+                value={description}
+                onChange={(e) => setRefDescription(ref.id, e.target.value)}
+                placeholder={isProduct ? "e.g. gold necklace, red dress" : "e.g. coffee shop in brooklyn"}
+                style={{
+                  width: "100%", padding: "4px 8px", fontSize: 11,
+                  border: "1px solid #EBEBEB", borderRadius: 4,
+                  background: "white", color: "#555",
+                  fontFamily: "inherit", outline: "none",
+                }}
+              />
             )}
           </div>
         );
       })}
+
       {inspirationPhotos.map((photo, i) => (
-        <div key={`inspo-${i}`} className="sv2-inline-ref">
-          <div
-            className="sv2-inline-ref-thumb"
-            style={{ background: `url(${photo.preview}) center/cover` }}
-          />
-          <span>Inspiration</span>
-          <button className="sv2-inline-ref-x" onClick={() => removeInspirationPhoto(i)}>&times;</button>
+        <div
+          key={`inspo-${i}`}
+          style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "6px 10px", borderRadius: 8, background: "#FAFAFA", border: "1px solid #EBEBEB",
+          }}
+        >
+          <div style={{ width: 32, height: 32, borderRadius: 4, background: `url(${photo.preview}) center/cover`, flexShrink: 0 }} />
+          <span style={{ fontSize: 11, flex: 1 }}>Inspiration photo</span>
+          <button
+            onClick={() => removeInspirationPhoto(i)}
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: "#BBB", padding: 0, lineHeight: 1 }}
+          >
+            &times;
+          </button>
         </div>
       ))}
     </div>

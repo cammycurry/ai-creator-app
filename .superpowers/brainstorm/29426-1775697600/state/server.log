@@ -1,0 +1,3 @@
+{"type":"server-started","port":51165,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:51165","screen_dir":"/Users/camcurry/projects/ai-creator-app/.superpowers/brainstorm/29426-1775697600/content","state_dir":"/Users/camcurry/projects/ai-creator-app/.superpowers/brainstorm/29426-1775697600/state"}
+{"type":"screen-added","file":"/Users/camcurry/projects/ai-creator-app/.superpowers/brainstorm/29426-1775697600/content/hero-v2.html"}
+{"type":"server-stopped","reason":"idle timeout"}

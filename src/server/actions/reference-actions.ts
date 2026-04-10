@@ -166,6 +166,30 @@ export async function createReference(
   return { success: true, reference: toReferenceItem(ref, signedUrl) };
 }
 
+export async function createVideoReferenceFromUrl(
+  name: string,
+  description: string,
+  s3Key: string,
+  tags?: string[]
+): Promise<MutationResult> {
+  const user = await getAuthUser();
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const ref = await db.reference.create({
+    data: {
+      userId: user.id,
+      type: "REFERENCE",
+      name,
+      description,
+      imageUrl: s3Key,
+      tags: [...(tags ?? []), "video", "motion"],
+    },
+  });
+
+  const signedUrl = await getSignedImageUrl(s3Key);
+  return { success: true, reference: toReferenceItem(ref, signedUrl) };
+}
+
 // ─── Read ────────────────────────────────────────────
 
 export async function getReferences(): Promise<ReferenceItem[]> {

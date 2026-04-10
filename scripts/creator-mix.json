@@ -1,0 +1,20 @@
+{
+  "description": "Pre-made creator library mix — weighted by actual market demand",
+  "total": 30,
+  "creators": [
+    { "ethnicity": "European", "gender": "Female", "bodyType": "Slim-thick", "hairColor": "Blonde", "age": [21, 26], "niche": ["Fitness", "Lifestyle"], "count": 10 },
+    { "ethnicity": "European", "gender": "Female", "bodyType": "Athletic", "hairColor": "Brunette", "age": [22, 27], "niche": ["Fitness", "Lifestyle"], "count": 3 },
+    { "ethnicity": "Latina", "gender": "Female", "bodyType": "Curvy", "hairColor": "Brunette", "age": [20, 25], "niche": ["Lifestyle", "Fashion"], "count": 4 },
+    { "ethnicity": "Latina", "gender": "Female", "bodyType": "Slim-thick", "hairColor": "Black", "age": [21, 26], "niche": ["Spicy/Glamour", "Lifestyle"], "count": 2 },
+    { "ethnicity": "Asian", "gender": "Female", "bodyType": "Slim", "hairColor": "Black", "age": [21, 26], "niche": ["Beauty", "Lifestyle"], "count": 3 },
+    { "ethnicity": "Black", "gender": "Female", "bodyType": "Athletic", "hairColor": "Black", "age": [22, 27], "niche": ["Fitness", "Fashion"], "count": 2 },
+    { "ethnicity": "Mixed", "gender": "Female", "bodyType": "Slim-thick", "hairColor": "Brunette", "age": [20, 25], "niche": ["Lifestyle", "Beauty"], "count": 2 },
+    { "ethnicity": "Middle Eastern", "gender": "Female", "bodyType": "Slim", "hairColor": "Black", "age": [22, 27], "niche": ["Fashion", "Beauty"], "count": 1 },
+    { "ethnicity": "European", "gender": "Female", "bodyType": "Slim", "hairColor": "Red", "age": [23, 28], "niche": ["Lifestyle", "Travel"], "count": 1 },
+    { "ethnicity": "European", "gender": "Male", "bodyType": "Muscular", "hairColor": "Brunette", "age": [24, 29], "niche": ["Fitness"], "count": 2 },
+    { "ethnicity": "Black", "gender": "Male", "bodyType": "Athletic", "hairColor": "Black", "age": [23, 28], "niche": ["Fitness", "Fashion"], "count": 2 },
+    { "ethnicity": "Latino", "gender": "Male", "bodyType": "Athletic", "hairColor": "Black", "age": [22, 27], "niche": ["Fitness", "Lifestyle"], "count": 1 },
+    { "ethnicity": "Asian", "gender": "Male", "bodyType": "Slim", "hairColor": "Black", "age": [23, 27], "niche": ["Tech", "Lifestyle"], "count": 1 },
+    { "ethnicity": "European", "gender": "Female", "bodyType": "Petite", "hairColor": "Blonde", "age": [20, 24], "niche": ["Beauty", "Fashion"], "count": 1 }
+  ]
+}

@@ -1,0 +1,236 @@
+<h2>Unified Content Studio</h2>
+<p class="subtitle">ONE interface for ALL content types. References are the universal input. Output type is a choice, not a mode.</p>
+
+<div class="section">
+  <h3>The Core Layout</h3>
+  <p>Two-panel: <strong>Your World</strong> (references, inspiration) on the left, <strong>Create</strong> (prompt, type, config) on the right. References are always visible, always attachable, regardless of what you're creating.</p>
+
+  <div class="mockup">
+    <div class="mockup-header">Content Studio — Full Screen Overlay</div>
+    <div class="mockup-body" style="padding: 0;">
+      <div style="display: flex; height: 520px;">
+
+        <!-- LEFT: Your World -->
+        <div style="width: 260px; border-right: 1px solid #333; display: flex; flex-direction: column; flex-shrink: 0;">
+          <!-- Tabs -->
+          <div style="display: flex; border-bottom: 1px solid #333; font-size: 11px;">
+            <span style="flex: 1; padding: 8px; text-align: center; background: #252525; color: #fff; font-weight: 600;">My Refs</span>
+            <span style="flex: 1; padding: 8px; text-align: center; color: #666;">Upload</span>
+          </div>
+
+          <!-- Reference grid -->
+          <div style="flex: 1; overflow-y: auto; padding: 8px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+              <div style="aspect-ratio: 1; background: linear-gradient(135deg, #2a2020, #302020); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: #888; border: 2px solid #C4603A;">
+                <span style="font-size: 14px;">&#128716;</span>
+                <span style="margin-top: 2px;">My Bedroom</span>
+                <span style="color: #C4603A; font-size: 7px;">ATTACHED</span>
+              </div>
+              <div style="aspect-ratio: 1; background: linear-gradient(135deg, #202a20, #203020); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: #888; border: 1px solid #333;">
+                <span style="font-size: 14px;">&#127947;</span>
+                <span style="margin-top: 2px;">My Gym</span>
+              </div>
+              <div style="aspect-ratio: 1; background: linear-gradient(135deg, #20202a, #203030); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: #888; border: 1px solid #333;">
+                <span style="font-size: 14px;">&#9749;</span>
+                <span style="margin-top: 2px;">Coffee Shop</span>
+              </div>
+              <div style="aspect-ratio: 1; background: linear-gradient(135deg, #2a201a, #352a20); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: #888; border: 1px solid #333;">
+                <span style="font-size: 14px;">&#129380;</span>
+                <span style="margin-top: 2px;">Protein Shake</span>
+              </div>
+              <div style="aspect-ratio: 1; background: #1a1a1a; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #444; border: 1px dashed #333;">+</div>
+            </div>
+
+            <!-- Uploaded inspiration -->
+            <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #333;">
+              <div style="font-size: 10px; color: #666; margin-bottom: 6px;">INSPIRATION PHOTOS</div>
+              <div style="display: flex; gap: 4px;">
+                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #302525, #352020); border-radius: 4px; border: 1px solid #444;"></div>
+                <div style="width: 50px; height: 50px; background: #1a1a1a; border-radius: 4px; border: 1px dashed #333; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #444;">+</div>
+              </div>
+              <div style="font-size: 9px; color: #555; margin-top: 4px;">"Make it look like this"</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Create -->
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <!-- Output type selector -->
+          <div style="display: flex; gap: 0; border-bottom: 1px solid #333;">
+            <button style="flex: 1; padding: 10px; background: #252525; color: #fff; font-size: 12px; font-weight: 600; border: none; border-bottom: 2px solid #C4603A;">
+              &#128247; Photo
+            </button>
+            <button style="flex: 1; padding: 10px; background: transparent; color: #666; font-size: 12px; border: none; border-bottom: 2px solid transparent;">
+              &#128248; Carousel
+            </button>
+            <button style="flex: 1; padding: 10px; background: transparent; color: #666; font-size: 12px; border: none; border-bottom: 2px solid transparent;">
+              &#127909; Video
+            </button>
+            <button style="flex: 1; padding: 10px; background: transparent; color: #666; font-size: 12px; border: none; border-bottom: 2px solid transparent;">
+              &#127908; Talking Head
+            </button>
+          </div>
+
+          <!-- Main creation area (adapts per type) -->
+          <div style="flex: 1; padding: 16px; overflow-y: auto;">
+
+            <!-- Prompt area (universal) -->
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 6px;">
+                What should Bella do?
+              </div>
+              <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 12px;">
+                <div style="color: #888; font-size: 13px; line-height: 1.6;">
+                  Morning coffee in my bedroom, cozy oversized sweater, natural light from the window, holding a mug, looking at phone with a smile...
+                </div>
+              </div>
+            </div>
+
+            <!-- Attached references (shown inline) -->
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 11px; color: #666; margin-bottom: 4px;">REFERENCES</div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span style="display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: #252525; border-radius: 6px; font-size: 11px; border: 1px solid #C4603A44;">
+                  <span style="color: #C4603A;">&#128716;</span>
+                  <span style="color: #ccc;">My Bedroom</span>
+                  <span style="color: #555; cursor: pointer;">&times;</span>
+                </span>
+                <span style="display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: #252525; border-radius: 6px; font-size: 11px; border: 1px solid #44444444;">
+                  <span style="color: #888;">&#128247;</span>
+                  <span style="color: #ccc;">Uploaded photo</span>
+                  <span style="color: #555; cursor: pointer;">&times;</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Quick templates (collapsible) -->
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 11px; color: #666; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                <span style="color: #888;">&#9654;</span> TEMPLATES
+              </div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span style="padding: 5px 10px; background: #252525; border-radius: 8px; font-size: 11px; color: #aaa; border: 1px solid #333; cursor: pointer;">&#128170; Gym Selfie</span>
+                <span style="padding: 5px 10px; background: #252525; border-radius: 8px; font-size: 11px; color: #aaa; border: 1px solid #333; cursor: pointer;">&#9749; Coffee Shop</span>
+                <span style="padding: 5px 10px; background: #252525; border-radius: 8px; font-size: 11px; color: #aaa; border: 1px solid #333; cursor: pointer;">&#127751; Golden Hour</span>
+                <span style="padding: 5px 10px; background: #252525; border-radius: 8px; font-size: 11px; color: #aaa; border: 1px solid #333; cursor: pointer;">&#127754; Beach Day</span>
+                <span style="padding: 5px 10px; background: #252525; border-radius: 8px; font-size: 11px; color: #aaa; border: 1px solid #333; cursor: pointer;">&#128087; Outfit Check</span>
+              </div>
+            </div>
+
+            <!-- Type-specific controls (Photo mode shown) -->
+            <div style="background: #1a1a1a; border-radius: 8px; padding: 12px; border: 1px solid #333;">
+              <div style="font-size: 11px; color: #666; margin-bottom: 8px;">PHOTO SETTINGS</div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div>
+                  <span style="font-size: 11px; color: #888;">Images:</span>
+                  <div style="display: flex; gap: 4px; margin-top: 4px;">
+                    <span style="width: 28px; height: 28px; background: #C4603A; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 600;">1</span>
+                    <span style="width: 28px; height: 28px; background: #252525; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #888; font-size: 12px;">2</span>
+                    <span style="width: 28px; height: 28px; background: #252525; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #888; font-size: 12px;">3</span>
+                    <span style="width: 28px; height: 28px; background: #252525; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #888; font-size: 12px;">4</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Footer -->
+          <div style="padding: 12px 16px; border-top: 1px solid #333; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: 12px; color: #888;">
+              1 credit &middot; 1 photo
+            </div>
+            <button style="padding: 10px 24px; background: #C4603A; border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;">
+              Generate Photo &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Show what each type tab looks like -->
+<div class="section" style="margin-top: 24px;">
+  <h3>How each output type adapts the creation area</h3>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+    <!-- Photo -->
+    <div style="background: #111; border-radius: 8px; padding: 14px; border: 1px solid #333;">
+      <div style="font-size: 12px; font-weight: 600; color: #C4603A; margin-bottom: 6px;">&#128247; Photo</div>
+      <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
+        <strong>Prompt:</strong> "What should they do?"<br>
+        <strong>Config:</strong> Image count (1-4)<br>
+        <strong>Templates:</strong> 14 single photo templates<br>
+        <strong>Refs:</strong> Backgrounds, products, outfits<br>
+        <strong>Cost:</strong> 1 credit per photo<br>
+        <strong>Action:</strong> generateContent()
+      </div>
+    </div>
+
+    <!-- Carousel -->
+    <div style="background: #111; border-radius: 8px; padding: 14px; border: 1px solid #333;">
+      <div style="font-size: 12px; font-weight: 600; color: #C4603A; margin-bottom: 6px;">&#128248; Carousel</div>
+      <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
+        <strong>Prompt:</strong> "What's the carousel about?"<br>
+        <strong>Config:</strong> Format picker, slide count, per-slide editing<br>
+        <strong>Templates:</strong> 8 carousel formats<br>
+        <strong>Refs:</strong> Per-slide reference attachment<br>
+        <strong>Cost:</strong> 1 credit per slide<br>
+        <strong>Action:</strong> generateCarousel()
+      </div>
+    </div>
+
+    <!-- Video -->
+    <div style="background: #111; border-radius: 8px; padding: 14px; border: 1px solid #333;">
+      <div style="font-size: 12px; font-weight: 600; color: #C4603A; margin-bottom: 6px;">&#127909; Video</div>
+      <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
+        <strong>Prompt:</strong> "What happens in the video?"<br>
+        <strong>Config:</strong> Duration (5/10s), aspect ratio, source photo (optional)<br>
+        <strong>Sub-modes:</strong> From text | From photo | Motion transfer<br>
+        <strong>Refs:</strong> Backgrounds, source images<br>
+        <strong>Cost:</strong> 3-5 credits<br>
+        <strong>Action:</strong> generateVideoFromText/Image/MotionTransfer()
+      </div>
+    </div>
+
+    <!-- Talking Head -->
+    <div style="background: #111; border-radius: 8px; padding: 14px; border: 1px solid #333;">
+      <div style="font-size: 12px; font-weight: 600; color: #C4603A; margin-bottom: 6px;">&#127908; Talking Head</div>
+      <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
+        <strong>Input:</strong> Script (replaces prompt)<br>
+        <strong>Config:</strong> Voice picker, duration (15/30s), background setting<br>
+        <strong>AI assist:</strong> "Write me a script about..."<br>
+        <strong>Refs:</strong> Background references<br>
+        <strong>Cost:</strong> 8-12 credits<br>
+        <strong>Action:</strong> generateTalkingHead()
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 24px;">
+  <h3>Key principles</h3>
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    <div style="background: #111; border-radius: 8px; padding: 12px; border: 1px solid #333; font-size: 12px;">
+      <span style="color: #C4603A; font-weight: 600;">1. References are universal.</span>
+      <span style="color: #aaa;"> Same panel, same refs, regardless of output type. Click a ref &rarr; it attaches. Works for photo, video, carousel, talking head.</span>
+    </div>
+    <div style="background: #111; border-radius: 8px; padding: 12px; border: 1px solid #333; font-size: 12px;">
+      <span style="color: #C4603A; font-weight: 600;">2. Type selector, not mode switch.</span>
+      <span style="color: #aaa;"> Tabs at the top. Your prompt/refs stay when you switch types. Only the config area changes.</span>
+    </div>
+    <div style="background: #111; border-radius: 8px; padding: 12px; border: 1px solid #333; font-size: 12px;">
+      <span style="color: #C4603A; font-weight: 600;">3. Templates are shortcuts, not required.</span>
+      <span style="color: #aaa;"> Quick-pick chips that pre-fill the prompt. Totally optional. Power users just type.</span>
+    </div>
+    <div style="background: #111; border-radius: 8px; padding: 12px; border: 1px solid #333; font-size: 12px;">
+      <span style="color: #C4603A; font-weight: 600;">4. Inspiration photos inline.</span>
+      <span style="color: #aaa;"> "I saw this viral photo" &mdash; upload it right in the left panel. It becomes a reference for this generation.</span>
+    </div>
+    <div style="background: #111; border-radius: 8px; padding: 12px; border: 1px solid #333; font-size: 12px;">
+      <span style="color: #C4603A; font-weight: 600;">5. One generate button.</span>
+      <span style="color: #aaa;"> Bottom-right. Shows the cost. Adapts text per type: "Generate Photo" / "Generate 5 Slides" / "Generate Video" / "Generate Talking Head".</span>
+    </div>
+  </div>
+</div>

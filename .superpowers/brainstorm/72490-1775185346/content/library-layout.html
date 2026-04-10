@@ -1,0 +1,184 @@
+<h2>Content Library — Layout Direction</h2>
+<p class="subtitle">Full-page creative asset library. Which layout feels right?</p>
+
+<div class="cards" style="gap: 32px;">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)" style="flex: 1; min-width: 420px;">
+    <div class="card-image" style="padding: 0; overflow: hidden;">
+      <div style="background: #faf9f7; padding: 20px; font-family: system-ui; font-size: 12px; color: #333;">
+        <!-- Search bar -->
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; align-items: center;">
+          <div style="flex: 1; background: #fff; border: 1px solid #e0dbd5; border-radius: 8px; padding: 10px 14px; color: #999; font-size: 13px;">Search your library...</div>
+          <div style="background: #C4603A; color: white; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;">+ Upload</div>
+        </div>
+
+        <!-- Recently Used strip -->
+        <div style="margin-bottom: 18px;">
+          <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #666;">Recently Used</div>
+          <div style="display: flex; gap: 8px; overflow: hidden;">
+            <div style="width: 72px; height: 72px; border-radius: 8px; background: linear-gradient(135deg, #e8d5c4, #d4a574); flex-shrink: 0;"></div>
+            <div style="width: 72px; height: 72px; border-radius: 8px; background: linear-gradient(135deg, #c4d4c0, #8ba888); flex-shrink: 0;"></div>
+            <div style="width: 72px; height: 72px; border-radius: 8px; background: linear-gradient(135deg, #d0c4d8, #9b8aab); flex-shrink: 0;"></div>
+            <div style="width: 72px; height: 72px; border-radius: 8px; background: linear-gradient(135deg, #c4d8e8, #7aadcc); flex-shrink: 0;"></div>
+            <div style="width: 72px; height: 72px; border-radius: 8px; background: linear-gradient(135deg, #e8d0c4, #cc8a6a); flex-shrink: 0;"></div>
+            <div style="width: 72px; height: 72px; border-radius: 8px; background: linear-gradient(135deg, #d8dcc4, #aab88a); flex-shrink: 0;"></div>
+          </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+          <div style="background: #333; color: white; padding: 5px 12px; border-radius: 20px; font-size: 11px;">All</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">&#9733; Starred</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">Backgrounds</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">Products</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">Outfits</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">Poses</div>
+        </div>
+
+        <!-- Grid -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #f0e6da, #d4a574); position: relative;">
+            <div style="position: absolute; top: 4px; right: 4px; font-size: 10px;">&#9733;</div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 6px; background: rgba(0,0,0,0.5); color: white; font-size: 9px; border-radius: 0 0 8px 8px;">Beach sunset</div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #e0d8cc, #b8a898);position: relative;">
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 6px; background: rgba(0,0,0,0.5); color: white; font-size: 9px; border-radius: 0 0 8px 8px;">Coffee shop</div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #d8e0d4, #98b090);position: relative;">
+            <div style="position: absolute; top: 4px; right: 4px; font-size: 10px;">&#9733;</div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 6px; background: rgba(0,0,0,0.5); color: white; font-size: 9px; border-radius: 0 0 8px 8px;">Gym mirror</div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #e4dce8, #b0a0c0);position: relative;">
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 6px; background: rgba(0,0,0,0.5); color: white; font-size: 9px; border-radius: 0 0 8px 8px;">Studio white</div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #dce4e8, #90b0c8);"></div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #e8e0d4, #c8b098);"></div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #e0e8dc, #a8c8a0);"></div>
+          <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #e8dce0, #c8a0b0);"></div>
+        </div>
+
+        <!-- Public Library section -->
+        <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid #e0dbd5;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-weight: 600; font-size: 13px; color: #666;">Public Library</div>
+            <div style="font-size: 11px; color: #C4603A; cursor: pointer;">Browse all &rarr;</div>
+          </div>
+          <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+            <div style="background: #f0ebe5; padding: 4px 10px; border-radius: 16px; font-size: 10px;">Fitness</div>
+            <div style="background: #f0ebe5; padding: 4px 10px; border-radius: 16px; font-size: 10px;">Lifestyle</div>
+            <div style="background: #f0ebe5; padding: 4px 10px; border-radius: 16px; font-size: 10px;">Fashion</div>
+            <div style="background: #f0ebe5; padding: 4px 10px; border-radius: 16px; font-size: 10px;">Travel</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #f5e6d0, #e0a060); position: relative;">
+              <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 6px; background: rgba(0,0,0,0.5); color: white; font-size: 9px; border-radius: 0 0 8px 8px;">Tropical pool</div>
+            </div>
+            <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #d0e0f0, #6090c0);position: relative;">
+              <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 6px; background: rgba(0,0,0,0.5); color: white; font-size: 9px; border-radius: 0 0 8px 8px;">Modern loft</div>
+            </div>
+            <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #e8e0d0, #c0a880);position: relative;">
+              <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 6px; background: rgba(0,0,0,0.5); color: white; font-size: 9px; border-radius: 0 0 8px 8px;">Protein tub</div>
+            </div>
+            <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, #f0d8e0, #c080a0);position: relative;">
+              <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 6px; background: rgba(0,0,0,0.5); color: white; font-size: 9px; border-radius: 0 0 8px 8px;">Pink studio</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A: Single Page — Sections Stacked</h3>
+      <p>Search + Recently Used strip + Your Library grid (with filter tabs + star) + Public Library section below. Everything scrolls vertically. Simple, one-page, Unsplash-style.</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)" style="flex: 1; min-width: 420px;">
+    <div class="card-image" style="padding: 0; overflow: hidden;">
+      <div style="background: #faf9f7; padding: 20px; font-family: system-ui; font-size: 12px; color: #333;">
+        <!-- Top tabs -->
+        <div style="display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid #e0dbd5;">
+          <div style="padding: 8px 20px; font-weight: 600; font-size: 13px; border-bottom: 2px solid #C4603A; margin-bottom: -2px; color: #C4603A;">My Library</div>
+          <div style="padding: 8px 20px; font-size: 13px; color: #999;">Public Library</div>
+          <div style="padding: 8px 20px; font-size: 13px; color: #999;">&#9733; Starred</div>
+          <div style="flex: 1;"></div>
+          <div style="background: #C4603A; color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; align-self: center;">+ Upload</div>
+        </div>
+
+        <!-- Search -->
+        <div style="margin-bottom: 14px;">
+          <div style="background: #fff; border: 1px solid #e0dbd5; border-radius: 8px; padding: 10px 14px; color: #999; font-size: 13px;">Search my library...</div>
+        </div>
+
+        <!-- Filter chips -->
+        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+          <div style="background: #333; color: white; padding: 5px 12px; border-radius: 20px; font-size: 11px;">All</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">Backgrounds</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">Products</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">Outfits</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">Poses</div>
+          <div style="background: #f0ebe5; padding: 5px 12px; border-radius: 20px; font-size: 11px;">Custom</div>
+        </div>
+
+        <!-- Sort -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+          <div style="font-size: 11px; color: #999;">24 references</div>
+          <div style="font-size: 11px; color: #999;">Sort: Recently used &#9662;</div>
+        </div>
+
+        <!-- Grid - larger cards -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <div style="aspect-ratio: 1; border-radius: 10px; background: linear-gradient(135deg, #f0e6da, #d4a574); position: relative;">
+            <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.4); color: gold; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">&#9733;</div>
+            <div style="position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 9px;">Background</div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; border-radius: 0 0 10px 10px;">
+              <div style="font-size: 11px; font-weight: 600;">Beach sunset</div>
+              <div style="font-size: 9px; opacity: 0.8;">Used 12 times</div>
+            </div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 10px; background: linear-gradient(135deg, #d8e0d4, #98b090); position: relative;">
+            <div style="position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 9px;">Background</div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; border-radius: 0 0 10px 10px;">
+              <div style="font-size: 11px; font-weight: 600;">Gym mirror</div>
+              <div style="font-size: 9px; opacity: 0.8;">Used 8 times</div>
+            </div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 10px; background: linear-gradient(135deg, #e8e0d4, #c8b098); position: relative;">
+            <div style="position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 9px;">Product</div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; border-radius: 0 0 10px 10px;">
+              <div style="font-size: 11px; font-weight: 600;">Protein powder</div>
+              <div style="font-size: 9px; opacity: 0.8;">Used 5 times</div>
+            </div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 10px; background: linear-gradient(135deg, #e4dce8, #b0a0c0); position: relative;">
+            <div style="position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 9px;">Outfit</div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; border-radius: 0 0 10px 10px;">
+              <div style="font-size: 11px; font-weight: 600;">Black gym set</div>
+              <div style="font-size: 9px; opacity: 0.8;">Used 3 times</div>
+            </div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 10px; background: linear-gradient(135deg, #dce4e8, #90b0c8); position: relative;">
+            <div style="position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 9px;">Background</div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; border-radius: 0 0 10px 10px;">
+              <div style="font-size: 11px; font-weight: 600;">City street</div>
+              <div style="font-size: 9px; opacity: 0.8;">Used 2 times</div>
+            </div>
+          </div>
+          <div style="aspect-ratio: 1; border-radius: 10px; background: linear-gradient(135deg, #e0e8dc, #a8c8a0); position: relative;">
+            <div style="position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.5); color: white; padding: 2px 8px; border-radius: 10px; font-size: 9px;">Pose</div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; border-radius: 0 0 10px 10px;">
+              <div style="font-size: 11px; font-weight: 600;">Mirror selfie</div>
+              <div style="font-size: 9px; opacity: 0.8;">Used 1 time</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B: Tabbed — My Library / Public / Starred</h3>
+      <p>Top-level tabs separate your stuff, public stuff, and starred. Bigger cards with type badges, star buttons, usage counts. Sort by recent/most used/type. More organized, slightly more complex.</p>
+    </div>
+  </div>
+
+</div>

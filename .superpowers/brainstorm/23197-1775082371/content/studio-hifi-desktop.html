@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Content Studio — Desktop Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background: #FAFAFA; color: #111; }
+
+  .studio-overlay {
+    position: fixed; inset: 0; background: #fff; display: flex; flex-direction: column;
+  }
+
+  /* Header */
+  .studio-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; border-bottom: 1px solid #EBEBEB; flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .close-btn {
+    width: 32px; height: 32px; border-radius: 8px; border: none; background: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; color: #888;
+  }
+  .close-btn:hover { background: #F5F5F5; color: #111; }
+  .studio-title { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+  .creator-badge { font-size: 12px; color: #888; background: #F5F5F5; padding: 3px 10px; border-radius: 12px; }
+  .credit-display { font-size: 13px; font-weight: 600; color: #111; }
+
+  /* Type tabs */
+  .type-tabs {
+    display: flex; border-bottom: 1px solid #EBEBEB; flex-shrink: 0;
+  }
+  .type-tab {
+    flex: 1; padding: 11px 16px; font-size: 13px; font-weight: 500; color: #888;
+    background: none; border: none; border-bottom: 2px solid transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 150ms;
+  }
+  .type-tab:hover { color: #555; background: #FAFAFA; }
+  .type-tab.active { color: #C4603A; border-bottom-color: #C4603A; font-weight: 600; }
+  .type-tab .cost { font-size: 10px; color: #BBB; font-weight: 400; }
+  .type-tab.active .cost { color: #C4603A88; }
+
+  /* Main body */
+  .studio-body { flex: 1; display: flex; overflow: hidden; }
+
+  /* Left panel: Your World */
+  .ref-panel {
+    width: 250px; border-right: 1px solid #EBEBEB; display: flex; flex-direction: column;
+    flex-shrink: 0; background: #FAFAFA;
+  }
+  .ref-panel-tabs {
+    display: flex; font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; border-bottom: 1px solid #EBEBEB;
+  }
+  .ref-panel-tab {
+    flex: 1; padding: 10px; text-align: center; cursor: pointer; color: #BBB;
+    border: none; background: none;
+  }
+  .ref-panel-tab.active { color: #111; background: #fff; }
+  .ref-filter-row {
+    display: flex; gap: 4px; padding: 8px 10px; overflow-x: auto; flex-shrink: 0;
+  }
+  .ref-filter-chip {
+    padding: 3px 8px; border-radius: 6px; font-size: 10px; border: none;
+    background: none; color: #888; cursor: pointer; white-space: nowrap;
+  }
+  .ref-filter-chip.active { background: #F5F5F5; color: #111; }
+  .ref-grid-wrap { flex: 1; overflow-y: auto; padding: 8px 10px; }
+  .ref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ref-item {
+    aspect-ratio: 1; border-radius: 8px; overflow: hidden; cursor: pointer;
+    position: relative; border: 2px solid transparent; transition: all 150ms;
+  }
+  .ref-item:hover { border-color: #EBEBEB; }
+  .ref-item.attached { border-color: #C4603A; }
+  .ref-item-inner {
+    width: 100%; height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+  }
+  .ref-item-icon { font-size: 20px; }
+  .ref-item-name { font-size: 9px; color: #888; text-align: center; }
+  .ref-item-badge {
+    position: absolute; bottom: 3px; left: 3px; right: 3px;
+    font-size: 8px; color: #C4603A; background: rgba(255,255,255,0.95);
+    text-align: center; border-radius: 4px; padding: 1px 0; font-weight: 600;
+  }
+  .ref-add-item {
+    aspect-ratio: 1; border-radius: 8px; border: 1px dashed #DDD; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #CCC; transition: all 150ms;
+  }
+  .ref-add-item:hover { border-color: #C4603A; color: #C4603A; }
+
+  /* Inspiration section */
+  .inspo-section {
+    padding: 10px; border-top: 1px solid #EBEBEB; flex-shrink: 0;
+  }
+  .inspo-label { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .inspo-drop {
+    border: 1px dashed #DDD; border-radius: 8px; padding: 12px; text-align: center;
+    cursor: pointer; color: #BBB; font-size: 11px; line-height: 1.5;
+    transition: border-color 150ms;
+  }
+  .inspo-drop:hover { border-color: #C4603A; }
+  .inspo-thumbs { display: flex; gap: 4px; margin-bottom: 6px; }
+  .inspo-thumb {
+    width: 44px; height: 44px; border-radius: 6px; position: relative; overflow: hidden;
+  }
+  .inspo-thumb-remove {
+    position: absolute; top: 1px; right: 1px; width: 14px; height: 14px; border-radius: 50%;
+    background: rgba(0,0,0,0.6); border: none; color: #fff; font-size: 8px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Right panel: Create */
+  .create-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .create-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+
+  /* Prompt area */
+  .prompt-section { margin-bottom: 16px; }
+  .prompt-label { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 6px; }
+  .prompt-textarea {
+    width: 100%; padding: 12px 14px; border: 1px solid #EBEBEB; border-radius: 10px;
+    font-size: 15px; font-family: inherit; color: #111; background: #fff;
+    resize: none; outline: none; line-height: 1.6; min-height: 100px;
+  }
+  .prompt-textarea:focus { border-color: #C4603A; }
+  .prompt-textarea::placeholder { color: #CCC; }
+
+  /* Attached refs inline */
+  .attached-section { margin-bottom: 16px; }
+  .attached-label { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .attached-list { display: flex; gap: 6px; flex-wrap: wrap; }
+  .attached-tag {
+    display: flex; align-items: center; gap: 5px; padding: 4px 10px 4px 6px;
+    background: #F5F5F5; border-radius: 8px; font-size: 11px; color: #555;
+    border: 1px solid #EBEBEB;
+  }
+  .attached-tag-icon { font-size: 14px; }
+  .attached-tag-remove { color: #CCC; cursor: pointer; font-size: 12px; margin-left: 2px; }
+  .attached-tag-remove:hover { color: #C4603A; }
+
+  /* Templates */
+  .templates-section { margin-bottom: 16px; }
+  .templates-toggle {
+    font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; cursor: pointer; display: flex; align-items: center; gap: 4px;
+    border: none; background: none; padding: 0; margin-bottom: 8px;
+  }
+  .templates-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+  .template-chip {
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; color: #555;
+    background: #F5F5F5; border: 1px solid #EBEBEB; cursor: pointer;
+    transition: all 150ms;
+  }
+  .template-chip:hover { border-color: #C4603A; color: #C4603A; }
+
+  /* Type-specific config */
+  .config-section {
+    background: #FAFAFA; border-radius: 10px; padding: 14px; border: 1px solid #EBEBEB;
+    margin-bottom: 16px;
+  }
+  .config-label { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .config-row { display: flex; align-items: center; gap: 12px; }
+  .config-row-label { font-size: 12px; color: #888; min-width: 60px; }
+  .count-btn {
+    width: 30px; height: 30px; border-radius: 8px; border: 1px solid #EBEBEB;
+    background: #fff; cursor: pointer; font-size: 14px; color: #888;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .count-btn:hover { background: #F5F5F5; }
+  .count-btn.active { background: #C4603A; color: #fff; border-color: #C4603A; }
+  .count-val { font-size: 14px; font-weight: 600; min-width: 20px; text-align: center; }
+
+  /* Voice grid (talking head) */
+  .voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .voice-card {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid #EBEBEB; cursor: pointer; transition: all 150ms;
+  }
+  .voice-card:hover { border-color: #C4603A; }
+  .voice-card.active { border-color: #C4603A; background: rgba(196,96,58,0.04); }
+  .voice-play {
+    width: 28px; height: 28px; border-radius: 50%; border: none; background: #F5F5F5;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #888; flex-shrink: 0;
+  }
+  .voice-card.active .voice-play { background: #C4603A; color: #fff; }
+  .voice-name { font-size: 12px; font-weight: 600; color: #111; }
+  .voice-tone { font-size: 10px; color: #BBB; }
+
+  /* Duration toggle */
+  .duration-row { display: flex; gap: 8px; margin-top: 8px; }
+  .duration-btn {
+    flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #EBEBEB;
+    background: #fff; cursor: pointer; text-align: center; transition: all 150ms;
+  }
+  .duration-btn:hover { border-color: #C4603A; }
+  .duration-btn.active { background: #C4603A; color: #fff; border-color: #C4603A; }
+  .duration-btn .dur-main { font-size: 14px; font-weight: 600; }
+  .duration-btn .dur-cost { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+
+  /* Slide editor (carousel) */
+  .slides-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .slide-row {
+    display: flex; align-items: flex-start; gap: 8px; padding: 10px; background: #fff;
+    border-radius: 8px; border: 1px solid #EBEBEB;
+  }
+  .slide-num {
+    width: 24px; height: 24px; border-radius: 50%; background: #F5F5F5; color: #888;
+    display: flex; align-items: center; justify-content: center; font-size: 11px;
+    font-weight: 700; flex-shrink: 0;
+  }
+  .slide-row:first-child .slide-num { background: #C4603A; color: #fff; }
+  .slide-body { flex: 1; }
+  .slide-scene { font-size: 12px; font-weight: 500; color: #111; }
+  .slide-mood { font-size: 11px; color: #888; margin-top: 1px; }
+  .slide-refs { display: flex; gap: 3px; margin-top: 4px; }
+  .slide-ref-tag { font-size: 9px; padding: 2px 6px; background: #F5F5F5; border-radius: 4px; color: #C4603A; }
+
+  /* Footer */
+  .studio-footer {
+    padding: 12px 20px; border-top: 1px solid #EBEBEB; display: flex;
+    align-items: center; justify-content: space-between; flex-shrink: 0;
+    background: #fff;
+  }
+  .footer-cost { font-size: 12px; color: #888; }
+  .footer-cost strong { color: #111; font-size: 14px; }
+  .generate-btn {
+    padding: 10px 28px; background: #C4603A; border: none; border-radius: 10px;
+    color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background 150ms;
+  }
+  .generate-btn:hover { background: #B55533; }
+
+  /* Tab content visibility */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+<div class="studio-overlay">
+  <!-- Header -->
+  <div class="studio-header">
+    <div class="header-left">
+      <button class="close-btn">&times;</button>
+      <span class="studio-title">Content Studio</span>
+      <span class="creator-badge">Bella</span>
+    </div>
+    <span class="credit-display">867 credits</span>
+  </div>
+
+  <!-- Type tabs -->
+  <div class="type-tabs">
+    <button class="type-tab active" onclick="switchTab('photo')">
+      📷 Photo <span class="cost">1 credit</span>
+    </button>
+    <button class="type-tab" onclick="switchTab('carousel')">
+      📸 Carousel <span class="cost">3-7 credits</span>
+    </button>
+    <button class="type-tab" onclick="switchTab('video')">
+      🎥 Video <span class="cost">3-5 credits</span>
+    </button>
+    <button class="type-tab" onclick="switchTab('talking')">
+      🎤 Talking Head <span class="cost">8-12 credits</span>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="studio-body">
+    <!-- Left: Your World -->
+    <div class="ref-panel">
+      <div class="ref-panel-tabs">
+        <button class="ref-panel-tab active">My Refs</button>
+        <button class="ref-panel-tab">Library</button>
+      </div>
+      <div class="ref-filter-row">
+        <button class="ref-filter-chip active">All</button>
+        <button class="ref-filter-chip">BG</button>
+        <button class="ref-filter-chip">Product</button>
+        <button class="ref-filter-chip">Outfit</button>
+        <button class="ref-filter-chip">Pose</button>
+      </div>
+      <div class="ref-grid-wrap">
+        <div class="ref-grid">
+          <div class="ref-item attached" style="background: linear-gradient(135deg, #f0e8e5, #e8ddd8);">
+            <div class="ref-item-inner">
+              <span class="ref-item-icon">🛏️</span>
+              <span class="ref-item-name">My Bedroom</span>
+            </div>
+            <span class="ref-item-badge">ATTACHED</span>
+          </div>
+          <div class="ref-item" style="background: linear-gradient(135deg, #e5f0e5, #d8e8d8);">
+            <div class="ref-item-inner">
+              <span class="ref-item-icon">🏋️</span>
+              <span class="ref-item-name">My Gym</span>
+            </div>
+          </div>
+          <div class="ref-item" style="background: linear-gradient(135deg, #e5e5f0, #d8d8e8);">
+            <div class="ref-item-inner">
+              <span class="ref-item-icon">☕</span>
+              <span class="ref-item-name">Coffee Shop</span>
+            </div>
+          </div>
+          <div class="ref-item" style="background: linear-gradient(135deg, #f0ece5, #e8e0d8);">
+            <div class="ref-item-inner">
+              <span class="ref-item-icon">🥤</span>
+              <span class="ref-item-name">Protein Shake</span>
+            </div>
+          </div>
+          <div class="ref-item" style="background: linear-gradient(135deg, #f0e5e5, #e8d8d8);">
+            <div class="ref-item-inner">
+              <span class="ref-item-icon">👗</span>
+              <span class="ref-item-name">Black Sports Set</span>
+            </div>
+          </div>
+          <div class="ref-add-item">+</div>
+        </div>
+      </div>
+
+      <!-- Inspiration uploads -->
+      <div class="inspo-section">
+        <div class="inspo-label">Inspiration</div>
+        <div class="inspo-thumbs">
+          <div class="inspo-thumb" style="background: linear-gradient(135deg, #d4a89a, #c49080);">
+            <button class="inspo-thumb-remove">&times;</button>
+          </div>
+        </div>
+        <div class="inspo-drop">
+          📷 Drop a photo — "make my creator do THIS"
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Create -->
+    <div class="create-panel">
+      <div class="create-scroll">
+        <!-- Prompt -->
+        <div class="prompt-section">
+          <div class="prompt-label" id="prompt-label">What should Bella do?</div>
+          <textarea class="prompt-textarea" id="prompt-area" placeholder="Morning coffee in my bedroom, cozy oversized sweater, natural light from the window, holding a mug, candid smile..."></textarea>
+        </div>
+
+        <!-- Attached references (inline) -->
+        <div class="attached-section">
+          <div class="attached-label">Using references</div>
+          <div class="attached-list">
+            <span class="attached-tag">
+              <span class="attached-tag-icon">🛏️</span>
+              My Bedroom
+              <span class="attached-tag-remove">&times;</span>
+            </span>
+            <span class="attached-tag">
+              <span class="attached-tag-icon">📷</span>
+              Inspiration photo
+              <span class="attached-tag-remove">&times;</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Templates -->
+        <div class="templates-section">
+          <button class="templates-toggle" id="templates-toggle">▸ Templates — quick start</button>
+          <div class="templates-grid" id="templates-grid" style="display:none;">
+            <span class="template-chip">💪 Gym Selfie</span>
+            <span class="template-chip">☕ Coffee Shop</span>
+            <span class="template-chip">🌇 Golden Hour</span>
+            <span class="template-chip">🌊 Beach Day</span>
+            <span class="template-chip">👗 Outfit Check</span>
+            <span class="template-chip">🛏️ Morning Cozy</span>
+            <span class="template-chip">🍝 Food Close-Up</span>
+            <span class="template-chip">🚗 Car Selfie</span>
+          </div>
+        </div>
+
+        <!-- TYPE-SPECIFIC CONFIG -->
+
+        <!-- Photo config -->
+        <div class="config-section tab-content active" id="config-photo">
+          <div class="config-label">Photo Settings</div>
+          <div class="config-row">
+            <span class="config-row-label">Images</span>
+            <button class="count-btn active">1</button>
+            <button class="count-btn">2</button>
+            <button class="count-btn">3</button>
+            <button class="count-btn">4</button>
+          </div>
+        </div>
+
+        <!-- Carousel config -->
+        <div class="config-section tab-content" id="config-carousel">
+          <div class="config-label">Carousel Format</div>
+          <div class="templates-grid" style="margin-bottom: 10px;">
+            <span class="template-chip" style="border-color: #C4603A; color: #C4603A;">📸 Gym Photo Dump</span>
+            <span class="template-chip">🌆 City Day</span>
+            <span class="template-chip">✨ GRWM</span>
+            <span class="template-chip">🌊 Beach Day</span>
+            <span class="template-chip">👗 Outfit Showcase</span>
+            <span class="template-chip">🛍️ Product Feature</span>
+          </div>
+          <div class="config-label" style="margin-top: 12px;">Slides</div>
+          <div class="slides-list">
+            <div class="slide-row">
+              <span class="slide-num">1</span>
+              <div class="slide-body">
+                <div class="slide-scene">Gym Mirror Selfie</div>
+                <div class="slide-mood">Matching sports set, confident</div>
+                <div class="slide-refs"><span class="slide-ref-tag">🏋️ My Gym (auto)</span></div>
+              </div>
+            </div>
+            <div class="slide-row">
+              <span class="slide-num">2</span>
+              <div class="slide-body">
+                <div class="slide-scene">Workout Action</div>
+                <div class="slide-mood">Mid-movement, intense</div>
+              </div>
+            </div>
+            <div class="slide-row">
+              <span class="slide-num">3</span>
+              <div class="slide-body">
+                <div class="slide-scene">Post-Workout Glow</div>
+                <div class="slide-mood">Relaxed, accomplished</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video config -->
+        <div class="config-section tab-content" id="config-video">
+          <div class="config-label">Video Settings</div>
+          <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Source</div>
+          <div class="templates-grid" style="margin-bottom: 12px;">
+            <span class="template-chip" style="border-color: #C4603A; color: #C4603A;">From text</span>
+            <span class="template-chip">From photo</span>
+            <span class="template-chip">Motion transfer</span>
+          </div>
+          <div style="font-size: 11px; color: #888; margin-bottom: 6px;">Duration</div>
+          <div class="duration-row">
+            <button class="duration-btn active">
+              <div class="dur-main">5 sec</div>
+              <div class="dur-cost">3 credits</div>
+            </button>
+            <button class="duration-btn">
+              <div class="dur-main">10 sec</div>
+              <div class="dur-cost">5 credits</div>
+            </button>
+          </div>
+          <div style="font-size: 11px; color: #888; margin-top: 10px; margin-bottom: 6px;">Aspect ratio</div>
+          <div style="display: flex; gap: 6px;">
+            <span class="template-chip" style="border-color: #C4603A; color: #C4603A;">9:16 Portrait</span>
+            <span class="template-chip">1:1 Square</span>
+            <span class="template-chip">16:9 Landscape</span>
+          </div>
+        </div>
+
+        <!-- Talking head config -->
+        <div class="config-section tab-content" id="config-talking">
+          <div class="config-label">Voice</div>
+          <div class="voice-grid">
+            <div class="voice-card active">
+              <button class="voice-play">▶</button>
+              <div><div class="voice-name">Rachel</div><div class="voice-tone">Calm, natural</div></div>
+            </div>
+            <div class="voice-card">
+              <button class="voice-play">▶</button>
+              <div><div class="voice-name">Bella</div><div class="voice-tone">Warm, friendly</div></div>
+            </div>
+            <div class="voice-card">
+              <button class="voice-play">▶</button>
+              <div><div class="voice-name">Domi</div><div class="voice-tone">Energetic</div></div>
+            </div>
+            <div class="voice-card">
+              <button class="voice-play">▶</button>
+              <div><div class="voice-name">Elli</div><div class="voice-tone">Professional</div></div>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: #888; margin-top: 12px; margin-bottom: 6px;">Duration</div>
+          <div class="duration-row">
+            <button class="duration-btn active">
+              <div class="dur-main">15 sec</div>
+              <div class="dur-cost">8 credits</div>
+            </button>
+            <button class="duration-btn">
+              <div class="dur-main">30 sec</div>
+              <div class="dur-cost">12 credits</div>
+            </button>
+          </div>
+          <div style="font-size: 11px; color: #888; margin-top: 12px; margin-bottom: 6px;">Background</div>
+          <input type="text" placeholder="Office, kitchen, outdoor café..." style="
+            width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #EBEBEB;
+            font-size: 14px; font-family: inherit; color: #111; outline: none;
+          ">
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="studio-footer">
+        <div class="footer-cost">
+          <strong id="footer-credits">1 credit</strong> &middot; <span id="footer-desc">1 photo</span>
+        </div>
+        <button class="generate-btn" id="generate-btn">Generate Photo →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const configs = {
+    photo: { label: 'What should Bella do?', placeholder: 'Morning coffee in my bedroom, cozy oversized sweater...', credits: '1 credit', desc: '1 photo', btn: 'Generate Photo →' },
+    carousel: { label: 'What\'s the carousel about?', placeholder: 'Gym day photo dump, mirror selfie to post-workout...', credits: '5 credits', desc: '5 slides', btn: 'Generate Carousel →' },
+    video: { label: 'What happens in the video?', placeholder: 'Walking confidently down a city street, gentle hair movement...', credits: '3 credits', desc: '5 sec video', btn: 'Generate Video →' },
+    talking: { label: 'What should Bella say?', placeholder: 'Hey guys! So I\'ve been trying this protein powder for a month and honestly? Game changer...', credits: '8 credits', desc: '15 sec talking head', btn: 'Generate Talking Head →' },
+  };
+
+  function switchTab(tab) {
+    document.querySelectorAll('.type-tab').forEach((t, i) => {
+      t.classList.toggle('active', ['photo','carousel','video','talking'][i] === tab);
+    });
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('config-' + tab).classList.add('active');
+    const c = configs[tab];
+    document.getElementById('prompt-label').textContent = c.label;
+    document.getElementById('prompt-area').placeholder = c.placeholder;
+    document.getElementById('footer-credits').textContent = c.credits;
+    document.getElementById('footer-desc').textContent = c.desc;
+    document.getElementById('generate-btn').textContent = c.btn;
+  }
+
+  document.getElementById('templates-toggle').onclick = function() {
+    const grid = document.getElementById('templates-grid');
+    const showing = grid.style.display !== 'none';
+    grid.style.display = showing ? 'none' : 'flex';
+    this.textContent = (showing ? '▸' : '▾') + ' Templates — quick start';
+  };
+</script>
+</body>
+</html>

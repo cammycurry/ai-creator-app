@@ -1,133 +1,76 @@
-# AI Influencer Academy — Creator App
+# realinfluencer.ai
 
-> One-click AI influencer creation and viral content generation
+Create custom AI influencers and generate unlimited content as them — photos, videos, talking-head clips — all from one app.
 
----
+## What This Is
 
-## Overview
+A consumer SaaS where users build custom AI influencer personas, then generate photos, videos, and talking-head content as those personas. Usage-based credits because every generation costs real API money.
 
-The companion app for **AI Influencer Academy** — a course teaching people to build AI-powered faceless influencer businesses.
+**Three-layer business:**
+1. **Course** ($197) — teaches manual AI influencer creation
+2. **App** (this project) — consumer tool, the current build focus
+3. **Marketplace** (future) — connects AI creators with brands
 
-**Course teaches the craft → App gives the results**
+## Tech Stack
 
-| Course | App |
-|--------|-----|
-| Learn how it works | Just click and generate |
-| Manual prompting | Visual wizard |
-| 5+ separate tools | All-in-one platform |
-| Build the skill | Get the output |
-
----
+| Layer | Choice |
+|-------|--------|
+| Framework | Next.js 16 (App Router) |
+| Styling | Prototype CSS + Tailwind v4 |
+| Components | shadcn/ui |
+| Auth | Clerk |
+| Database | Railway PostgreSQL + Prisma |
+| State | Zustand |
+| Image Gen | Gemini Nano Banana Pro (`gemini-3-pro-image-preview`) |
+| Video Gen | Kling 3.0 via Fal.ai (planned) |
+| Voice | ElevenLabs Turbo v3 (planned) |
+| Storage | AWS S3 (planned) |
+| Payments | Stripe (planned) |
+| Hosting | Vercel Pro |
 
 ## Project Structure
 
 ```
-ai-creator-app/
-├── README.md              ← You are here
-├── brand-kit/             ← Visual identity & design system
-│   ├── BRAND-GUIDE.md     ← Colors, typography, components
-│   └── AI-Influencer-Academy-Brand-Kit.html
-├── docs/                  ← Specs and flows
-│   ├── APP-SPEC-V1.md     ← Feature spec
-│   ├── CREATOR-FLOW.md    ← Avatar creation wizard
-│   └── CONTENT-FLOW.md    ← Content generation flows
-├── workflows/             ← Generation pipelines
-├── research/              ← Competitor/tech research
-├── src/                   ← Code (when built)
-└── assets/                ← Images, templates
+src/                        # Application code
+  app/                      # Next.js App Router pages
+  components/               # React components
+    workspace/              # Sidebar, header, canvas
+    studio/                 # Creator Studio wizard
+    ui/                     # shadcn/ui components
+  server/actions/           # Server actions (CRUD, generation, credits)
+  stores/                   # Zustand stores
+  types/                    # TypeScript types
+  lib/                      # Utilities (db, cn)
+
+docs/                       # Documentation
+  STATUS.md                 # Master project state summary
+  VISION.md                 # Strategic vision
+  specs/                    # V2 product & technical specs
+  plans/                    # Build plans
+  reference/                # API references & pipeline docs
+  courses/                  # Course notes (AIAC, AI Realism, AI OFM)
+
+research/                   # Competitor research (Arcads teardown)
+archive/                    # Superseded files (old brand kit, prototypes, old docs)
+prisma/                     # Database schema & migrations
 ```
 
----
+## Docs Quick Reference
 
-## Core Features
+| Doc | What |
+|-----|------|
+| `docs/STATUS.md` | Current state of everything |
+| `docs/specs/PRODUCT-SPEC.md` | What to build and why |
+| `docs/specs/TECHNICAL-ARCHITECTURE.md` | How to build it |
+| `docs/plans/2026-03-15-complete-build-plan.md` | 16-task build plan to ship |
+| `docs/reference/GENERATION-PIPELINE.md` | Model costs & pipeline details |
+| `docs/courses/COURSE-RESEARCH.md` | Key learnings from all courses |
 
-### 1. Create Your Creator
-Visual wizard to build AI avatar — no prompting skills needed.
-- Pick features (face, hair, body, style)
-- Generate variations
-- Validate across scenes
-- Save to library
+## Development
 
-### 2. Make Content
-Template library + custom generation.
-- Pre-built viral templates
-- One-click generation
-- Image + video output
-- Caption/hashtag suggestions
+```bash
+pnpm install
+pnpm dev
+```
 
-### 3. Voice & Talking Content
-Add personality with voice.
-- Voice style selection
-- Lip-sync videos
-- Script-to-video
-
-### 4. Post & Track (Future)
-Schedule and analyze.
-- Direct posting (IG, TikTok)
-- Analytics dashboard
-- Content calendar
-
----
-
-## Tech Stack (Planned)
-
-| Layer | Tech |
-|-------|------|
-| Frontend | Next.js 14 + Tailwind + shadcn/ui |
-| Auth | Clerk |
-| Database | PostgreSQL + Prisma |
-| Storage | Cloudflare R2 |
-| Image Gen | Fal.ai / Replicate |
-| Video Gen | Kling / Runway |
-| Voice | ElevenLabs |
-| Lip Sync | Sync Labs / Hedra |
-| Payments | Stripe |
-| Queue | Inngest |
-
----
-
-## Brand
-
-See `/brand-kit/BRAND-GUIDE.md` for:
-- Color palette (Cream, Charcoal, pastels)
-- Typography (Playfair Display, DM Sans, JetBrains Mono)
-- Logo usage
-- UI guidelines
-
----
-
-## Related Projects
-
-| Project | Path | Purpose |
-|---------|------|---------|
-| Course Content | `/ai-content-course` | Scripts, resources, research |
-| Legacy Platform | `/ai-creator-mgmt` | Existing DB, scraping tools |
-
----
-
-## Pricing Model (Draft)
-
-| Tier | Price | Features |
-|------|-------|----------|
-| **Free** | $0 | 1 creator, 5 gens/mo, watermark |
-| **Pro** | $29/mo | 3 creators, 100 gens/mo, no watermark |
-| **Business** | $79/mo | Unlimited, priority, API access |
-
-**Course Bundle:** $297 = Course ($197) + 3 months Pro app
-
----
-
-## Status
-
-- [x] Spec written
-- [x] Creator flow designed
-- [x] Content flow designed
-- [x] Brand kit created
-- [ ] Tech stack scaffolded
-- [ ] MVP built
-- [ ] Beta launch
-
----
-
-*Project started: 2026-02-24*
-*Brand: AI Influencer Academy*
+Requires `.env.local` with Clerk, Database, and Gemini API keys. See `docs/specs/TECHNICAL-ARCHITECTURE.md` for full env var list.
