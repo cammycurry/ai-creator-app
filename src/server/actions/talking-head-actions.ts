@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { db } from "@/lib/db";
 import { fal } from "@/lib/fal";
-import { uploadImage, getSignedImageUrl, getImageBuffer } from "@/lib/s3";
+import { uploadImage, getImageBuffer } from "@/lib/s3";
 import { generateSpeech } from "@/lib/elevenlabs";
 import { deductCredits, refundCredits } from "./credit-actions";
 import { CREDIT_COSTS } from "@/types/credits";
@@ -98,37 +98,13 @@ export async function generateTalkingHead(
     data: { contentId: content.id },
   });
 
-  processTalkingHead(job.id, content.id, user.id, creator, script, voiceId, setting, dur)
-    .catch((err) => console.error("Talking head job failed:", err));
-
-  return { success: true, jobId: job.id, contentId: content.id };
-}
-
-// ─── Internal Pipeline ─────
-
-async function processTalkingHead(
-  jobId: string,
-  contentId: string,
-  userId: string,
-  creator: { id: string; baseImageUrl: string | null; settings: unknown; promptSeed?: string | null },
-  script: string,
-  voiceId: string,
-  setting: string | undefined,
-  duration: number
-) {
+  // Run TTS and base image generation in PARALLEL (they're independent, ~5-15s total)
   try {
     await db.generationJob.update({
-      where: { id: jobId },
+      where: { id: job.id },
       data: { status: "PROCESSING", startedAt: new Date() },
     });
 
-    // Step 1: Generate voice audio via ElevenLabs → upload to S3
-    const audioBuffer = await generateSpeech(script, voiceId);
-    const audioKey = `users/${userId}/creators/${creator.id}/content/audio-${Date.now()}.mp3`;
-    await uploadImage(audioBuffer, audioKey, "audio/mpeg");
-    const audioUrl = await getSignedImageUrl(audioKey);
-
-    // Step 2: Generate talking-head base image via Gemini → upload to S3
     const gender = ((creator.settings as Record<string, string>)?.gender ?? "Female").toLowerCase();
     const subject = gender === "male" ? "man" : "woman";
     const pronoun = gender === "male" ? "He" : "She";
@@ -152,83 +128,73 @@ async function processTalkingHead(
     const refBuffer = await getImageBuffer(creator.baseImageUrl!);
     const refBase64 = refBuffer.toString("base64");
 
-    const imageResponse = await ai.models.generateContent({
-      model: IMAGE_MODEL,
-      contents: [
-        { text: talkingHeadPrompt },
-        { inlineData: { mimeType: "image/jpeg", data: refBase64 } },
-      ],
-      config: { responseModalities: ["TEXT", "IMAGE"], safetySettings: SAFETY_OFF },
-    });
+    // Step 1 + 2 in PARALLEL: TTS + base image generation
+    const [audioBuffer, imageResponse] = await Promise.all([
+      generateSpeech(script, voiceId),
+      ai.models.generateContent({
+        model: IMAGE_MODEL,
+        contents: [
+          { text: talkingHeadPrompt },
+          { inlineData: { mimeType: "image/jpeg", data: refBase64 } },
+        ],
+        config: { responseModalities: ["TEXT", "IMAGE"], safetySettings: SAFETY_OFF },
+      }),
+    ]);
 
+    // Extract image from response
     const imagePart = imageResponse.candidates?.[0]?.content?.parts?.find(
       (p: { inlineData?: { data?: string } }) => p.inlineData?.data
     );
-    if (!imagePart?.inlineData?.data) throw new Error("Failed to generate talking head image");
-
-    const imageBuffer = Buffer.from(imagePart.inlineData.data, "base64");
-    const imageKey = `users/${userId}/creators/${creator.id}/content/talkhead-${Date.now()}.jpg`;
-    await uploadImage(imageBuffer, imageKey, "image/jpeg");
-    const imageUrl = await getSignedImageUrl(imageKey);
-
-    // Step 3: Lip sync via Kling on Fal.ai
-    // The Kling lipsync endpoint expects video_url at runtime but also accepts image URLs;
-    // we cast to avoid a type mismatch on the static image_url field.
-    const lipSyncResult = await fal.subscribe("fal-ai/kling-video/lipsync/audio-to-video", {
-      input: {
-        video_url: imageUrl,
-        audio_url: audioUrl,
-      } as { video_url: string; audio_url: string },
-    });
-
-    const output = lipSyncResult.data as { video?: { url?: string }; video_url?: string };
-    const videoUrl = output?.video?.url ?? output?.video_url;
-    if (!videoUrl) throw new Error("No video URL from lip sync");
-
-    // Step 4: Download final video → upload to S3
-    const videoResponse = await fetch(videoUrl);
-    const videoBuffer = Buffer.from(await videoResponse.arrayBuffer());
-    const videoKey = `users/${userId}/creators/${creator.id}/content/talkhead-video-${Date.now()}.mp4`;
-    await uploadImage(videoBuffer, videoKey, "video/mp4");
-
-    await db.content.update({
-      where: { id: contentId },
-      data: {
-        status: "COMPLETED",
-        url: videoKey,
-        thumbnailUrl: imageKey,
-        outputs: JSON.parse(JSON.stringify([videoKey, audioKey, imageKey])),
-      },
-    });
-
-    await db.generationJob.update({
-      where: { id: jobId },
-      data: {
-        status: "COMPLETED",
-        completedAt: new Date(),
-        output: JSON.parse(JSON.stringify({ videoKey, audioKey, imageKey })),
-      },
-    });
-  } catch (error) {
-    console.error(`Talking head job ${jobId} failed:`, error);
-
-    const content = await db.content.findUnique({ where: { id: contentId } });
-    if (content) {
-      await refundCredits(userId, content.creditsCost, "Talking head refund: generation failed", contentId);
+    if (!imagePart?.inlineData?.data) {
+      throw new Error("Failed to generate talking head image");
     }
+    const imageBuffer = Buffer.from(imagePart.inlineData.data, "base64");
 
-    await db.content.update({
-      where: { id: contentId },
-      data: { status: "FAILED" },
+    // Upload audio + image to S3 for our records
+    const audioKey = `users/${user.id}/creators/${creator.id}/content/audio-${Date.now()}.mp3`;
+    const imageKey = `users/${user.id}/creators/${creator.id}/content/talkhead-${Date.now()}.jpg`;
+    await Promise.all([
+      uploadImage(audioBuffer, audioKey, "audio/mpeg"),
+      uploadImage(imageBuffer, imageKey, "image/jpeg"),
+    ]);
+
+    // Upload to Fal storage for lip sync API (S3 signed URLs may not work with Fal)
+    const [falImageUrl, falAudioUrl] = await Promise.all([
+      fal.storage.upload(new Blob([new Uint8Array(imageBuffer)], { type: "image/jpeg" })),
+      fal.storage.upload(new Blob([new Uint8Array(audioBuffer)], { type: "audio/mpeg" })),
+    ]);
+
+    // Step 3: Submit lip sync to Fal.ai queue (the long-running part)
+    const falModel = "fal-ai/kling-video/lipsync/audio-to-video";
+    const submitted = await fal.queue.submit(falModel, {
+      input: {
+        video_url: falImageUrl,
+        audio_url: falAudioUrl,
+      },
     });
 
     await db.generationJob.update({
-      where: { id: jobId },
+      where: { id: job.id },
       data: {
-        status: "FAILED",
-        error: error instanceof Error ? error.message : "Unknown error",
-        completedAt: new Date(),
+        falRequestId: submitted.request_id,
+        falModel,
+        output: JSON.parse(JSON.stringify({ audioKey, imageKey })),
       },
     });
+
+    console.log(`[TalkingHead] Job ${job.id} — TTS+image done, lip sync submitted: ${submitted.request_id}`);
+  } catch (error) {
+    console.error(`[TalkingHead] Job ${job.id} failed during setup:`, error);
+    const dur = duration ?? 15;
+    const refundCost = dur === 30 ? CREDIT_COSTS.TALKING_HEAD_30S : CREDIT_COSTS.TALKING_HEAD;
+    await refundCredits(user.id, refundCost, "Talking head refund: setup failed");
+    await db.content.update({ where: { id: content.id }, data: { status: "FAILED" } });
+    await db.generationJob.update({
+      where: { id: job.id },
+      data: { status: "FAILED", error: error instanceof Error ? error.message : "Setup failed", completedAt: new Date() },
+    });
+    return { success: false, error: "Failed to start talking head generation" };
   }
+
+  return { success: true, jobId: job.id, contentId: content.id };
 }
