@@ -213,6 +213,10 @@ model GenerationJob {
   providerJobId String?
   modelId       String
 
+  // Fal.ai queue tracking
+  falRequestId  String?   // Fal.ai queue request ID for async jobs
+  falModel      String?   // Fal.ai model endpoint (needed for status/result calls)
+
   // Input/output
   input  Json
   output Json?
@@ -230,6 +234,7 @@ model GenerationJob {
 
   @@index([userId, status])
   @@index([providerJobId])
+  @@index([falRequestId])
 }
 
 enum JobStatus {
