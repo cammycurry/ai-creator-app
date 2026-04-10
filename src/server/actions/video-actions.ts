@@ -143,14 +143,13 @@ async function uploadVideoToS3(
   videoUrl: string,
   userId: string,
   creatorId: string
-): Promise<{ videoKey: string; thumbKey: string }> {
+): Promise<{ videoKey: string; videoBuffer: Buffer }> {
   const response = await fetch(videoUrl);
-  const buffer = Buffer.from(await response.arrayBuffer());
+  const videoBuffer = Buffer.from(await response.arrayBuffer());
   const timestamp = Date.now();
   const videoKey = `users/${userId}/creators/${creatorId}/content/video-${timestamp}.mp4`;
-  await uploadImage(buffer, videoKey, "video/mp4");
-  const thumbKey = "";
-  return { videoKey, thumbKey };
+  await uploadImage(videoBuffer, videoKey, "video/mp4");
+  return { videoKey, videoBuffer };
 }
 
 // ─── Generate Video from Image ─────
@@ -222,7 +221,7 @@ export async function generateVideoFromImage(
       generationSettings: JSON.parse(JSON.stringify({
         videoType: "image-to-video",
         duration,
-        videoModel: "fal-ai/kling-video/v3/standard/image-to-video",
+        videoModel: i2vModel,
         sourceContentId,
         motionPrompt: prompt,
         jobId: job.id,
@@ -442,7 +441,6 @@ export async function generateVideoMotionTransfer(
   }
   await deductCredits(user.id, creditCost, `Video: motion transfer ${duration}s`);
 
-  const baseImageUrl = await getSignedImageUrl(creator.baseImageUrl);
   const enhanced = prompt ? await enhanceVideoPrompt(prompt) : "replicate the movement naturally";
 
   // Upload creator image and reference video to Fal storage (S3 signed URLs may expire)
@@ -544,8 +542,12 @@ export async function checkVideoStatus(jobId: string): Promise<StatusResult> {
   const { userId: clerkId } = await auth();
   if (!clerkId) return { status: "FAILED", error: "Not authenticated" };
 
+  // Auth check: only the job owner can poll status
+  const user = await db.user.findUnique({ where: { clerkId } });
+  if (!user) return { status: "FAILED", error: "Not authenticated" };
+
   const job = await db.generationJob.findFirst({
-    where: { id: jobId },
+    where: { id: jobId, userId: user.id },
   });
   if (!job) return { status: "FAILED", error: "Job not found" };
 
@@ -562,16 +564,6 @@ export async function checkVideoStatus(jobId: string): Promise<StatusResult> {
   // Already failed — return from DB
   if (job.status === "FAILED") {
     return { status: "FAILED", error: job.error ?? "Generation failed" };
-  }
-
-  // Timeout check: 10 minutes max
-  if (job.startedAt) {
-    const elapsed = Date.now() - new Date(job.startedAt).getTime();
-    if (elapsed > 10 * 60 * 1000) {
-      console.log(`[Video] Job ${job.id} timed out after ${Math.round(elapsed / 1000)}s`);
-      await failVideoJob(job.id, job.contentId, job.userId, "Generation timed out");
-      return { status: "FAILED", error: "Generation timed out. Credits refunded." };
-    }
   }
 
   // Has a Fal.ai request? Check its status.
@@ -606,6 +598,20 @@ export async function checkVideoStatus(jobId: string): Promise<StatusResult> {
           return { status: "FAILED", error: "Generation produced no output" };
         }
 
+        // Race condition guard: claim the job before completing.
+        // If two polls arrive simultaneously, only one will succeed here.
+        const claimed = await db.generationJob.updateMany({
+          where: { id: job.id, status: { not: "COMPLETED" } },
+          data: { status: "COMPLETING" as never },
+        });
+        if (claimed.count === 0) {
+          // Another poll already claimed it — re-read and return
+          const updated = await db.content.findUnique({ where: { id: job.contentId! } });
+          const signedUrl = updated?.url ? await getSignedImageUrl(updated.url) : undefined;
+          const signedThumb = updated?.thumbnailUrl ? await getSignedImageUrl(updated.thumbnailUrl) : undefined;
+          return { status: "COMPLETED", videoUrl: signedUrl, thumbnailUrl: signedThumb };
+        }
+
         // Find the content to get creatorId for the S3 path
         const content = job.contentId
           ? await db.content.findUnique({ where: { id: job.contentId } })
@@ -613,7 +619,7 @@ export async function checkVideoStatus(jobId: string): Promise<StatusResult> {
         const creatorId = content?.creatorId ?? "unknown";
 
         // Download from Fal CDN → upload to S3 (media URLs expire!)
-        const { videoKey } = await uploadVideoToS3(videoUrl, job.userId, creatorId);
+        const { videoKey, videoBuffer } = await uploadVideoToS3(videoUrl, job.userId, creatorId);
 
         // For talking heads, use the pre-generated base image as thumbnail
         const jobOutput = job.output as Record<string, string> | null;
@@ -621,8 +627,7 @@ export async function checkVideoStatus(jobId: string): Promise<StatusResult> {
 
         if (!thumbKey) {
           try {
-            const videoResponse = await fetch(videoUrl);
-            const videoBuffer = Buffer.from(await videoResponse.arrayBuffer());
+            // Reuse the already-downloaded video buffer for thumbnail extraction
             const thumbBuffer = await extractFirstFrame(videoBuffer);
             if (thumbBuffer) {
               thumbKey = `users/${job.userId}/creators/${creatorId}/content/thumb-${Date.now()}.jpg`;
@@ -633,7 +638,7 @@ export async function checkVideoStatus(jobId: string): Promise<StatusResult> {
           }
         }
 
-        // Update DB — atomic to prevent duplicate completion
+        // Update DB
         await db.content.update({
           where: { id: job.contentId! },
           data: {
@@ -658,7 +663,16 @@ export async function checkVideoStatus(jobId: string): Promise<StatusResult> {
         return { status: "COMPLETED", videoUrl: signedVideoUrl, thumbnailUrl: signedThumbUrl };
       }
 
-      // Still processing
+      // Still processing — but check timeout AFTER Fal check (avoid losing completed jobs)
+      if (job.startedAt) {
+        const elapsed = Date.now() - new Date(job.startedAt).getTime();
+        if (elapsed > 10 * 60 * 1000) {
+          console.log(`[Video] Job ${job.id} timed out after ${Math.round(elapsed / 1000)}s`);
+          await failVideoJob(job.id, job.contentId, job.userId, "Generation timed out");
+          return { status: "FAILED", error: "Generation timed out. Credits refunded." };
+        }
+      }
+
       return {
         status: falStatus.status === "IN_QUEUE" ? "QUEUED" : "PROCESSING",
       };
