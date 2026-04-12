@@ -47,10 +47,10 @@
 
 ## Infrastructure (Other Agent)
 
-- [ ] Job queue system (BullMQ/Redis)
-- [ ] FFmpeg service on Railway Docker
-- [ ] Video post-processing pipeline (Task 8)
-- [ ] Fal.ai storage upload for i2v/motion transfer S3 URLs
+- [x] Job queue system (BullMQ/Redis) — resolved: Fal.ai queue mode replaces need for BullMQ ✅
+- [x] FFmpeg service on Railway Docker — resolved: metadata-service deployed on Railway ✅
+- [x] Video post-processing pipeline (Task 8) — resolved: metadata-service handles video naturalization ✅
+- [x] Fal.ai storage upload for i2v/motion transfer S3 URLs ✅
 
 ---
 
@@ -73,7 +73,7 @@
 - [ ] **Video duration badge** — overlay "5s" / "10s" on video cards in grid
 - [ ] **Resolution badge** — show HD/4K on content cards
 - [ ] **Dialog consistency** — all dialogs same width, padding, button styles
-- [ ] Download dialog doesn't process videos (no metadata strip — Task 8)
+- [x] Download dialog doesn't process videos (no metadata strip — Task 8) — resolved: video downloads now route through metadata-service ✅
 - [ ] "Upscale" button disabled/stubbed (Task 9)
 
 ---

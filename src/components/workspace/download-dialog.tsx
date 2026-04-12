@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { processDownload } from "@/server/actions/download-actions";
+import { processDownload, processVideoDownload } from "@/server/actions/download-actions";
 import { DEVICE_PROFILES, type DownloadSettings } from "@/types/download";
 
 export function DownloadDialog({
@@ -29,28 +29,6 @@ export function DownloadDialog({
     setDownloading(true);
     setError(null);
 
-    // Videos download directly (no metadata stripping for video yet)
-    if (contentType === "video") {
-      try {
-        const response = await fetch(`/api/download?key=${encodeURIComponent(s3Key)}`);
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `VID_${Date.now()}.mp4`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch {
-        setError("Download failed");
-      }
-      setDownloading(false);
-      onOpenChange(false);
-      return;
-    }
-
-    // Images: process with metadata stripping
     const settings: Partial<DownloadSettings> = {
       deviceId,
       quality,
@@ -58,12 +36,15 @@ export function DownloadDialog({
       ...(injectGps && gpsLat && gpsLng ? { gpsLat: parseFloat(gpsLat), gpsLng: parseFloat(gpsLng) } : {}),
     };
 
-    const result = await processDownload(s3Key, settings);
+    const isVideo = contentType === "video";
+    const result = isVideo
+      ? await processVideoDownload(s3Key, settings)
+      : await processDownload(s3Key, settings);
 
     if (result.success) {
-      // Convert base64 to blob and download
+      const mimeType = isVideo ? "video/mp4" : "image/jpeg";
       const byteArray = Uint8Array.from(atob(result.data), (c) => c.charCodeAt(0));
-      const blob = new Blob([byteArray], { type: "image/jpeg" });
+      const blob = new Blob([byteArray], { type: mimeType });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -83,10 +64,14 @@ export function DownloadDialog({
   // Quick download — just download with defaults, no dialog interaction needed
   async function handleQuickDownload() {
     setDownloading(true);
-    const result = await processDownload(s3Key);
+    const isVideo = contentType === "video";
+    const result = isVideo
+      ? await processVideoDownload(s3Key)
+      : await processDownload(s3Key);
     if (result.success) {
+      const mimeType = isVideo ? "video/mp4" : "image/jpeg";
       const byteArray = Uint8Array.from(atob(result.data), (c) => c.charCodeAt(0));
-      const blob = new Blob([byteArray], { type: "image/jpeg" });
+      const blob = new Blob([byteArray], { type: mimeType });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -108,7 +93,7 @@ export function DownloadDialog({
         <div style={{ padding: 4 }}>
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Download</div>
           <div style={{ fontSize: 12, color: "#888", marginBottom: 16 }}>
-            AI metadata stripped automatically. Looks like a real phone photo.
+            AI metadata stripped automatically. Looks like a real {contentType === "video" ? "phone video" : "phone photo"}.
           </div>
 
           {/* Quick download */}
@@ -129,7 +114,7 @@ export function DownloadDialog({
               marginBottom: 12,
             }}
           >
-            {downloading ? "Processing..." : "Download Clean Photo"}
+            {downloading ? "Processing..." : contentType === "video" ? "Download Clean Video" : "Download Clean Photo"}
           </button>
 
           {/* Advanced toggle */}
