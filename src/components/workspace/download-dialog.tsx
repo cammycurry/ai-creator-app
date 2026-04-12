@@ -2,8 +2,37 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { processDownload, processVideoDownload } from "@/server/actions/download-actions";
-import { DEVICE_PROFILES, type DownloadSettings } from "@/types/download";
+import { DEVICE_PROFILES } from "@/types/download";
+
+// Device ID mapping: our IDs → metadata-service device names
+const DEVICE_MAP: Record<string, string> = {
+  "iphone-15-pro": "iphone_15_pro",
+  "iphone-15-pro-max": "iphone_15_pro_max",
+  "iphone-14-pro": "iphone_14_pro",
+  "samsung-s24": "samsung_s24",
+  "none": "none",
+};
+
+function buildDownloadUrl(s3Key: string, deviceId?: string, gpsCity?: string) {
+  const params = new URLSearchParams({ key: s3Key });
+  if (deviceId) params.set("device", DEVICE_MAP[deviceId] ?? "iphone_15_pro");
+  if (gpsCity) params.set("gps_city", gpsCity);
+  return `/api/download?${params.toString()}`;
+}
+
+async function triggerDownload(url: string, filename: string) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Download failed");
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+}
 
 export function DownloadDialog({
   open,
@@ -19,70 +48,38 @@ export function DownloadDialog({
   const [downloading, setDownloading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [deviceId, setDeviceId] = useState("iphone-15-pro");
-  const [quality, setQuality] = useState(95);
   const [injectGps, setInjectGps] = useState(false);
   const [gpsLat, setGpsLat] = useState("");
   const [gpsLng, setGpsLng] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const isVideo = contentType === "video";
+  const ext = isVideo ? "mp4" : "jpg";
+  const filename = `IMG_${Date.now()}.${ext}`;
+
   async function handleDownload() {
     setDownloading(true);
     setError(null);
-
-    const settings: Partial<DownloadSettings> = {
-      deviceId,
-      quality,
-      injectGps,
-      ...(injectGps && gpsLat && gpsLng ? { gpsLat: parseFloat(gpsLat), gpsLng: parseFloat(gpsLng) } : {}),
-    };
-
-    const isVideo = contentType === "video";
-    const result = isVideo
-      ? await processVideoDownload(s3Key, settings)
-      : await processDownload(s3Key, settings);
-
-    if (result.success) {
-      const mimeType = isVideo ? "video/mp4" : "image/jpeg";
-      const byteArray = Uint8Array.from(atob(result.data), (c) => c.charCodeAt(0));
-      const blob = new Blob([byteArray], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = result.filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+    try {
+      const gpsCity = injectGps ? "los_angeles" : undefined;
+      const url = buildDownloadUrl(s3Key, deviceId, gpsCity);
+      await triggerDownload(url, filename);
       onOpenChange(false);
-    } else {
-      setError(result.error);
+    } catch {
+      setError("Download failed");
     }
-
     setDownloading(false);
   }
 
-  // Quick download — just download with defaults, no dialog interaction needed
   async function handleQuickDownload() {
     setDownloading(true);
-    const isVideo = contentType === "video";
-    const result = isVideo
-      ? await processVideoDownload(s3Key)
-      : await processDownload(s3Key);
-    if (result.success) {
-      const mimeType = isVideo ? "video/mp4" : "image/jpeg";
-      const byteArray = Uint8Array.from(atob(result.data), (c) => c.charCodeAt(0));
-      const blob = new Blob([byteArray], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = result.filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+    setError(null);
+    try {
+      const url = buildDownloadUrl(s3Key);
+      await triggerDownload(url, filename);
       onOpenChange(false);
-    } else {
-      setError(result.error ?? "Download failed");
+    } catch {
+      setError("Download failed");
     }
     setDownloading(false);
   }
@@ -93,7 +90,7 @@ export function DownloadDialog({
         <div style={{ padding: 4 }}>
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Download</div>
           <div style={{ fontSize: 12, color: "#888", marginBottom: 16 }}>
-            AI metadata stripped automatically. Looks like a real {contentType === "video" ? "phone video" : "phone photo"}.
+            AI metadata stripped automatically. Looks like a real {isVideo ? "phone video" : "phone photo"}.
           </div>
 
           {/* Quick download */}
@@ -114,7 +111,7 @@ export function DownloadDialog({
               marginBottom: 12,
             }}
           >
-            {downloading ? "Processing..." : contentType === "video" ? "Download Clean Video" : "Download Clean Photo"}
+            {downloading ? "Processing..." : isVideo ? "Download Clean Video" : "Download Clean Photo"}
           </button>
 
           {/* Advanced toggle */}
@@ -158,23 +155,8 @@ export function DownloadDialog({
                   ))}
                 </select>
                 <div style={{ fontSize: 10, color: "#BBB", marginTop: 2 }}>
-                  EXIF data will show this device took the photo
+                  EXIF data will show this device took the {isVideo ? "video" : "photo"}
                 </div>
-              </div>
-
-              {/* Quality */}
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 600, color: "#555", display: "block", marginBottom: 4 }}>
-                  Quality: {quality}%
-                </label>
-                <input
-                  type="range"
-                  min={80}
-                  max={100}
-                  value={quality}
-                  onChange={(e) => setQuality(Number(e.target.value))}
-                  style={{ width: "100%" }}
-                />
               </div>
 
               {/* GPS */}
@@ -204,7 +186,7 @@ export function DownloadDialog({
                   </div>
                 )}
                 <div style={{ fontSize: 10, color: "#BBB", marginTop: 2 }}>
-                  Makes it look like the photo was taken at a specific location
+                  Makes it look like the {isVideo ? "video" : "photo"} was taken at a specific location
                 </div>
               </div>
 
