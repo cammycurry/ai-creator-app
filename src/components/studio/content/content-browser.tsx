@@ -17,7 +17,7 @@ function contentToBrowserItem(c: ContentItem): BrowserItem {
     kind: "content",
     type: c.type,
     name: c.userInput ?? c.prompt ?? c.type,
-    thumbnailUrl: c.thumbnailUrl ?? c.url,
+    thumbnailUrl: c.thumbnailUrl ?? (c.type === "VIDEO" || c.type === "TALKING_HEAD" ? undefined : c.url),
     mediaUrl: c.url,
     prompt: c.userInput ?? c.prompt,
     userInput: c.userInput,

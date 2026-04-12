@@ -9,9 +9,46 @@
 - [x] Face identity preservation — Elements system in all 3 video modes ✅
 - [x] Polling timeout — 5 min video, 8 min talking head ✅
 - [x] "No photos yet" bug — content browser now pushes to creator store ✅
-- [ ] **Motion transfer element incomplete** — only sends `frontal_image_url`, missing `reference_image_urls` for full-body reference
-- [ ] **motionSourceUrl not validated** — if expired S3 signed URL, Fal.ai fails
+- [x] Motion transfer element — now includes `reference_image_urls` ✅
+- [x] motionSourceUrl — now uploaded to Fal storage before passing to API ✅
 - [ ] **Old video thumbnails blank** — videos generated before ffmpeg extraction have no thumbnailUrl. Need fallback to creator base image.
+
+---
+
+## GENERATION STATUS / LOADING STATES (HIGH PRIORITY)
+
+Users will generate tons of content, leave, come back. They need to see what's generating, what's done, what failed. Right now there's ZERO indication of in-progress jobs outside the studio creation panel.
+
+### What Needs to Happen
+
+**1. Content grid shows GENERATING items**
+- Content records already exist with `status: "GENERATING"` in the DB before video gen starts
+- Both the workspace canvas AND studio sidebar should show these as loading cards (shimmer + spinner + "Generating video..." text)
+- When they complete, the card should update to show the video/thumbnail without a page refresh
+
+**2. Poll for completion on page load**
+- When workspace/studio loads, check for any `GENERATING` content for this creator
+- Start polling `checkVideoStatus` for those jobs
+- Update content in-place when they complete or fail
+
+**3. Generation activity indicator**
+- Small indicator in the workspace header or sidebar showing "2 generating..."
+- Optional: notification/toast when a generation completes
+
+**4. Failed state visible**
+- `FAILED` content should show as a card with error state + "Credits refunded" message
+- User can dismiss or retry
+
+### Files to Modify
+- `src/components/workspace/workspace-canvas.tsx` — show GENERATING content items, poll on mount
+- `src/components/studio/content/content-browser.tsx` — show GENERATING items with spinner
+- `src/server/actions/content-actions.ts` — `getCreatorContent` should include GENERATING items (currently may filter to COMPLETED only)
+- `src/server/actions/video-actions.ts` — `checkVideoStatus` already handles this
+
+### This is NOT a quick fix — needs proper design. Could do:
+- **Option A: Poll-based** — content grid polls for GENERATING items every 10s on mount
+- **Option B: SSE/Realtime** — push updates via server-sent events (overkill for v1)
+- **Option C: Fal.ai webhooks** — webhook calls our API when job completes, we update DB, client polls less aggressively
 
 ---
 

@@ -97,7 +97,7 @@ function NoContentState() {
 }
 
 /* ─── Content Area ─── */
-function ContentArea({ creator }: { creator: { id: string; name: string; contentCount: number } }) {
+function ContentArea({ creator }: { creator: { id: string; name: string; contentCount: number; baseImageUrl?: string } }) {
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
   const [contentMode, setContentMode] = useState<"photo" | "video">("photo");
@@ -268,12 +268,18 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                   setDetailOpen(true);
                 }}
               >
-                {item.url ? (
-                  <img src={item.url} alt={item.userInput ?? "Generated content"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                ) : (
-                  <div className="placeholder-img">📷</div>
-                )}
-                {item.type === "VIDEO" && (
+                {(() => {
+                  const isVideo = item.type === "VIDEO" || item.type === "TALKING_HEAD";
+                  const imgSrc = isVideo
+                    ? (item.thumbnailUrl ?? creator.baseImageUrl ?? item.url)
+                    : item.url;
+                  return imgSrc ? (
+                    <img src={imgSrc} alt={item.userInput ?? "Generated content"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <div className="placeholder-img">📷</div>
+                  );
+                })()}
+                {(item.type === "VIDEO" || item.type === "TALKING_HEAD") && (
                   <div style={{
                     position: "absolute", inset: 0, display: "flex",
                     alignItems: "center", justifyContent: "center",
@@ -284,7 +290,7 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                     </svg>
                   </div>
                 )}
-                <span className="type-badge">{item.type === "VIDEO" ? "Video" : "Photo"}</span>
+                <span className="type-badge">{item.type === "VIDEO" ? "Video" : item.type === "TALKING_HEAD" ? "Talking Head" : "Photo"}</span>
               </div>
             ))}
 
