@@ -127,6 +127,20 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
     getCreatorContentSets(creator.id).then(setContentSets);
   }, [creator.id, setContent, setContentSets]);
 
+  // Poll for GENERATING items — check every 10s until they all complete
+  const generatingCount = content.filter((c) => c.status === "GENERATING").length;
+  useEffect(() => {
+    if (generatingCount === 0) return;
+
+    const interval = setInterval(async () => {
+      const refreshed = await getCreatorContent(creator.id);
+      setContent(refreshed);
+      if (!refreshed.some((c) => c.status === "GENERATING")) clearInterval(interval);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [generatingCount, creator.id, setContent]);
+
   const handleSubmit = useCallback(async () => {
     if (!prompt.trim() || isGeneratingContent) return;
     const input = prompt.trim();
@@ -257,8 +271,55 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
               ))
             )}
 
-            {/* Standalone photos (not part of a carousel) */}
-            {(filter === "all" || filter === "photos" || filter === "videos") && displayContent.map((item) => (
+            {/* Standalone content (not part of a carousel) */}
+            {(filter === "all" || filter === "photos" || filter === "videos") && displayContent.map((item) => {
+              const isGenerating = item.status === "GENERATING";
+              const isFailed = item.status === "FAILED";
+              const isVideo = item.type === "VIDEO" || item.type === "TALKING_HEAD";
+
+              // Generating card — shimmer + spinner
+              if (isGenerating) {
+                return (
+                  <div key={item.id} className="content-card" style={{ position: "relative", overflow: "hidden" }}>
+                    <div className="skel" style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
+                    <div style={{
+                      position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center", gap: 6, zIndex: 1,
+                    }}>
+                      <div className="studio-gen-spinner" />
+                      <span style={{ fontSize: 11, color: "#888", fontWeight: 500 }}>
+                        {isVideo ? "Generating video..." : "Generating..."}
+                      </span>
+                      {item.userInput && (
+                        <span style={{ fontSize: 9, color: "#BBB", maxWidth: "80%", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {item.userInput}
+                        </span>
+                      )}
+                    </div>
+                    <span className="type-badge">{isVideo ? "Video" : "Photo"}</span>
+                  </div>
+                );
+              }
+
+              // Failed card
+              if (isFailed) {
+                return (
+                  <div key={item.id} className="content-card" style={{ position: "relative", background: "#FFF5F5" }}>
+                    <div style={{
+                      position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center", gap: 4,
+                    }}>
+                      <span style={{ fontSize: 16 }}>&#x2717;</span>
+                      <span style={{ fontSize: 11, color: "#C4603A", fontWeight: 500 }}>Failed</span>
+                      <span style={{ fontSize: 9, color: "#BBB" }}>Credits refunded</span>
+                    </div>
+                    <span className="type-badge">{isVideo ? "Video" : "Photo"}</span>
+                  </div>
+                );
+              }
+
+              // Completed card
+              return (
               <div
                 key={item.id}
                 className="content-card"
@@ -269,17 +330,16 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                 }}
               >
                 {(() => {
-                  const isVideo = item.type === "VIDEO" || item.type === "TALKING_HEAD";
                   const imgSrc = isVideo
-                    ? (item.thumbnailUrl ?? creator.baseImageUrl ?? item.url)
+                    ? item.thumbnailUrl
                     : item.url;
                   return imgSrc ? (
                     <img src={imgSrc} alt={item.userInput ?? "Generated content"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
-                    <div className="placeholder-img">📷</div>
+                    <div className="placeholder-img">&#x1F4F7;</div>
                   );
                 })()}
-                {(item.type === "VIDEO" || item.type === "TALKING_HEAD") && (
+                {isVideo && (
                   <div style={{
                     position: "absolute", inset: 0, display: "flex",
                     alignItems: "center", justifyContent: "center",
@@ -292,7 +352,8 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
                 )}
                 <span className="type-badge">{item.type === "VIDEO" ? "Video" : item.type === "TALKING_HEAD" ? "Talking Head" : "Photo"}</span>
               </div>
-            ))}
+              );
+            })}
 
             {/* Carousel cards (consolidated) */}
             {(filter === "all" || filter === "carousels") && filteredSets.map((set) => {

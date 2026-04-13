@@ -250,12 +250,16 @@ export async function generateVideoFromImage(
 
   // Submit to Fal.ai queue (returns immediately)
   const falModel = i2vModel;
+  // Veo only supports "4s", "6s", "8s" — map our 5/10 to closest valid values
+  const veoDuration = duration <= 5 ? "6s" : "8s";
+  const veoAspect = aspectRatio === "1:1" ? "9:16" : aspectRatio;
   const falInput = isPremium
     ? {
         image_url: imageUrl,
         prompt: finalPrompt,
-        duration: String(duration),
-        aspect_ratio: aspectRatio,
+        duration: veoDuration,
+        aspect_ratio: veoAspect,
+        safety_tolerance: "6",
       }
     : {
         start_image_url: imageUrl,
@@ -263,6 +267,7 @@ export async function generateVideoFromImage(
         duration: String(duration),
         aspect_ratio: aspectRatio,
         cfg_scale: 0.5,
+        generate_audio: false,
         ...(allElements.length > 0 && { elements: allElements }),
       };
 
@@ -370,10 +375,14 @@ export async function generateVideoFromText(
   let falInput: Record<string, unknown>;
 
   if (isPremium) {
+    // Veo only supports "4s", "6s", "8s" — map our 5/10 to closest valid values
+    const veoAspect = aspectRatio === "1:1" ? "9:16" : aspectRatio;
+    const veoDuration = duration <= 5 ? "6s" : "8s";
     falInput = {
       prompt: fullPrompt + refSuffix,
-      duration: String(duration),
-      aspect_ratio: aspectRatio,
+      duration: veoDuration,
+      aspect_ratio: veoAspect,
+      safety_tolerance: "6",
     };
   } else {
     const creatorElement = {
@@ -482,9 +491,20 @@ export async function generateVideoMotionTransfer(
     data: { contentId: content.id },
   });
 
+  // Upload reference video to Fal storage if it's an S3 signed URL (they expire)
+  let falVideoUrl = referenceVideoUrl;
+  try {
+    const videoResponse = await fetch(referenceVideoUrl);
+    const videoBuffer = Buffer.from(await videoResponse.arrayBuffer());
+    falVideoUrl = await fal.storage.upload(new Blob([new Uint8Array(videoBuffer)], { type: "video/mp4" }));
+    console.log(`[Video] Motion transfer — uploaded reference video to Fal storage: ${falVideoUrl}`);
+  } catch (err) {
+    console.error("[Video] Failed to upload reference video to Fal storage, using original URL:", err);
+  }
+
   const falModel = "fal-ai/kling-video/v3/pro/motion-control";
   const falInput = {
-    video_url: referenceVideoUrl,
+    video_url: falVideoUrl,
     image_url: falCreatorUrl,
     prompt: `@Element1. ${enhanced}`,
     character_orientation: "video",
@@ -599,10 +619,10 @@ export async function checkVideoStatus(jobId: string): Promise<StatusResult> {
         }
 
         // Race condition guard: claim the job before completing.
-        // If two polls arrive simultaneously, only one will succeed here.
+        // If two polls arrive simultaneously, only one transitions from PROCESSING.
         const claimed = await db.generationJob.updateMany({
-          where: { id: job.id, status: { not: "COMPLETED" } },
-          data: { status: "COMPLETING" as never },
+          where: { id: job.id, status: "PROCESSING" },
+          data: { status: "COMPLETED" },
         });
         if (claimed.count === 0) {
           // Another poll already claimed it — re-read and return
