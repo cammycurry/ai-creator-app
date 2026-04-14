@@ -15,7 +15,7 @@ import { generateTalkingHead } from "@/server/actions/talking-head-actions";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
 import { CREDIT_COSTS } from "@/types/credits";
 import { InlineRefs } from "./inline-refs";
-import { PickReferenceDialog } from "./pick-reference-dialog";
+import { ReferencePicker } from "./reference-picker";
 import { CreationPhoto } from "./creation-photo";
 import { CreationCarousel } from "./creation-carousel";
 import { CreationVideo } from "./creation-video";
@@ -265,55 +265,23 @@ export function CreationPanel() {
           result = await generateVideoFromText(activeCreatorId, prompt, videoDuration, videoAspectRatio, videoRefs, videoQuality);
         }
         if (result.success) {
-          const startTime = Date.now();
-          setGeneratingProgress("Starting video generation...");
-          pollRef.current = setInterval(async () => {
-            const elapsed = Date.now() - startTime;
-            setGeneratingProgress(getProgressMessage(elapsed, "video"));
-
-            // Timeout — stop polling but video may still complete in background
-            if (elapsed > VIDEO_TIMEOUT_MS) {
-              clearInterval(pollRef.current!);
-              setError("Taking longer than expected. Your video will appear in My Content when ready.");
-              setGenerating(false);
-              return;
-            }
-
-            const status = await checkVideoStatus(result.jobId);
-            if (status.status === "COMPLETED") {
-              clearInterval(pollRef.current!);
-              setResults([{
-                id: result.contentId,
-                type: "VIDEO",
-                status: "COMPLETED",
-                url: status.videoUrl ?? "",
-                thumbnailUrl: status.thumbnailUrl,
-                creatorId: activeCreatorId,
-                s3Keys: [],
-                source: "FREEFORM",
-                creditsCost: 0,
-                createdAt: new Date().toISOString(),
-              }]);
-              setShowResults(true);
-              useUnifiedStudioStore.getState().showCanvas();
-              setGenerating(false);
-              if (activeCreatorId) {
-                const items = await getCreatorContent(activeCreatorId);
-                useCreatorStore.getState().setContent(items);
-              }
-              const refreshed = await getWorkspaceData();
-              setCredits(refreshed.balance);
-            } else if (status.status === "FAILED") {
-              clearInterval(pollRef.current!);
-              setError(friendlyError(status.error ?? "Video generation failed"));
-              setGenerating(false);
-            }
-          }, 5000);
+          // Queue mode — submit returns instantly. Don't block the UI for the
+          // whole 30-300s generation. Push the new GENERATING content to the
+          // store so the grid shows it immediately, then let the user submit
+          // more. The workspace-canvas / content-browser polling loops handle
+          // the rest.
+          if (activeCreatorId) {
+            const items = await getCreatorContent(activeCreatorId);
+            useCreatorStore.getState().setContent(items);
+          }
           const data = await getWorkspaceData();
           setCredits(data.balance);
+          setPrompt("");
+          setGenerating(false);
           return;
         } else {
           setError(friendlyError(result.error));
+          setGenerating(false);
         }
         break;
       }
@@ -326,54 +294,19 @@ export function CreationPanel() {
           talkingDuration
         );
         if (result.success) {
-          const startTime = Date.now();
-          setGeneratingProgress("Starting talking head generation...");
-          pollRef.current = setInterval(async () => {
-            const elapsed = Date.now() - startTime;
-            setGeneratingProgress(getProgressMessage(elapsed, "talking-head"));
-
-            if (elapsed > TALKING_HEAD_TIMEOUT_MS) {
-              clearInterval(pollRef.current!);
-              setError("Taking longer than expected. Your talking head will appear in My Content when ready.");
-              setGenerating(false);
-              return;
-            }
-
-            const status = await checkVideoStatus(result.jobId);
-            if (status.status === "COMPLETED") {
-              clearInterval(pollRef.current!);
-              setResults([{
-                id: result.contentId,
-                type: "TALKING_HEAD",
-                status: "COMPLETED",
-                url: status.videoUrl ?? "",
-                thumbnailUrl: status.thumbnailUrl,
-                creatorId: activeCreatorId,
-                s3Keys: [],
-                source: "FREEFORM",
-                creditsCost: 0,
-                createdAt: new Date().toISOString(),
-              }]);
-              setShowResults(true);
-              useUnifiedStudioStore.getState().showCanvas();
-              setGenerating(false);
-              if (activeCreatorId) {
-                const items = await getCreatorContent(activeCreatorId);
-                useCreatorStore.getState().setContent(items);
-              }
-              const refreshed = await getWorkspaceData();
-              setCredits(refreshed.balance);
-            } else if (status.status === "FAILED") {
-              clearInterval(pollRef.current!);
-              setError(friendlyError(status.error ?? "Generation failed"));
-              setGenerating(false);
-            }
-          }, 5000);
+          // Queue mode — same async pattern as video.
+          if (activeCreatorId) {
+            const items = await getCreatorContent(activeCreatorId);
+            useCreatorStore.getState().setContent(items);
+          }
           const data = await getWorkspaceData();
           setCredits(data.balance);
+          setScript("");
+          setGenerating(false);
           return;
         } else {
           setError(friendlyError(result.error));
+          setGenerating(false);
         }
         break;
       }
@@ -461,7 +394,11 @@ export function CreationPanel() {
             </div>
           )}
         </div>
-        <PickReferenceDialog open={refPickerOpen} onOpenChange={setRefPickerOpen} />
+        <ReferencePicker
+          open={refPickerOpen}
+          onOpenChange={setRefPickerOpen}
+          onSelect={(ref) => useUnifiedStudioStore.getState().attachRef(ref)}
+        />
 
         {/* Script starter chips for talking head */}
         {contentType === "talking-head" && (

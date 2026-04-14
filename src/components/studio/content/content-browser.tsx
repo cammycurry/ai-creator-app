@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUnifiedStudioStore, type BrowserItem } from "@/stores/unified-studio-store";
 import { getCreatorContent } from "@/server/actions/content-actions";
@@ -72,6 +72,9 @@ function templateToBrowserItem(t: ContentTemplateItem): BrowserItem {
 export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) {
   const creator = useCreatorStore((s) => s.getActiveCreator());
   const references = useCreatorStore((s) => s.references);
+  // Subscribe to creator store content — reactive to any push (from creation-panel,
+  // workspace-canvas, polling loops, etc.) so new GENERATING cards appear instantly.
+  const storeContent = useCreatorStore((s) => s.content);
   const {
     browserTab, setBrowserTab,
     browserSubFilter, setBrowserSubFilter,
@@ -80,7 +83,13 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
     showResults,
   } = useUnifiedStudioStore();
 
-  const [contentItems, setContentItems] = useState<BrowserItem[]>([]);
+  // Derive browser items reactively from the shared creator store content.
+  // No local state — anything that pushes to store.content (creation panel,
+  // workspace-canvas, polling loops) updates this browser immediately.
+  const contentItems = useMemo<BrowserItem[]>(
+    () => storeContent.filter((c) => !c.contentSetId).map(contentToBrowserItem),
+    [storeContent]
+  );
   // Tick every 1s only when there are GENERATING cards — otherwise we'd
   // re-render the entire library grid for no reason.
   const anyGenerating = contentItems.some((c) => c.status === "GENERATING");
@@ -95,10 +104,7 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
     if (!creator?.id) return;
     setLoading(true);
     getCreatorContent(creator.id).then((items) => {
-      // Filter out carousel slides (they belong to sets)
-      const standalone = items.filter((c) => !c.contentSetId);
-      setContentItems(standalone.map(contentToBrowserItem));
-      // Also push to creator store so other components (video picker, etc.) can access content
+      // Push to creator store — contentItems derives reactively via useMemo
       useCreatorStore.getState().setContent(items);
       setLoading(false);
     });
@@ -126,8 +132,6 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
       }
       const updated = await getCreatorContent(creator.id);
       if (stopped) return;
-      const standalone = updated.filter((c) => !c.contentSetId);
-      setContentItems(standalone.map(contentToBrowserItem));
       useCreatorStore.getState().setContent(updated);
     };
 

@@ -177,34 +177,28 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
     if (!prompt.trim() || isGeneratingContent) return;
     const input = prompt.trim();
 
-    // Video mode — generate inline
+    // Video mode — submit via queue mode and immediately return so the user
+    // can submit another. The grid polling loop picks up the GENERATING card.
     if (contentMode === "video") {
       setIsGeneratingContent(true);
       setContentError(null);
 
-      const { generateVideoFromText, checkVideoStatus } = await import("@/server/actions/video-actions");
+      const { generateVideoFromText } = await import("@/server/actions/video-actions");
       const result = await generateVideoFromText(creator.id, input, 5, "9:16");
 
       if (result.success) {
         setPrompt("");
-        const poll = setInterval(async () => {
-          const status = await checkVideoStatus(result.jobId);
-          if (status.status === "COMPLETED") {
-            clearInterval(poll);
-            getCreatorContent(creator.id).then(setContent);
-            setIsGeneratingContent(false);
-            const data = await getWorkspaceData();
-            setCredits(data.balance);
-          } else if (status.status === "FAILED") {
-            clearInterval(poll);
-            setContentError(status.error ?? "Video generation failed");
-            setIsGeneratingContent(false);
-          }
-        }, 5000);
+        // Immediately fetch so the new GENERATING card appears in the grid
+        const refreshed = await getCreatorContent(creator.id);
+        setContent(refreshed);
+        const data = await getWorkspaceData();
+        setCredits(data.balance);
       } else {
         setContentError(result.error);
-        setIsGeneratingContent(false);
       }
+      // Clear immediately — user can submit another video right away. The
+      // useEffect polling loop at line ~132 handles ongoing status updates.
+      setIsGeneratingContent(false);
       return;
     }
 
