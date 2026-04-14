@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUIStore } from "@/stores/ui-store";
 import { generateContent, getCreatorContent } from "@/server/actions/content-actions";
+import { formatElapsed } from "@/lib/time-format";
+import { getExpectationMessage } from "@/lib/model-durations";
+import { useTick } from "@/lib/hooks/use-tick";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
 import { ContentDetail } from "./content-detail";
 import { CarouselDetail } from "./carousel-detail";
@@ -122,57 +125,82 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
     setCredits,
   } = useCreatorStore();
 
+  // Tick every 1s so elapsed-time displays on GENERATING cards update live.
+  // Gate on whether there's actually anything generating — otherwise the tick
+  // forces a 1Hz re-render of the entire grid for no reason.
+  const anyGenerating = content.some((c) => c.status === "GENERATING");
+  const now = useTick(1000, anyGenerating);
+
   useEffect(() => {
     getCreatorContent(creator.id).then(setContent);
     getCreatorContentSets(creator.id).then(setContentSets);
   }, [creator.id, setContent, setContentSets]);
 
-  // Poll for GENERATING items — check every 10s until they all complete
+  // Poll for GENERATING items every 5s. Calls checkVideoStatus per item so
+  // Fal.ai jobs actually complete from this view (not just re-reading the DB).
+  // Pauses when tab is hidden and re-polls immediately on tab focus.
   const generatingCount = content.filter((c) => c.status === "GENERATING").length;
   useEffect(() => {
     if (generatingCount === 0) return;
 
-    const interval = setInterval(async () => {
-      const refreshed = await getCreatorContent(creator.id);
-      setContent(refreshed);
-      if (!refreshed.some((c) => c.status === "GENERATING")) clearInterval(interval);
-    }, 10000);
+    let stopped = false;
 
-    return () => clearInterval(interval);
+    const pollOnce = async () => {
+      if (stopped) return;
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      const { checkVideoStatus } = await import("@/server/actions/video-actions");
+      // Read latest store state directly — avoids a redundant getCreatorContent
+      // call (which would re-generate signed URLs for every item in the library).
+      const latest = useCreatorStore.getState().content;
+      const generating = latest.filter((c) => c.status === "GENERATING" && c.generationJobId);
+      if (generating.length > 0) {
+        await Promise.all(generating.map((c) => checkVideoStatus(c.generationJobId!)));
+      }
+      const refreshed = await getCreatorContent(creator.id);
+      if (!stopped) setContent(refreshed);
+    };
+
+    const interval = setInterval(pollOnce, 5000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") pollOnce();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [generatingCount, creator.id, setContent]);
 
   const handleSubmit = useCallback(async () => {
     if (!prompt.trim() || isGeneratingContent) return;
     const input = prompt.trim();
 
-    // Video mode — generate inline
+    // Video mode — submit via queue mode and immediately return so the user
+    // can submit another. The grid polling loop picks up the GENERATING card.
     if (contentMode === "video") {
       setIsGeneratingContent(true);
       setContentError(null);
 
-      const { generateVideoFromText, checkVideoStatus } = await import("@/server/actions/video-actions");
+      const { generateVideoFromText } = await import("@/server/actions/video-actions");
       const result = await generateVideoFromText(creator.id, input, 5, "9:16");
 
       if (result.success) {
         setPrompt("");
-        const poll = setInterval(async () => {
-          const status = await checkVideoStatus(result.jobId);
-          if (status.status === "COMPLETED") {
-            clearInterval(poll);
-            getCreatorContent(creator.id).then(setContent);
-            setIsGeneratingContent(false);
-            const data = await getWorkspaceData();
-            setCredits(data.balance);
-          } else if (status.status === "FAILED") {
-            clearInterval(poll);
-            setContentError(status.error ?? "Video generation failed");
-            setIsGeneratingContent(false);
-          }
-        }, 5000);
+        // Immediately fetch so the new GENERATING card appears in the grid
+        const refreshed = await getCreatorContent(creator.id);
+        setContent(refreshed);
+        const data = await getWorkspaceData();
+        // Refresh creators so the sidebar dot lights up immediately
+        useCreatorStore.getState().setCreators(data.creators);
+        setCredits(data.balance);
       } else {
         setContentError(result.error);
-        setIsGeneratingContent(false);
       }
+      // Clear immediately — user can submit another video right away. The
+      // useEffect polling loop at line ~132 handles ongoing status updates.
+      setIsGeneratingContent(false);
       return;
     }
 
@@ -277,21 +305,32 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
               const isFailed = item.status === "FAILED";
               const isVideo = item.type === "VIDEO" || item.type === "TALKING_HEAD";
 
-              // Generating card — shimmer + spinner
+              // Generating card — shimmer + spinner + stage + elapsed + expectation
               if (isGenerating) {
+                const startedAtMs = item.jobStartedAt
+                  ? new Date(item.jobStartedAt).getTime()
+                  : new Date(item.createdAt).getTime();
+                const elapsedMs = Math.max(0, now - startedAtMs);
+                const stageLabel =
+                  item.jobStatus === "QUEUED" ? "Queued" :
+                  item.jobStatus === "PROCESSING" ? "Processing" :
+                  "Starting";
+                const expectation = getExpectationMessage(item.falModel, elapsedMs);
+
                 return (
                   <div key={item.id} className="content-card" style={{ position: "relative", overflow: "hidden" }}>
                     <div className="skel" style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
                     <div style={{
                       position: "absolute", inset: 0, display: "flex", flexDirection: "column",
-                      alignItems: "center", justifyContent: "center", gap: 6, zIndex: 1,
+                      alignItems: "center", justifyContent: "center", gap: 4, zIndex: 1, padding: 8,
                     }}>
                       <div className="studio-gen-spinner" />
-                      <span style={{ fontSize: 11, color: "#888", fontWeight: 500 }}>
-                        {isVideo ? "Generating video..." : "Generating..."}
-                      </span>
+                      <div className="gen-card-stage">
+                        {stageLabel} <span className="gen-card-elapsed">· {formatElapsed(elapsedMs)}</span>
+                      </div>
+                      <div className="gen-card-expectation">{expectation}</div>
                       {item.userInput && (
-                        <span style={{ fontSize: 9, color: "#BBB", maxWidth: "80%", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span style={{ fontSize: 9, color: "#BBB", maxWidth: "80%", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 4 }}>
                           {item.userInput}
                         </span>
                       )}

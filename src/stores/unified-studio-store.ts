@@ -22,6 +22,7 @@ export type BrowserItem = {
   id: string;
   kind: "content" | "reference" | "template";
   type: string;
+  status?: "GENERATING" | "COMPLETED" | "FAILED";
   name: string;
   thumbnailUrl?: string;
   mediaUrl?: string;
@@ -39,6 +40,10 @@ export type BrowserItem = {
   creditsCost?: number;
   s3Keys?: string[];
   refAttachments?: any[];
+  generationJobId?: string;
+  jobStatus?: "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
+  jobStartedAt?: string;
+  falModel?: string;
 };
 
 export type SlideConfig = {
@@ -77,6 +82,7 @@ type UnifiedStudioStore = {
   videoQuality: "standard" | "premium";
   sourceContentId: string | null;
   motionSourceUrl: string | null;
+  motionSourceRefId: string | null;
 
   // Talking head config
   script: string;
@@ -121,6 +127,7 @@ type UnifiedStudioStore = {
   setVideoQuality: (quality: "standard" | "premium") => void;
   setSourceContentId: (id: string | null) => void;
   setMotionSourceUrl: (url: string | null) => void;
+  setMotionSourceRefId: (id: string | null) => void;
 
   setScript: (script: string) => void;
   setVoiceId: (voiceId: string) => void;
@@ -171,7 +178,7 @@ const INITIAL: Omit<UnifiedStudioStore,
   'addInspirationPhoto' | 'removeInspirationPhoto' | 'setInspirationVideo' |
   'setImageCount' | 'selectCarouselFormat' | 'updateSlide' | 'attachSlideRef' |
   'detachSlideRef' | 'setSlideCount' | 'setCarouselInstructions' |
-  'setVideoSource' | 'setVideoDuration' | 'setVideoAspectRatio' | 'setVideoQuality' | 'setSourceContentId' | 'setMotionSourceUrl' |
+  'setVideoSource' | 'setVideoDuration' | 'setVideoAspectRatio' | 'setVideoQuality' | 'setSourceContentId' | 'setMotionSourceUrl' | 'setMotionSourceRefId' |
   'setScript' | 'setVoiceId' | 'setTalkingSetting' | 'setTalkingDuration' |
   'setGenerating' | 'setGeneratingProgress' | 'setError' |
   'setShowResults' | 'setResults' | 'setResultContentSet' |
@@ -196,6 +203,7 @@ const INITIAL: Omit<UnifiedStudioStore,
   videoQuality: "standard",
   sourceContentId: null,
   motionSourceUrl: null,
+  motionSourceRefId: null,
   script: "",
   voiceId: "",
   talkingSetting: "",
@@ -313,6 +321,7 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
   setVideoQuality: (videoQuality) => set({ videoQuality }),
   setSourceContentId: (sourceContentId) => set({ sourceContentId }),
   setMotionSourceUrl: (motionSourceUrl) => set({ motionSourceUrl }),
+  setMotionSourceRefId: (motionSourceRefId) => set({ motionSourceRefId }),
 
   setScript: (script) => set({ script }),
   setVoiceId: (voiceId) => set({ voiceId }),

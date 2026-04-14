@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { useCreatorStore } from "@/stores/creator-store";
 import { CREDIT_COSTS } from "@/types/credits";
+import { PhotoPicker } from "./photo-picker";
+import { MotionSourcePicker } from "./motion-source-picker";
 
 export function CreationVideo() {
   const {
@@ -20,20 +21,25 @@ export function CreationVideo() {
     setSourceContentId,
     motionSourceUrl,
     setMotionSourceUrl,
+    setMotionSourceRefId,
   } = useUnifiedStudioStore();
 
   const content = useCreatorStore((s) => s.content);
+  const references = useCreatorStore((s) => s.references);
   const recentImages = content
-    .filter((c) => c.type === "IMAGE" && c.status === "COMPLETED" && c.url)
-    .slice(0, 24);
-  const recentVideos = content
-    .filter((c) => (c.type === "VIDEO" || c.type === "TALKING_HEAD") && c.status === "COMPLETED" && c.url)
-    .slice(0, 12);
+    .filter((c) => c.type === "IMAGE" && c.status === "COMPLETED" && c.url);
+  const videoRefs = references
+    .filter((r) => r.purpose === "motion" || r.tags.some((t) => t === "video" || t === "motion"));
 
   const [photoPickerOpen, setPhotoPickerOpen] = useState(false);
   const [videoPickerOpen, setVideoPickerOpen] = useState(false);
 
   const selectedPhoto = recentImages.find((c) => c.id === sourceContentId);
+
+  // Find matched motion ref name for display
+  const matchedMotionRef = motionSourceUrl
+    ? videoRefs.find((r) => r.imageUrl === motionSourceUrl)
+    : null;
 
   return (
     <div className="sv2-config sv2-config-video">
@@ -90,19 +96,24 @@ export function CreationVideo() {
           <div className="sv2-cfg-pills">
             {motionSourceUrl ? (
               <>
+                {matchedMotionRef && (
+                  <span style={{ fontSize: 10, color: "#555", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {matchedMotionRef.name}
+                  </span>
+                )}
                 <button className="sv2-cfg-pill on" onClick={() => setVideoPickerOpen(true)}>Change</button>
                 <button className="sv2-cfg-pill" onClick={() => setMotionSourceUrl(null)}>Clear</button>
               </>
             ) : (
               <button className="sv2-cfg-pill" onClick={() => setVideoPickerOpen(true)}>
-                {recentVideos.length > 0 ? "Choose video" : "No videos yet"}
+                Choose video
               </button>
             )}
           </div>
         </div>
       )}
 
-      {/* Duration — hide for motion transfer (duration comes from reference video) */}
+      {/* Duration — hide for motion transfer */}
       {videoSource !== "motion" && (
         <div className="sv2-config-row">
           <span className="sv2-config-label">Duration</span>
@@ -167,108 +178,20 @@ export function CreationVideo() {
         </div>
       )}
 
-      {/* Photo picker dialog */}
-      <Dialog open={photoPickerOpen} onOpenChange={setPhotoPickerOpen}>
-        <DialogContent className="add-ref-dialog" showCloseButton={false} style={{ maxWidth: 480 }}>
-          <div style={{ padding: 8 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Choose starting photo</div>
-            <div style={{ fontSize: 11, color: "#888", marginBottom: 12 }}>
-              This photo will be animated into a video. Leave empty to generate from scratch.
-            </div>
-            {recentImages.length === 0 ? (
-              <div style={{ padding: 20, textAlign: "center", color: "#BBB", fontSize: 12 }}>
-                No photos yet — generate some first.
-              </div>
-            ) : (
-              <div style={{
-                display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6,
-                maxHeight: 320, overflowY: "auto",
-              }}>
-                {recentImages.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setSourceContentId(item.id);
-                      setPhotoPickerOpen(false);
-                    }}
-                    style={{
-                      width: "100%", aspectRatio: "3/4", borderRadius: 6, border: sourceContentId === item.id ? "2px solid #C4603A" : "2px solid transparent",
-                      backgroundImage: `url(${item.url})`, backgroundSize: "cover", backgroundPosition: "center",
-                      cursor: "pointer", padding: 0,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button
-                onClick={() => { setSourceContentId(null); setPhotoPickerOpen(false); }}
-                style={{
-                  flex: 1, padding: "8px 12px", background: "#F5F5F5", border: "none",
-                  borderRadius: 6, fontSize: 12, cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                No starting photo
-              </button>
-              <button
-                onClick={() => setPhotoPickerOpen(false)}
-                style={{
-                  flex: 1, padding: "8px 12px", background: "#111", color: "white", border: "none",
-                  borderRadius: 6, fontSize: 12, cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Photo picker */}
+      <PhotoPicker
+        open={photoPickerOpen}
+        onOpenChange={setPhotoPickerOpen}
+        onSelect={(id) => setSourceContentId(id)}
+        selectedContentId={sourceContentId}
+      />
 
-      {/* Video picker dialog */}
-      <Dialog open={videoPickerOpen} onOpenChange={setVideoPickerOpen}>
-        <DialogContent className="add-ref-dialog" showCloseButton={false} style={{ maxWidth: 480 }}>
-          <div style={{ padding: 8 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Choose motion source</div>
-            <div style={{ fontSize: 11, color: "#888", marginBottom: 12 }}>
-              Your creator will copy the movements from this video.
-            </div>
-            {recentVideos.length === 0 ? (
-              <div style={{ padding: 20, textAlign: "center", color: "#BBB", fontSize: 12 }}>
-                No videos yet — generate a video first.
-              </div>
-            ) : (
-              <div style={{
-                display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6,
-                maxHeight: 320, overflowY: "auto",
-              }}>
-                {recentVideos.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setMotionSourceUrl(item.url ?? null);
-                      setVideoPickerOpen(false);
-                    }}
-                    style={{
-                      width: "100%", aspectRatio: "9/16", borderRadius: 6,
-                      border: motionSourceUrl === item.url ? "2px solid #C4603A" : "2px solid transparent",
-                      backgroundImage: item.thumbnailUrl ? `url(${item.thumbnailUrl})` : item.url ? `url(${item.url})` : undefined,
-                      backgroundSize: "cover", backgroundPosition: "center",
-                      cursor: "pointer", padding: 0, position: "relative",
-                    }}
-                  >
-                    <svg
-                      width="20" height="20" viewBox="0 0 24 24" fill="white" opacity={0.8}
-                      style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
-                    >
-                      <polygon points="5 3 19 12 5 21" />
-                    </svg>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Motion source picker */}
+      <MotionSourcePicker
+        open={videoPickerOpen}
+        onOpenChange={setVideoPickerOpen}
+        onSelect={(url, refId) => { setMotionSourceUrl(url); setMotionSourceRefId(refId ?? null); }}
+      />
     </div>
   );
 }

@@ -240,6 +240,23 @@
   background: rgba(196, 96, 58, 0.8);
 }
 
+/* Generating card — stage · elapsed + expectation */
+.sv3-browser-gen-stage {
+  font-size: 9px;
+  color: #555;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+.sv3-browser-gen-expect {
+  font-size: 8px;
+  color: #BBB;
+  font-style: italic;
+  line-height: 1.2;
+  text-align: center;
+  max-width: 90%;
+}
+
 /* Video play overlay */
 .sv3-browser-play {
   position: absolute;

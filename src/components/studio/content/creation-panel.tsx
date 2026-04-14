@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { useCreatorStore } from "@/stores/creator-store";
 import { generateContent, getCreatorContent } from "@/server/actions/content-actions";
@@ -9,13 +9,12 @@ import {
   generateVideoFromText,
   generateVideoFromImage,
   generateVideoMotionTransfer,
-  checkVideoStatus,
 } from "@/server/actions/video-actions";
 import { generateTalkingHead } from "@/server/actions/talking-head-actions";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
 import { CREDIT_COSTS } from "@/types/credits";
 import { InlineRefs } from "./inline-refs";
-import { PickReferenceDialog } from "./pick-reference-dialog";
+import { ReferencePicker } from "./reference-picker";
 import { CreationPhoto } from "./creation-photo";
 import { CreationCarousel } from "./creation-carousel";
 import { CreationVideo } from "./creation-video";
@@ -29,17 +28,6 @@ const CONTENT_TYPES = [
 ];
 
 const SCRIPT_STARTERS = ["Product review", "Day in my life", "Tips & advice"];
-
-const VIDEO_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-const TALKING_HEAD_TIMEOUT_MS = 8 * 60 * 1000; // 8 minutes
-
-function getProgressMessage(elapsedMs: number, type: "video" | "talking-head"): string {
-  const label = type === "talking-head" ? "talking head" : "video";
-  if (elapsedMs < 15_000) return `Starting ${label} generation...`;
-  if (elapsedMs < 60_000) return `Creating your ${label}...`;
-  if (elapsedMs < 180_000) return `Still working — ${label}s can take 2-3 minutes...`;
-  return `Almost there — finalizing your ${label}...`;
-}
 
 function friendlyError(raw: string): string {
   const lower = raw.toLowerCase();
@@ -84,7 +72,6 @@ export function CreationPanel() {
     generatingProgress,
     error,
     setGenerating,
-    setGeneratingProgress,
     setError,
     setResults,
     setResultContentSet,
@@ -95,14 +82,41 @@ export function CreationPanel() {
   const creator = getActiveCreator();
   const creatorName = creator?.name ?? "them";
 
-  const pollRef = useRef<NodeJS.Timeout | null>(null);
   const [refPickerOpen, setRefPickerOpen] = useState(false);
 
+  // Track video/talking-head IDs we've submitted this session so we can show
+  // the celebration view in the studio canvas when they complete. The grid
+  // polling loops drive the status transitions; we just watch the store.
+  const [pendingVideoIds, setPendingVideoIds] = useState<Set<string>>(new Set());
+  const storeContent = useCreatorStore((s) => s.content);
+
   useEffect(() => {
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, []);
+    if (pendingVideoIds.size === 0) return;
+    const completed = storeContent.filter(
+      (c) => pendingVideoIds.has(c.id) && c.status === "COMPLETED"
+    );
+    const failed = storeContent.filter(
+      (c) => pendingVideoIds.has(c.id) && c.status === "FAILED"
+    );
+    if (completed.length === 0 && failed.length === 0) return;
+
+    if (completed.length > 0) {
+      setResults(completed);
+      setShowResults(true);
+      useUnifiedStudioStore.getState().showCanvas();
+    }
+    if (failed.length > 0) {
+      setError("Generation failed. Credits were refunded. Check your library for details.");
+    }
+    // Drop completed and failed items from the pending set so we don't
+    // re-trigger the celebration on subsequent ticks.
+    setPendingVideoIds((prev) => {
+      const next = new Set(prev);
+      for (const c of completed) next.delete(c.id);
+      for (const c of failed) next.delete(c.id);
+      return next;
+    });
+  }, [storeContent, pendingVideoIds, setResults, setShowResults, setError]);
 
   function getCreditCost(): number {
     switch (contentType) {
@@ -265,52 +279,24 @@ export function CreationPanel() {
           result = await generateVideoFromText(activeCreatorId, prompt, videoDuration, videoAspectRatio, videoRefs, videoQuality);
         }
         if (result.success) {
-          const startTime = Date.now();
-          setGeneratingProgress("Starting video generation...");
-          pollRef.current = setInterval(async () => {
-            const elapsed = Date.now() - startTime;
-            setGeneratingProgress(getProgressMessage(elapsed, "video"));
-
-            // Timeout — stop polling but video may still complete in background
-            if (elapsed > VIDEO_TIMEOUT_MS) {
-              clearInterval(pollRef.current!);
-              setError("Taking longer than expected. Your video will appear in My Content when ready.");
-              setGenerating(false);
-              return;
-            }
-
-            const status = await checkVideoStatus(result.jobId);
-            if (status.status === "COMPLETED") {
-              clearInterval(pollRef.current!);
-              setResults([{
-                id: result.contentId,
-                type: "VIDEO",
-                status: "COMPLETED",
-                url: status.videoUrl ?? "",
-                thumbnailUrl: status.thumbnailUrl,
-                creatorId: activeCreatorId,
-                s3Keys: [],
-                source: "FREEFORM",
-                creditsCost: 0,
-                createdAt: new Date().toISOString(),
-              }]);
-              setShowResults(true);
-              useUnifiedStudioStore.getState().showCanvas();
-              setGenerating(false);
-              if (activeCreatorId) {
-                const items = await getCreatorContent(activeCreatorId);
-                useCreatorStore.getState().setContent(items);
-              }
-              const refreshed = await getWorkspaceData();
-              setCredits(refreshed.balance);
-            } else if (status.status === "FAILED") {
-              clearInterval(pollRef.current!);
-              setError(friendlyError(status.error ?? "Video generation failed"));
-              setGenerating(false);
-            }
-          }, 5000);
+          // Queue mode — submit returns instantly. Don't block the UI for the
+          // whole 30-300s generation. Push the new GENERATING content to the
+          // store so the grid shows it immediately, then let the user submit
+          // more. The workspace-canvas / content-browser polling loops handle
+          // the rest. We track the jobId in pendingVideoIds so the celebration
+          // view fires when the grid polling transitions it to COMPLETED.
+          setPendingVideoIds((prev) => new Set(prev).add(result.contentId));
+          if (activeCreatorId) {
+            const items = await getCreatorContent(activeCreatorId);
+            useCreatorStore.getState().setContent(items);
+          }
           const data = await getWorkspaceData();
+          // Refresh creators too so sidebar dot appears immediately (the
+          // generatingCount is computed server-side on each getWorkspaceData)
+          useCreatorStore.getState().setCreators(data.creators);
           setCredits(data.balance);
+          setPrompt("");
+          setGenerating(false);
           return;
         } else {
           setError(friendlyError(result.error));
@@ -326,51 +312,17 @@ export function CreationPanel() {
           talkingDuration
         );
         if (result.success) {
-          const startTime = Date.now();
-          setGeneratingProgress("Starting talking head generation...");
-          pollRef.current = setInterval(async () => {
-            const elapsed = Date.now() - startTime;
-            setGeneratingProgress(getProgressMessage(elapsed, "talking-head"));
-
-            if (elapsed > TALKING_HEAD_TIMEOUT_MS) {
-              clearInterval(pollRef.current!);
-              setError("Taking longer than expected. Your talking head will appear in My Content when ready.");
-              setGenerating(false);
-              return;
-            }
-
-            const status = await checkVideoStatus(result.jobId);
-            if (status.status === "COMPLETED") {
-              clearInterval(pollRef.current!);
-              setResults([{
-                id: result.contentId,
-                type: "TALKING_HEAD",
-                status: "COMPLETED",
-                url: status.videoUrl ?? "",
-                thumbnailUrl: status.thumbnailUrl,
-                creatorId: activeCreatorId,
-                s3Keys: [],
-                source: "FREEFORM",
-                creditsCost: 0,
-                createdAt: new Date().toISOString(),
-              }]);
-              setShowResults(true);
-              useUnifiedStudioStore.getState().showCanvas();
-              setGenerating(false);
-              if (activeCreatorId) {
-                const items = await getCreatorContent(activeCreatorId);
-                useCreatorStore.getState().setContent(items);
-              }
-              const refreshed = await getWorkspaceData();
-              setCredits(refreshed.balance);
-            } else if (status.status === "FAILED") {
-              clearInterval(pollRef.current!);
-              setError(friendlyError(status.error ?? "Generation failed"));
-              setGenerating(false);
-            }
-          }, 5000);
+          // Queue mode — same async pattern as video.
+          setPendingVideoIds((prev) => new Set(prev).add(result.contentId));
+          if (activeCreatorId) {
+            const items = await getCreatorContent(activeCreatorId);
+            useCreatorStore.getState().setContent(items);
+          }
           const data = await getWorkspaceData();
+          useCreatorStore.getState().setCreators(data.creators);
           setCredits(data.balance);
+          setScript("");
+          setGenerating(false);
           return;
         } else {
           setError(friendlyError(result.error));
@@ -461,7 +413,11 @@ export function CreationPanel() {
             </div>
           )}
         </div>
-        <PickReferenceDialog open={refPickerOpen} onOpenChange={setRefPickerOpen} />
+        <ReferencePicker
+          open={refPickerOpen}
+          onOpenChange={setRefPickerOpen}
+          onSelect={(ref) => useUnifiedStudioStore.getState().attachRef(ref)}
+        />
 
         {/* Script starter chips for talking head */}
         {contentType === "talking-head" && (

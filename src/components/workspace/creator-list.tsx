@@ -1,9 +1,41 @@
 "use client";
 
+import { useEffect } from "react";
 import { useCreatorStore } from "@/stores/creator-store";
+import { getWorkspaceData } from "@/server/actions/workspace-actions";
 
 export function CreatorList({ onCreatorClick }: { onCreatorClick?: () => void }) {
-  const { creators, activeCreatorId, setActiveCreator, loaded } = useCreatorStore();
+  const { creators, activeCreatorId, setActiveCreator, setCreators, setCredits, loaded } = useCreatorStore();
+
+  // Poll creators every 10s so sidebar activity dots stay fresh across all
+  // creators, not just the one currently being viewed. Pauses when tab hidden.
+  const hasAnyGenerating = creators.some((c) => c.generatingCount > 0);
+  useEffect(() => {
+    if (!loaded) return;
+    let stopped = false;
+
+    const pollOnce = async () => {
+      if (stopped) return;
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      const data = await getWorkspaceData();
+      if (stopped) return;
+      setCreators(data.creators);
+      setCredits(data.balance);
+    };
+
+    // Poll faster when something is actually generating
+    const interval = setInterval(pollOnce, hasAnyGenerating ? 5000 : 15000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") pollOnce();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [loaded, hasAnyGenerating, setCreators, setCredits]);
 
   if (!loaded) {
     return (
@@ -25,6 +57,7 @@ export function CreatorList({ onCreatorClick }: { onCreatorClick?: () => void })
     <>
       {creators.map((creator) => {
         const isActive = creator.id === activeCreatorId;
+        const isGenerating = creator.generatingCount > 0;
         const initials = creator.name
           .split(" ")
           .map((n) => n[0])
@@ -48,7 +81,10 @@ export function CreatorList({ onCreatorClick }: { onCreatorClick?: () => void })
               )}
             </div>
             <div className="creator-meta">
-              <div className="creator-name">{creator.name}</div>
+              <div className="creator-name-row">
+                <span className="creator-name">{creator.name}</span>
+                {isGenerating && <span className="creator-gen-dot" aria-label="Generating" />}
+              </div>
               <div className="creator-count">{creator.contentCount} items</div>
             </div>
           </button>

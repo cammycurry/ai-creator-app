@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUnifiedStudioStore, type BrowserItem } from "@/stores/unified-studio-store";
 import { getCreatorContent } from "@/server/actions/content-actions";
+import { checkVideoStatus } from "@/server/actions/video-actions";
+import { formatElapsed } from "@/lib/time-format";
+import { getExpectationMessage } from "@/lib/model-durations";
+import { useTick } from "@/lib/hooks/use-tick";
 import { getContentTemplates } from "@/server/actions/template-actions";
 import { AddReferenceDialog } from "@/components/workspace/add-reference-dialog";
 import type { ContentItem } from "@/types/content";
@@ -16,6 +20,7 @@ function contentToBrowserItem(c: ContentItem): BrowserItem {
     id: c.id,
     kind: "content",
     type: c.type,
+    status: c.status,
     name: c.userInput ?? c.prompt ?? c.type,
     thumbnailUrl: c.thumbnailUrl ?? (c.type === "VIDEO" || c.type === "TALKING_HEAD" ? undefined : c.url),
     mediaUrl: c.url,
@@ -26,6 +31,10 @@ function contentToBrowserItem(c: ContentItem): BrowserItem {
     creditsCost: c.creditsCost,
     s3Keys: c.s3Keys,
     refAttachments: c.refAttachments,
+    generationJobId: c.generationJobId,
+    jobStatus: c.jobStatus,
+    jobStartedAt: c.jobStartedAt,
+    falModel: c.falModel,
   };
 }
 
@@ -63,6 +72,9 @@ function templateToBrowserItem(t: ContentTemplateItem): BrowserItem {
 export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) {
   const creator = useCreatorStore((s) => s.getActiveCreator());
   const references = useCreatorStore((s) => s.references);
+  // Subscribe to creator store content — reactive to any push (from creation-panel,
+  // workspace-canvas, polling loops, etc.) so new GENERATING cards appear instantly.
+  const storeContent = useCreatorStore((s) => s.content);
   const {
     browserTab, setBrowserTab,
     browserSubFilter, setBrowserSubFilter,
@@ -71,7 +83,17 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
     showResults,
   } = useUnifiedStudioStore();
 
-  const [contentItems, setContentItems] = useState<BrowserItem[]>([]);
+  // Derive browser items reactively from the shared creator store content.
+  // No local state — anything that pushes to store.content (creation panel,
+  // workspace-canvas, polling loops) updates this browser immediately.
+  const contentItems = useMemo<BrowserItem[]>(
+    () => storeContent.filter((c) => !c.contentSetId).map(contentToBrowserItem),
+    [storeContent]
+  );
+  // Tick every 1s only when there are GENERATING cards — otherwise we'd
+  // re-render the entire library grid for no reason.
+  const anyGenerating = contentItems.some((c) => c.status === "GENERATING");
+  const now = useTick(1000, anyGenerating);
   const [templateItems, setTemplateItems] = useState<BrowserItem[]>([]);
   const [templateTrends, setTemplateTrends] = useState<Map<string, BrowserItem[]>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -82,14 +104,49 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
     if (!creator?.id) return;
     setLoading(true);
     getCreatorContent(creator.id).then((items) => {
-      // Filter out carousel slides (they belong to sets)
-      const standalone = items.filter((c) => !c.contentSetId);
-      setContentItems(standalone.map(contentToBrowserItem));
-      // Also push to creator store so other components (video picker, etc.) can access content
+      // Push to creator store — contentItems derives reactively via useMemo
       useCreatorStore.getState().setContent(items);
       setLoading(false);
     });
   }, [creator?.id, showResults]);
+
+  // Poll for GENERATING items every 5s. Calls checkVideoStatus per item so
+  // Fal.ai jobs actually complete (not just re-reading the DB).
+  // Pauses when tab is hidden and re-polls immediately on tab focus.
+  const generatingItems = contentItems.filter((c) => c.status === "GENERATING");
+  const browserGeneratingCount = generatingItems.length;
+  useEffect(() => {
+    if (!creator?.id || browserGeneratingCount === 0) return;
+
+    let stopped = false;
+
+    const pollOnce = async () => {
+      if (stopped) return;
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      // Read latest store state directly — avoids a redundant getCreatorContent
+      // call (which would re-generate signed URLs for every item in the library).
+      const latest = useCreatorStore.getState().content;
+      const generating = latest.filter((c) => c.status === "GENERATING" && c.generationJobId);
+      if (generating.length > 0) {
+        await Promise.all(generating.map((c) => checkVideoStatus(c.generationJobId!)));
+      }
+      const updated = await getCreatorContent(creator.id);
+      if (stopped) return;
+      useCreatorStore.getState().setContent(updated);
+    };
+
+    const interval = setInterval(pollOnce, 5000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") pollOnce();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [creator?.id, browserGeneratingCount]);
 
   // Load templates
   useEffect(() => {
@@ -279,23 +336,72 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
           </div>
         ) : (
           <div className="sv3-browser-grid">
-            {displayItems.map((item) => (
-              <div
-                key={item.id}
-                className={`sv3-browser-item${selectedItem?.id === item.id ? " selected" : ""}`}
-                onClick={() => handleSelect(item)}
-              >
-                {item.thumbnailUrl && <img src={item.thumbnailUrl} alt={item.name} />}
-                <span className={`sv3-browser-badge${item.kind === "template" ? " template" : ""}`}>
-                  {getBadgeText(item)}
-                </span>
-                {(item.type === "VIDEO" || item.type === "TALKING_HEAD") && (
-                  <div className="sv3-browser-play">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" opacity={0.9}><polygon points="5 3 19 12 5 21" /></svg>
+            {displayItems.map((item) => {
+              // Generating — shimmer card with spinner + stage + elapsed + expectation
+              if (item.status === "GENERATING") {
+                const startedAtMs = item.jobStartedAt
+                  ? new Date(item.jobStartedAt).getTime()
+                  : new Date(item.createdAt).getTime();
+                const elapsedMs = Math.max(0, now - startedAtMs);
+                const stageLabel =
+                  item.jobStatus === "QUEUED" ? "Queued" :
+                  item.jobStatus === "PROCESSING" ? "Processing" :
+                  "Starting";
+                const expectation = getExpectationMessage(item.falModel, elapsedMs);
+
+                return (
+                  <div key={item.id} className="sv3-browser-item" style={{ position: "relative", overflow: "hidden" }}>
+                    <div className="skel" style={{ position: "absolute", inset: 0 }} />
+                    <div style={{
+                      position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center", gap: 2, zIndex: 1, padding: 4,
+                    }}>
+                      <div className="studio-gen-spinner" style={{ width: 16, height: 16 }} />
+                      <span className="sv3-browser-gen-stage">
+                        {stageLabel} · {formatElapsed(elapsedMs)}
+                      </span>
+                      <span className="sv3-browser-gen-expect">{expectation}</span>
+                    </div>
+                    <span className="sv3-browser-badge">{getBadgeText(item)}</span>
                   </div>
-                )}
-              </div>
-            ))}
+                );
+              }
+
+              // Failed
+              if (item.status === "FAILED") {
+                return (
+                  <div key={item.id} className="sv3-browser-item" style={{ background: "#FFF5F5" }}>
+                    <div style={{
+                      position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center", gap: 2,
+                    }}>
+                      <span style={{ fontSize: 12, color: "#C4603A" }}>&#x2717;</span>
+                      <span style={{ fontSize: 8, color: "#C4603A" }}>Failed</span>
+                    </div>
+                    <span className="sv3-browser-badge">{getBadgeText(item)}</span>
+                  </div>
+                );
+              }
+
+              // Completed — normal render
+              return (
+                <div
+                  key={item.id}
+                  className={`sv3-browser-item${selectedItem?.id === item.id ? " selected" : ""}`}
+                  onClick={() => handleSelect(item)}
+                >
+                  {item.thumbnailUrl && <img src={item.thumbnailUrl} alt={item.name} />}
+                  <span className={`sv3-browser-badge${item.kind === "template" ? " template" : ""}`}>
+                    {getBadgeText(item)}
+                  </span>
+                  {(item.type === "VIDEO" || item.type === "TALKING_HEAD") && (
+                    <div className="sv3-browser-play">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="white" opacity={0.9}><polygon points="5 3 19 12 5 21" /></svg>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
