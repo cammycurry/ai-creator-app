@@ -105,6 +105,9 @@ export function CreationPanel() {
       setShowResults(true);
       useUnifiedStudioStore.getState().showCanvas();
     }
+    if (failed.length > 0) {
+      setError("Generation failed. Credits were refunded. Check your library for details.");
+    }
     // Drop completed and failed items from the pending set so we don't
     // re-trigger the celebration on subsequent ticks.
     setPendingVideoIds((prev) => {
@@ -113,7 +116,7 @@ export function CreationPanel() {
       for (const c of failed) next.delete(c.id);
       return next;
     });
-  }, [storeContent, pendingVideoIds, setResults, setShowResults]);
+  }, [storeContent, pendingVideoIds, setResults, setShowResults, setError]);
 
   function getCreditCost(): number {
     switch (contentType) {
