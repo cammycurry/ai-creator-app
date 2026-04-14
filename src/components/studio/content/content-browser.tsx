@@ -102,31 +102,42 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
     });
   }, [creator?.id, showResults]);
 
-  // Poll for GENERATING items — call checkVideoStatus to actually check Fal.ai,
-  // not just re-read DB. Without this, jobs stay GENERATING forever if the user
-  // navigated away from the creation panel while generation was in progress.
+  // Poll for GENERATING items every 5s. Calls checkVideoStatus per item so
+  // Fal.ai jobs actually complete (not just re-reading the DB).
+  // Pauses when tab is hidden and re-polls immediately on tab focus.
   const generatingItems = contentItems.filter((c) => c.status === "GENERATING");
   const browserGeneratingCount = generatingItems.length;
   useEffect(() => {
     if (!creator?.id || browserGeneratingCount === 0) return;
 
-    const interval = setInterval(async () => {
-      // First, read current content to get generationJobIds
+    let stopped = false;
+
+    const pollOnce = async () => {
+      if (stopped) return;
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
       const items = await getCreatorContent(creator.id);
       const generating = items.filter((c) => c.status === "GENERATING" && c.generationJobId);
-
-      // Call checkVideoStatus for each — this actually polls Fal.ai and updates DB
-      await Promise.all(generating.map((c) => checkVideoStatus(c.generationJobId!)));
-
-      // Re-read after status checks to pick up any completions
+      if (generating.length > 0) {
+        await Promise.all(generating.map((c) => checkVideoStatus(c.generationJobId!)));
+      }
       const updated = await getCreatorContent(creator.id);
+      if (stopped) return;
       const standalone = updated.filter((c) => !c.contentSetId);
       setContentItems(standalone.map(contentToBrowserItem));
       useCreatorStore.getState().setContent(updated);
-      if (!updated.some((c) => c.status === "GENERATING")) clearInterval(interval);
-    }, 10000);
+    };
 
-    return () => clearInterval(interval);
+    const interval = setInterval(pollOnce, 5000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") pollOnce();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [creator?.id, browserGeneratingCount]);
 
   // Load templates

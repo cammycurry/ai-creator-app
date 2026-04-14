@@ -133,18 +133,39 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
     getCreatorContentSets(creator.id).then(setContentSets);
   }, [creator.id, setContent, setContentSets]);
 
-  // Poll for GENERATING items — check every 10s until they all complete
+  // Poll for GENERATING items every 5s. Calls checkVideoStatus per item so
+  // Fal.ai jobs actually complete from this view (not just re-reading the DB).
+  // Pauses when tab is hidden and re-polls immediately on tab focus.
   const generatingCount = content.filter((c) => c.status === "GENERATING").length;
   useEffect(() => {
     if (generatingCount === 0) return;
 
-    const interval = setInterval(async () => {
-      const refreshed = await getCreatorContent(creator.id);
-      setContent(refreshed);
-      if (!refreshed.some((c) => c.status === "GENERATING")) clearInterval(interval);
-    }, 10000);
+    let stopped = false;
 
-    return () => clearInterval(interval);
+    const pollOnce = async () => {
+      if (stopped) return;
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      const { checkVideoStatus } = await import("@/server/actions/video-actions");
+      const current = await getCreatorContent(creator.id);
+      const generating = current.filter((c) => c.status === "GENERATING" && c.generationJobId);
+      if (generating.length > 0) {
+        await Promise.all(generating.map((c) => checkVideoStatus(c.generationJobId!)));
+      }
+      const refreshed = await getCreatorContent(creator.id);
+      if (!stopped) setContent(refreshed);
+    };
+
+    const interval = setInterval(pollOnce, 5000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") pollOnce();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [generatingCount, creator.id, setContent]);
 
   const handleSubmit = useCallback(async () => {
