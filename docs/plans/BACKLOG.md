@@ -1,54 +1,39 @@
 # Backlog — Issues, Bugs & Test Scenarios
 
-> Updated: 2026-04-10. Dump things here as found. Quick fixes done inline. Big stuff gets its own plan.
+> Updated: 2026-04-14. Dump things here as found. Quick fixes done inline. Big stuff gets its own plan.
 
 ---
 
 ## CRITICAL BUGS
 
 - [x] Face identity preservation — Elements system in all 3 video modes ✅
-- [x] Polling timeout — 5 min video, 8 min talking head ✅
+- [x] Polling timeout — 10 min across the board (aligned with Fal queue completion path) ✅
 - [x] "No photos yet" bug — content browser now pushes to creator store ✅
 - [x] Motion transfer element — now includes `reference_image_urls` ✅
 - [x] motionSourceUrl — now uploaded to Fal storage before passing to API ✅
-- [ ] **Old video thumbnails blank** — videos generated before ffmpeg extraction have no thumbnailUrl. Need fallback to creator base image.
+- [x] **Old video thumbnails blank** — resolved: first-frame extraction in checkVideoStatus + creator base image fallback in grid. Corrupt pre-queue-mode records deleted. ✅
+- [x] **Workspace canvas polling was broken** — resolved: was only re-reading DB, now calls checkVideoStatus per GENERATING item so jobs actually complete from any view ✅
+- [x] **UI blocked during video generation** — resolved: queue mode submit returns instantly, pendingVideoIds tracker fires celebration view on completion, user can submit more mid-generation ✅
 
 ---
 
-## GENERATION STATUS / LOADING STATES (HIGH PRIORITY)
+## GENERATION STATUS / LOADING STATES ✅ DONE (2026-04-14)
 
-Users will generate tons of content, leave, come back. They need to see what's generating, what's done, what failed. Right now there's ZERO indication of in-progress jobs outside the studio creation panel.
+Shipped on `feat/loading-states-timelines`. Full reactive async pipeline:
 
-### What Needs to Happen
+- **GENERATING cards** render in both workspace canvas and studio browser with stage label (Queued/Processing), live elapsed time counter, and model-aware expectation message ("Usually 1–3 min" → "Still working — this is normal" → "Taking longer than usual" → "Almost at timeout") driven by `src/lib/model-durations.ts`
+- **Per-creator sidebar dot** in creator-list when any content is GENERATING, with cross-creator polling at 5s (active) / 15s (idle)
+- **Polling** — 5s interval, paused when tab hidden via Page Visibility API, immediate re-poll on tab focus. Workspace canvas AND content-browser both call `checkVideoStatus(generationJobId)` per item to drive Fal.ai completion (was only DB re-read before — jobs stayed stuck forever)
+- **Async submit** — video and talking-head submissions return instantly via `fal.queue.submit()`, push new GENERATING content to the creator store, user can immediately submit more. No UI blocking.
+- **Celebration view** — creation-panel tracks `pendingVideoIds`, watches store reactively, and fires `setResults + showCanvas()` when any pending item transitions to COMPLETED
+- **Failed state** — red card with "Credits refunded" + studio-level error toast for async failures
+- **Backend** — `getCreatorContent` joins `GenerationJob` in one query for stage/startedAt/falModel; `getWorkspaceData` runs a parallel groupBy for per-creator generatingCount
+- **Reactive architecture** — `content-browser` derives BrowserItems reactively from `useCreatorStore((s) => s.content)` via useMemo. Any component that pushes to store content triggers instant re-render across views
+- **Shared utilities** — `formatElapsed`, `useTick(intervalMs, enabled)` (gated on anyGenerating to avoid re-rendering idle grids), `getExpectationMessage`
 
-**1. Content grid shows GENERATING items**
-- Content records already exist with `status: "GENERATING"` in the DB before video gen starts
-- Both the workspace canvas AND studio sidebar should show these as loading cards (shimmer + spinner + "Generating video..." text)
-- When they complete, the card should update to show the video/thumbnail without a page refresh
+**Files touched:** `content-actions.ts`, `workspace-actions.ts`, `workspace-canvas.tsx`, `content-browser.tsx`, `creation-panel.tsx`, `creator-list.tsx`, `unified-studio-store.ts`, `content.ts`, `creator.ts`, + new `model-durations.ts`, `time-format.ts`, `use-tick.ts`, CSS updates
 
-**2. Poll for completion on page load**
-- When workspace/studio loads, check for any `GENERATING` content for this creator
-- Start polling `checkVideoStatus` for those jobs
-- Update content in-place when they complete or fail
-
-**3. Generation activity indicator**
-- Small indicator in the workspace header or sidebar showing "2 generating..."
-- Optional: notification/toast when a generation completes
-
-**4. Failed state visible**
-- `FAILED` content should show as a card with error state + "Credits refunded" message
-- User can dismiss or retry
-
-### Files to Modify
-- `src/components/workspace/workspace-canvas.tsx` — show GENERATING content items, poll on mount
-- `src/components/studio/content/content-browser.tsx` — show GENERATING items with spinner
-- `src/server/actions/content-actions.ts` — `getCreatorContent` should include GENERATING items (currently may filter to COMPLETED only)
-- `src/server/actions/video-actions.ts` — `checkVideoStatus` already handles this
-
-### This is NOT a quick fix — needs proper design. Could do:
-- **Option A: Poll-based** — content grid polls for GENERATING items every 10s on mount
-- **Option B: SSE/Realtime** — push updates via server-sent events (overkill for v1)
-- **Option C: Fal.ai webhooks** — webhook calls our API when job completes, we update DB, client polls less aggressively
+**Extensibility:** Adding a new Fal model = one entry in `MODEL_DURATIONS`. No other touchpoints.
 
 ---
 
@@ -78,7 +63,13 @@ Users will generate tons of content, leave, come back. They need to see what's g
 - [x] NSFW/safety friendly errors ✅
 - [x] Progress rotation ✅
 - [ ] **"Add to generation" from anywhere** — + button on images in workspace grid, detail modal, anywhere images appear
-- [ ] **Dialog sizing pass** — photo picker, video picker, ref picker all too small/cramped. Need wider, more padding.
+- [ ] **FULL DIALOG REDESIGN (CRITICAL UX)** — ALL picker dialogs (photo picker, motion source picker, reference picker, video picker) feel minimal, featureless, and disconnected from the rest of the app. They need a dedicated design pass as a batch:
+  - Should match the quality/feel of existing app dialogs (add-reference-dialog, content-detail modal)
+  - Should be searchable, filterable, properly sized
+  - Should feel like part of the application, not a popup afterthought
+  - Motion source picker especially needs: search, filter by type, preview on hover, upload from here
+  - All pickers need: consistent width/padding/buttons, proper empty states, clear labeling
+  - This is a /ui-ux-pro-max or /superpowers:brainstorming task — needs design FIRST, then build
 
 ---
 
@@ -105,8 +96,8 @@ Users will generate tons of content, leave, come back. They need to see what's g
 
 - [x] Create/Motion Transfer compact pills ✅
 - [x] Choose photo proper button styling ✅
-- [ ] **Old video thumbnails blank** — fallback to creator base image for videos with no thumbnail
-- [ ] **Video player poster image** — show thumbnail before play starts
+- [x] **Old video thumbnails blank** — resolved by queue-mode first-frame extraction + grid fallback ✅
+- [ ] **Video player poster image** — show thumbnail before play starts (could now use content.thumbnailUrl which is populated on completion)
 - [ ] **Video duration badge** — overlay "5s" / "10s" on video cards in grid
 - [ ] **Resolution badge** — show HD/4K on content cards
 - [ ] **Dialog consistency** — all dialogs same width, padding, button styles
