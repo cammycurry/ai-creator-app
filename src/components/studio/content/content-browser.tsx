@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUnifiedStudioStore, type BrowserItem } from "@/stores/unified-studio-store";
 import { getCreatorContent } from "@/server/actions/content-actions";
+import { checkVideoStatus } from "@/server/actions/video-actions";
+import { formatElapsed } from "@/lib/time-format";
+import { getExpectationMessage } from "@/lib/model-durations";
+import { useTick } from "@/lib/hooks/use-tick";
 import { getContentTemplates } from "@/server/actions/template-actions";
 import { AddReferenceDialog } from "@/components/workspace/add-reference-dialog";
 import type { ContentItem } from "@/types/content";
@@ -16,6 +20,7 @@ function contentToBrowserItem(c: ContentItem): BrowserItem {
     id: c.id,
     kind: "content",
     type: c.type,
+    status: c.status,
     name: c.userInput ?? c.prompt ?? c.type,
     thumbnailUrl: c.thumbnailUrl ?? (c.type === "VIDEO" || c.type === "TALKING_HEAD" ? undefined : c.url),
     mediaUrl: c.url,
@@ -26,6 +31,10 @@ function contentToBrowserItem(c: ContentItem): BrowserItem {
     creditsCost: c.creditsCost,
     s3Keys: c.s3Keys,
     refAttachments: c.refAttachments,
+    generationJobId: c.generationJobId,
+    jobStatus: c.jobStatus,
+    jobStartedAt: c.jobStartedAt,
+    falModel: c.falModel,
   };
 }
 
@@ -72,6 +81,8 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
   } = useUnifiedStudioStore();
 
   const [contentItems, setContentItems] = useState<BrowserItem[]>([]);
+  // Tick every 1s so elapsed-time displays on GENERATING cards update live
+  const now = useTick(1000);
   const [templateItems, setTemplateItems] = useState<BrowserItem[]>([]);
   const [templateTrends, setTemplateTrends] = useState<Map<string, BrowserItem[]>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -90,6 +101,33 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
       setLoading(false);
     });
   }, [creator?.id, showResults]);
+
+  // Poll for GENERATING items — call checkVideoStatus to actually check Fal.ai,
+  // not just re-read DB. Without this, jobs stay GENERATING forever if the user
+  // navigated away from the creation panel while generation was in progress.
+  const generatingItems = contentItems.filter((c) => c.status === "GENERATING");
+  const browserGeneratingCount = generatingItems.length;
+  useEffect(() => {
+    if (!creator?.id || browserGeneratingCount === 0) return;
+
+    const interval = setInterval(async () => {
+      // First, read current content to get generationJobIds
+      const items = await getCreatorContent(creator.id);
+      const generating = items.filter((c) => c.status === "GENERATING" && c.generationJobId);
+
+      // Call checkVideoStatus for each — this actually polls Fal.ai and updates DB
+      await Promise.all(generating.map((c) => checkVideoStatus(c.generationJobId!)));
+
+      // Re-read after status checks to pick up any completions
+      const updated = await getCreatorContent(creator.id);
+      const standalone = updated.filter((c) => !c.contentSetId);
+      setContentItems(standalone.map(contentToBrowserItem));
+      useCreatorStore.getState().setContent(updated);
+      if (!updated.some((c) => c.status === "GENERATING")) clearInterval(interval);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [creator?.id, browserGeneratingCount]);
 
   // Load templates
   useEffect(() => {
@@ -279,23 +317,72 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
           </div>
         ) : (
           <div className="sv3-browser-grid">
-            {displayItems.map((item) => (
-              <div
-                key={item.id}
-                className={`sv3-browser-item${selectedItem?.id === item.id ? " selected" : ""}`}
-                onClick={() => handleSelect(item)}
-              >
-                {item.thumbnailUrl && <img src={item.thumbnailUrl} alt={item.name} />}
-                <span className={`sv3-browser-badge${item.kind === "template" ? " template" : ""}`}>
-                  {getBadgeText(item)}
-                </span>
-                {(item.type === "VIDEO" || item.type === "TALKING_HEAD") && (
-                  <div className="sv3-browser-play">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" opacity={0.9}><polygon points="5 3 19 12 5 21" /></svg>
+            {displayItems.map((item) => {
+              // Generating — shimmer card with spinner + stage + elapsed + expectation
+              if (item.status === "GENERATING") {
+                const startedAtMs = item.jobStartedAt
+                  ? new Date(item.jobStartedAt).getTime()
+                  : new Date(item.createdAt).getTime();
+                const elapsedMs = Math.max(0, now - startedAtMs);
+                const stageLabel =
+                  item.jobStatus === "QUEUED" ? "Queued" :
+                  item.jobStatus === "PROCESSING" ? "Processing" :
+                  "Starting";
+                const expectation = getExpectationMessage(item.falModel, elapsedMs);
+
+                return (
+                  <div key={item.id} className="sv3-browser-item" style={{ position: "relative", overflow: "hidden" }}>
+                    <div className="skel" style={{ position: "absolute", inset: 0 }} />
+                    <div style={{
+                      position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center", gap: 2, zIndex: 1, padding: 4,
+                    }}>
+                      <div className="studio-gen-spinner" style={{ width: 16, height: 16 }} />
+                      <span className="sv3-browser-gen-stage">
+                        {stageLabel} · {formatElapsed(elapsedMs)}
+                      </span>
+                      <span className="sv3-browser-gen-expect">{expectation}</span>
+                    </div>
+                    <span className="sv3-browser-badge">{getBadgeText(item)}</span>
                   </div>
-                )}
-              </div>
-            ))}
+                );
+              }
+
+              // Failed
+              if (item.status === "FAILED") {
+                return (
+                  <div key={item.id} className="sv3-browser-item" style={{ background: "#FFF5F5" }}>
+                    <div style={{
+                      position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center", gap: 2,
+                    }}>
+                      <span style={{ fontSize: 12, color: "#C4603A" }}>&#x2717;</span>
+                      <span style={{ fontSize: 8, color: "#C4603A" }}>Failed</span>
+                    </div>
+                    <span className="sv3-browser-badge">{getBadgeText(item)}</span>
+                  </div>
+                );
+              }
+
+              // Completed — normal render
+              return (
+                <div
+                  key={item.id}
+                  className={`sv3-browser-item${selectedItem?.id === item.id ? " selected" : ""}`}
+                  onClick={() => handleSelect(item)}
+                >
+                  {item.thumbnailUrl && <img src={item.thumbnailUrl} alt={item.name} />}
+                  <span className={`sv3-browser-badge${item.kind === "template" ? " template" : ""}`}>
+                    {getBadgeText(item)}
+                  </span>
+                  {(item.type === "VIDEO" || item.type === "TALKING_HEAD") && (
+                    <div className="sv3-browser-play">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="white" opacity={0.9}><polygon points="5 3 19 12 5 21" /></svg>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

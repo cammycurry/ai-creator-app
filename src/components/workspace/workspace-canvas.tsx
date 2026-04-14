@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useCreatorStore } from "@/stores/creator-store";
 import { useUIStore } from "@/stores/ui-store";
 import { generateContent, getCreatorContent } from "@/server/actions/content-actions";
+import { formatElapsed } from "@/lib/time-format";
+import { getExpectationMessage } from "@/lib/model-durations";
+import { useTick } from "@/lib/hooks/use-tick";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
 import { ContentDetail } from "./content-detail";
 import { CarouselDetail } from "./carousel-detail";
@@ -121,6 +124,9 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
     setContentError,
     setCredits,
   } = useCreatorStore();
+
+  // Tick every 1s so elapsed-time displays on GENERATING cards update live
+  const now = useTick(1000);
 
   useEffect(() => {
     getCreatorContent(creator.id).then(setContent);
@@ -277,21 +283,32 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
               const isFailed = item.status === "FAILED";
               const isVideo = item.type === "VIDEO" || item.type === "TALKING_HEAD";
 
-              // Generating card — shimmer + spinner
+              // Generating card — shimmer + spinner + stage + elapsed + expectation
               if (isGenerating) {
+                const startedAtMs = item.jobStartedAt
+                  ? new Date(item.jobStartedAt).getTime()
+                  : new Date(item.createdAt).getTime();
+                const elapsedMs = Math.max(0, now - startedAtMs);
+                const stageLabel =
+                  item.jobStatus === "QUEUED" ? "Queued" :
+                  item.jobStatus === "PROCESSING" ? "Processing" :
+                  "Starting";
+                const expectation = getExpectationMessage(item.falModel, elapsedMs);
+
                 return (
                   <div key={item.id} className="content-card" style={{ position: "relative", overflow: "hidden" }}>
                     <div className="skel" style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
                     <div style={{
                       position: "absolute", inset: 0, display: "flex", flexDirection: "column",
-                      alignItems: "center", justifyContent: "center", gap: 6, zIndex: 1,
+                      alignItems: "center", justifyContent: "center", gap: 4, zIndex: 1, padding: 8,
                     }}>
                       <div className="studio-gen-spinner" />
-                      <span style={{ fontSize: 11, color: "#888", fontWeight: 500 }}>
-                        {isVideo ? "Generating video..." : "Generating..."}
-                      </span>
+                      <div className="gen-card-stage">
+                        {stageLabel} <span className="gen-card-elapsed">· {formatElapsed(elapsedMs)}</span>
+                      </div>
+                      <div className="gen-card-expectation">{expectation}</div>
                       {item.userInput && (
-                        <span style={{ fontSize: 9, color: "#BBB", maxWidth: "80%", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span style={{ fontSize: 9, color: "#BBB", maxWidth: "80%", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 4 }}>
                           {item.userInput}
                         </span>
                       )}
