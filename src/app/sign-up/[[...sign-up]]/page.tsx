@@ -17,18 +17,15 @@ export default function SignUpPage() {
 }
 
 function SignUpFlow() {
-  const { signUp, fetchStatus } = useSignUp();
+  const { signUp } = useSignUp();
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"start" | "verify">("start");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const busy = loading || fetchStatus === "fetching";
 
   useEffect(() => {
     if (isSignedIn) router.push("/workspace");
@@ -40,7 +37,7 @@ function SignUpFlow() {
     setError("");
     const { error: ssoError } = await signUp.sso({
       strategy,
-      redirectUrl: "/workspace",
+      redirectUrl: "/sign-up/sso-callback",
       redirectCallbackUrl: "/sign-up/sso-callback",
     });
     if (ssoError) {
@@ -48,21 +45,30 @@ function SignUpFlow() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
+    if (!email.trim()) return;
     setLoading(true);
     setError("");
 
-    const { error: pwError } = await signUp.password({
-      emailAddress: email,
-      password,
-    });
+    try {
+      const { error: createError } = await signUp.create({ emailAddress: email });
+      if (createError) {
+        setError(createError.message ?? "Something went wrong");
+        setLoading(false);
+        return;
+      }
 
-    if (pwError) {
-      setError(pwError.message ?? "Something went wrong");
-    } else {
+      const { error: sendError } = await signUp.verifications.sendEmailCode();
+      if (sendError) {
+        setError(sendError.message ?? "Failed to send code");
+        setLoading(false);
+        return;
+      }
+
       setStep("verify");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     }
     setLoading(false);
   };
@@ -72,15 +78,22 @@ function SignUpFlow() {
     setLoading(true);
     setError("");
 
-    const { error: verifyError } = await signUp.verifications.verifyEmailCode({ code });
+    try {
+      const { error: verifyError } = await signUp.verifications.verifyEmailCode({ code });
+      if (verifyError) {
+        setError(verifyError.message ?? "Invalid code");
+        setLoading(false);
+        return;
+      }
 
-    if (verifyError) {
-      setError(verifyError.message ?? "Invalid code");
-    } else if (signUp.status === "complete") {
-      await signUp.finalize();
-      router.push("/workspace");
-    } else {
-      setError("Verification incomplete. Please try again.");
+      if (signUp.status === "complete") {
+        await signUp.finalize();
+        router.push("/workspace");
+      } else {
+        setError("Verification incomplete. Please try again.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid code");
     }
     setLoading(false);
   };
@@ -112,8 +125,8 @@ function SignUpFlow() {
                 />
               </div>
             </div>
-            <button type="submit" className="auth-submit" disabled={busy}>
-              {busy ? <span className="auth-spinner" /> : "Verify"}
+            <button type="submit" className="auth-submit" disabled={loading}>
+              {loading ? <span className="auth-spinner" /> : "Verify"}
             </button>
           </form>
 
@@ -161,7 +174,7 @@ function SignUpFlow() {
 
         <div className="auth-divider"><span>or</span></div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleEmailSubmit}>
           <div className="auth-fields">
             <div className="auth-field">
               <label className="auth-label">Email</label>
@@ -174,20 +187,10 @@ function SignUpFlow() {
                 required
               />
             </div>
-            <div className="auth-field">
-              <label className="auth-label">Password</label>
-              <input
-                type="password"
-                className="auth-input"
-                placeholder="Create a password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
           </div>
-          <button type="submit" className="auth-submit" disabled={busy}>
-            {busy ? <span className="auth-spinner" /> : "Create account"}
+          <div id="clerk-captcha" />
+          <button type="submit" className="auth-submit" disabled={loading}>
+            {loading ? <span className="auth-spinner" /> : "Continue with email"}
           </button>
         </form>
 

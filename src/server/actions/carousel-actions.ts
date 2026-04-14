@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import OpenAI from "openai";
 import { db } from "@/lib/db";
-import { deductCredits } from "./credit-actions";
+import { deductCredits, refundCredits } from "./credit-actions";
 import { uploadImage, getSignedImageUrl, getImageBuffer } from "@/lib/s3";
 import { stripAndRewrite } from "@/lib/ai/metadata-strip";
 import { CAROUSEL_FORMATS, type CarouselFormat, type FormatSlide } from "@/data/carousel-formats";
@@ -300,7 +300,7 @@ export async function generateCarousel(
     // Refund credits for failed slides
     const failedCount = slidesToGenerate.length - generatedSlides.length;
     if (failedCount > 0) {
-      await deductCredits(user.id, -failedCount * CREDIT_PER_SLIDE, `Carousel refund: ${failedCount} failed slides`);
+      await refundCredits(user.id, failedCount * CREDIT_PER_SLIDE, `Carousel refund: ${failedCount} failed slides`);
     }
 
     // Generate caption

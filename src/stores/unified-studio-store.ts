@@ -232,7 +232,12 @@ export const useUnifiedStudioStore = create<UnifiedStudioStore>()(
   attachRef: (ref) => set((s) => ({
     attachedRefs: s.attachedRefs.some((a) => a.ref.id === ref.id)
       ? s.attachedRefs.filter((a) => a.ref.id !== ref.id)
-      : [...s.attachedRefs, { ref, refType: null, mode: null, description: "" }],
+      : [...s.attachedRefs, {
+          ref,
+          refType: ref.purpose === "scene" ? "scene" : ref.purpose === "product" ? "product" : null,
+          mode: (ref.mode as "exact" | "inspired" | null) ?? null,
+          description: ref.description ?? "",
+        }],
   })),
   detachRef: (refId) => set((s) => ({
     attachedRefs: s.attachedRefs.filter((a) => a.ref.id !== refId),

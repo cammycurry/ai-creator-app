@@ -27,7 +27,10 @@ export function ReferenceCard({
       </div>
       <div className="ref-card-info">
         <div className="ref-card-name">{reference.name}</div>
-        <div className="ref-card-type">{REFERENCE_TYPE_LABELS[reference.type]}</div>
+        <div className="ref-card-type">
+          {reference.purpose === "scene" ? "Scene" : reference.purpose === "product" ? "Product" : reference.purpose === "motion" ? "Motion" : REFERENCE_TYPE_LABELS[reference.type]}
+          {reference.mode ? ` · ${reference.mode}` : ""}
+        </div>
         {!compact && reference.usageCount > 0 && (
           <div className="ref-card-usage">Used in {reference.usageCount} post{reference.usageCount !== 1 ? "s" : ""}</div>
         )}

@@ -92,6 +92,8 @@ function toReferenceItem(
     userId: string;
     creatorId: string | null;
     type: string;
+    purpose: string | null;
+    mode: string | null;
     name: string;
     description: string;
     imageUrl: string;
@@ -110,6 +112,8 @@ function toReferenceItem(
     userId: ref.userId,
     creatorId: ref.creatorId,
     type: ref.type as ReferenceType,
+    purpose: (ref.purpose as ReferenceItem["purpose"]) ?? undefined,
+    mode: (ref.mode as ReferenceItem["mode"]) ?? undefined,
     name: ref.name,
     description: ref.description,
     imageUrl: signedUrl,
@@ -141,7 +145,9 @@ export async function createReference(
   name: string,
   description: string,
   imageBase64: string,
-  tags?: string[]
+  tags?: string[],
+  purpose?: string,
+  mode?: string
 ): Promise<MutationResult> {
   const user = await getAuthUser();
   if (!user) return { success: false, error: "Not authenticated" };
@@ -155,6 +161,8 @@ export async function createReference(
     data: {
       userId: user.id,
       type,
+      purpose: purpose ?? null,
+      mode: mode ?? null,
       name,
       description,
       imageUrl: key,
@@ -170,7 +178,9 @@ export async function createVideoReferenceFromUrl(
   name: string,
   description: string,
   s3Key: string,
-  tags?: string[]
+  tags?: string[],
+  purpose?: string,
+  mode?: string
 ): Promise<MutationResult> {
   const user = await getAuthUser();
   if (!user) return { success: false, error: "Not authenticated" };
@@ -179,6 +189,8 @@ export async function createVideoReferenceFromUrl(
     data: {
       userId: user.id,
       type: "REFERENCE",
+      purpose: purpose ?? "motion",
+      mode: mode ?? null,
       name,
       description,
       imageUrl: s3Key,
@@ -248,7 +260,7 @@ export async function getStarredReferences(): Promise<ReferenceItem[]> {
 
 export async function updateReference(
   referenceId: string,
-  updates: { name?: string; description?: string; type?: ReferenceType; tags?: string[] }
+  updates: { name?: string; description?: string; type?: ReferenceType; tags?: string[]; purpose?: string; mode?: string | null }
 ): Promise<MutationResult> {
   const user = await getAuthUser();
   if (!user) return { success: false, error: "Not authenticated" };
@@ -265,6 +277,8 @@ export async function updateReference(
       ...(updates.description !== undefined && { description: updates.description }),
       ...(updates.type !== undefined && { type: updates.type }),
       ...(updates.tags !== undefined && { tags: updates.tags }),
+      ...(updates.purpose !== undefined && { purpose: updates.purpose }),
+      ...(updates.mode !== undefined && { mode: updates.mode }),
     },
   });
 

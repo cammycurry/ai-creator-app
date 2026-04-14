@@ -144,9 +144,7 @@ export function AddReferenceDialog({
     setError(null);
 
     const tagList = tags.split(",").map((t) => t.trim()).filter(Boolean);
-    // Add purpose + mode as tags for filtering and recall
-    if (purpose && !tagList.includes(purpose)) tagList.push(purpose);
-    if (mode && !tagList.includes(mode)) tagList.push(mode);
+    // purpose and mode are now saved as real DB fields, not tags
 
     const refType: ReferenceType = purpose === "scene" ? "BACKGROUND" : "REFERENCE";
 
@@ -161,11 +159,11 @@ export function AddReferenceDialog({
         return;
       }
       const { key } = await uploadRes.json();
-      const result = await createVideoReferenceFromUrl(name.trim(), description.trim(), key, tagList);
+      const result = await createVideoReferenceFromUrl(name.trim(), description.trim(), key, tagList, purpose ?? "motion", mode ?? undefined);
       if (result.success) { addReference(result.reference); onOpenChange(false); }
       else setError(result.error);
     } else {
-      const result = await createReference(refType, name.trim(), description.trim(), imageBase64, tagList);
+      const result = await createReference(refType, name.trim(), description.trim(), imageBase64, tagList, purpose ?? undefined, mode ?? undefined);
       if (result.success) { addReference(result.reference); onOpenChange(false); }
       else setError(result.error);
     }

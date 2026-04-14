@@ -1,11 +1,16 @@
 export const REFERENCE_TYPES = ["BACKGROUND", "REFERENCE"] as const;
 export type ReferenceType = (typeof REFERENCE_TYPES)[number];
 
+export type ReferencePurpose = "scene" | "product" | "motion";
+export type ReferenceMode = "exact" | "inspired";
+
 export type ReferenceItem = {
   id: string;
   userId: string;
   creatorId: string | null;
   type: ReferenceType;
+  purpose?: ReferencePurpose;
+  mode?: ReferenceMode;
   name: string;
   description: string;
   imageUrl?: string;

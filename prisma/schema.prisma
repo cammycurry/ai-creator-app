@@ -256,6 +256,8 @@ model Reference {
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   type              String    // "BACKGROUND" | "REFERENCE"
+  purpose           String?   // "scene" | "product" | "motion" — what the ref is used for
+  mode              String?   // "exact" | "inspired" — how closely to match (scene only)
   name              String
   description       String    @default("")
   imageUrl          String    // S3 key

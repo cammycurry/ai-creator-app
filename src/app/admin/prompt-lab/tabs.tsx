@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { QuickTest } from "@/components/admin/prompt-lab/quick-test";
 import { PipelineTest } from "@/components/admin/prompt-lab/pipeline-test";
+import { MotionTransferTest } from "@/components/admin/prompt-lab/motion-transfer-test";
 
 type TestRun = {
   id: string;
@@ -28,7 +29,7 @@ export function PromptLabTabs({
   initialRuns: TestRun[];
   creators: CreatorOption[];
 }) {
-  const [mode, setMode] = useState<"quick" | "pipeline">("quick");
+  const [mode, setMode] = useState<"quick" | "pipeline" | "motion">("quick");
 
   return (
     <div>
@@ -53,13 +54,25 @@ export function PromptLabTabs({
         >
           Pipeline Test
         </button>
+        <button
+          onClick={() => setMode("motion")}
+          className={`rounded-md px-4 py-1.5 text-sm ${
+            mode === "motion"
+              ? "bg-[#C4603A] text-white"
+              : "border border-zinc-700 text-zinc-400"
+          }`}
+        >
+          Motion Transfer
+        </button>
       </div>
 
       <div className="mt-4">
         {mode === "quick" ? (
           <QuickTest initialRuns={initialRuns} />
-        ) : (
+        ) : mode === "pipeline" ? (
           <PipelineTest creators={creators} />
+        ) : (
+          <MotionTransferTest creators={creators} />
         )}
       </div>
     </div>

@@ -17,18 +17,15 @@ export default function SignInPage() {
 }
 
 function SignInFlow() {
-  const { signIn, fetchStatus } = useSignIn();
+  const { signIn } = useSignIn();
   const { isSignedIn } = useAuth();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
-  const [step, setStep] = useState<"start" | "password" | "email_code">("start");
+  const [step, setStep] = useState<"start" | "verify">("start");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const busy = loading || fetchStatus === "fetching";
 
   useEffect(() => {
     if (isSignedIn) router.push("/workspace");
@@ -40,7 +37,7 @@ function SignInFlow() {
     setError("");
     const { error: ssoError } = await signIn.sso({
       strategy,
-      redirectUrl: "/workspace",
+      redirectUrl: "/sign-in/sso-callback",
       redirectCallbackUrl: "/sign-in/sso-callback",
     });
     if (ssoError) {
@@ -54,95 +51,54 @@ function SignInFlow() {
     setLoading(true);
     setError("");
 
-    // Check supported factors by attempting password with empty password
-    // to see what methods are available. Instead, we'll try email code first
-    // and fall back to password.
-    const { error: codeError } = await signIn.emailCode.sendCode({ emailAddress: email });
-    if (codeError) {
-      // If email code not available, try password step
-      setStep("password");
-    } else {
-      setStep("email_code");
+    try {
+      const { error: createError } = await signIn.create({ identifier: email });
+      if (createError) {
+        setError(createError.message ?? "Something went wrong");
+        setLoading(false);
+        return;
+      }
+
+      const { error: sendError } = await signIn.emailCode.sendCode({ emailAddress: email });
+      if (sendError) {
+        setError(sendError.message ?? "Email code not available. Try Google or Apple.");
+        setLoading(false);
+        return;
+      }
+
+      setStep("verify");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     }
     setLoading(false);
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const { error: pwError } = await signIn.password({
-      identifier: email,
-      password,
-    });
+    try {
+      const { error: verifyError } = await signIn.emailCode.verifyCode({ code });
+      if (verifyError) {
+        setError(verifyError.message ?? "Invalid code");
+        setLoading(false);
+        return;
+      }
 
-    if (pwError) {
-      setError(pwError.message ?? "Invalid password");
-    } else if (signIn.status === "complete") {
-      router.push("/workspace");
+      if (signIn.status === "complete") {
+        await signIn.finalize();
+        router.push("/workspace");
+      } else {
+        setError("Verification incomplete. Please try again.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid code");
     }
     setLoading(false);
   };
 
-  const handleCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    const { error: verifyError } = await signIn.emailCode.verifyCode({ code });
-
-    if (verifyError) {
-      setError(verifyError.message ?? "Invalid code");
-    } else if (signIn.status === "complete") {
-      router.push("/workspace");
-    }
-    setLoading(false);
-  };
-
-  if (step === "password") {
-    return (
-      <div className="auth-page">
-        <div className="auth-card">
-          <div className="auth-header">
-            <div className="auth-logo-mark">Vi</div>
-            <h1 className="auth-title">Enter your password</h1>
-            <p className="auth-subtitle">{email}</p>
-          </div>
-
-          {error && <div className="auth-error">{error}</div>}
-
-          <form onSubmit={handlePasswordSubmit}>
-            <div className="auth-fields">
-              <div className="auth-field">
-                <label className="auth-label">Password</label>
-                <input
-                  type="password"
-                  className="auth-input"
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </div>
-            </div>
-            <button type="submit" className="auth-submit" disabled={busy}>
-              {busy ? <span className="auth-spinner" /> : "Sign in"}
-            </button>
-          </form>
-
-          <p className="auth-footer-text">
-            <button className="auth-link" onClick={() => { setStep("start"); setError(""); }}>
-              Use a different method
-            </button>
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "email_code") {
+  if (step === "verify") {
     return (
       <div className="auth-page">
         <div className="auth-card">
@@ -154,7 +110,7 @@ function SignInFlow() {
 
           {error && <div className="auth-error">{error}</div>}
 
-          <form onSubmit={handleCodeSubmit}>
+          <form onSubmit={handleVerify}>
             <div className="auth-fields">
               <div className="auth-field">
                 <label className="auth-label">Verification code</label>
@@ -169,8 +125,8 @@ function SignInFlow() {
                 />
               </div>
             </div>
-            <button type="submit" className="auth-submit" disabled={busy}>
-              {busy ? <span className="auth-spinner" /> : "Verify"}
+            <button type="submit" className="auth-submit" disabled={loading}>
+              {loading ? <span className="auth-spinner" /> : "Verify"}
             </button>
           </form>
 
@@ -232,8 +188,8 @@ function SignInFlow() {
               />
             </div>
           </div>
-          <button type="submit" className="auth-submit" disabled={busy}>
-            {busy ? <span className="auth-spinner" /> : "Continue"}
+          <button type="submit" className="auth-submit" disabled={loading}>
+            {loading ? <span className="auth-spinner" /> : "Continue with email"}
           </button>
         </form>
 

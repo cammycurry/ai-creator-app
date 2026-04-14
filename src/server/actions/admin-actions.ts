@@ -510,3 +510,178 @@ export async function getRefPosts(accountId: string) {
 
   return withUrls;
 }
+
+// ─── Creator Videos for Motion Transfer ─────────────
+
+export async function getCreatorVideos(creatorId: string) {
+  await assertAdmin();
+
+  const [videos, refs] = await Promise.all([
+    db.content.findMany({
+      where: { creatorId, type: "VIDEO", status: "COMPLETED", url: { not: null } },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, url: true, userInput: true, createdAt: true },
+    }),
+    db.reference.findMany({
+      where: { imageUrl: { endsWith: ".mp4" } },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, name: true, imageUrl: true, createdAt: true },
+    }),
+  ]);
+
+  const videoItems = await Promise.all(
+    videos.map(async (v) => ({
+      id: v.id,
+      label: v.userInput || "Untitled video",
+      signedUrl: await getSignedImageUrl(v.url!),
+      source: "content" as const,
+    }))
+  );
+
+  const refItems = await Promise.all(
+    refs.map(async (r) => ({
+      id: r.id,
+      label: r.name || "Reference video",
+      signedUrl: await getSignedImageUrl(r.imageUrl),
+      source: "reference" as const,
+    }))
+  );
+
+  return [...videoItems, ...refItems];
+}
+
+// ─── Motion Transfer Test (admin only, no credits) ──
+
+type MotionModel = "kling" | "dreamactor";
+
+export async function adminTestMotionTransfer(data: {
+  creatorId: string;
+  videoUrl: string;
+  model: MotionModel;
+  prompt?: string;
+}) {
+  await assertAdmin();
+
+  const { fal } = await import("@/lib/fal");
+  const { getImageBuffer } = await import("@/lib/s3");
+
+  const creator = await db.creator.findUnique({ where: { id: data.creatorId } });
+  if (!creator?.baseImageUrl) throw new Error("Creator has no base image");
+
+  const creatorImageBuffer = await getImageBuffer(creator.baseImageUrl);
+  const falCreatorUrl = await fal.storage.upload(
+    new Blob([new Uint8Array(creatorImageBuffer)], { type: "image/jpeg" })
+  );
+
+  // Upload driving video to Fal storage (S3 signed URLs are forbidden by Fal)
+  const videoResponse = await fetch(data.videoUrl);
+  if (!videoResponse.ok) throw new Error("Failed to fetch driving video from S3");
+  const videoBuffer = await videoResponse.arrayBuffer();
+  const falVideoUrl = await fal.storage.upload(
+    new Blob([new Uint8Array(videoBuffer)], { type: "video/mp4" })
+  );
+
+  let falModel: string;
+  let falInput: Record<string, unknown>;
+
+  if (data.model === "dreamactor") {
+    falModel = "fal-ai/bytedance/dreamactor/v2";
+    falInput = {
+      image_url: falCreatorUrl,
+      video_url: falVideoUrl,
+      trim_first_second: true,
+    };
+  } else {
+    falModel = "fal-ai/kling-video/v3/pro/motion-control";
+    falInput = {
+      video_url: falVideoUrl,
+      image_url: falCreatorUrl,
+      prompt: data.prompt || "@Element1. Replicate the movement naturally.",
+      character_orientation: "video",
+      elements: [
+        { frontal_image_url: falCreatorUrl, reference_image_urls: [falCreatorUrl] },
+      ],
+    };
+  }
+
+  const submitted = await fal.queue.submit(falModel, { input: falInput });
+
+  return {
+    requestId: submitted.request_id,
+    falModel,
+    model: data.model,
+    creatorName: creator.name,
+  };
+}
+
+export async function adminCheckMotionStatus(
+  requestId: string,
+  falModel: string,
+  creatorId: string,
+  modelLabel: string
+) {
+  const clerkId = await assertAdmin();
+
+  const { fal } = await import("@/lib/fal");
+  const { uploadImage } = await import("@/lib/s3");
+
+  const status = await fal.queue.status(falModel, { requestId });
+
+  if (status.status === "COMPLETED") {
+    const result = await fal.queue.result(falModel, { requestId });
+    const resultData = result.data as Record<string, unknown>;
+
+    if (resultData?.error || resultData?.error_type) {
+      return {
+        status: "FAILED" as const,
+        error: String(resultData.error ?? resultData.error_type),
+      };
+    }
+
+    const output = resultData as { video?: { url?: string }; video_url?: string };
+    const falVideoUrl = output?.video?.url ?? output?.video_url;
+
+    if (!falVideoUrl) {
+      return { status: "FAILED" as const, error: "No video in response" };
+    }
+
+    // Download from Fal CDN → upload to S3 → save to creator's library
+    const user = await db.user.findUnique({ where: { clerkId } });
+    if (!user) return { status: "FAILED" as const, error: "User not found" };
+
+    const videoRes = await fetch(falVideoUrl);
+    const videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+    const videoKey = `users/${user.id}/creators/${creatorId}/content/motion-${Date.now()}.mp4`;
+    await uploadImage(videoBuffer, videoKey, "video/mp4");
+
+    // Save as content in the creator's library
+    await db.content.create({
+      data: {
+        creatorId,
+        type: "VIDEO",
+        status: "COMPLETED",
+        source: "FREEFORM",
+        prompt: `Motion transfer test (${modelLabel})`,
+        userInput: `Motion transfer via ${modelLabel}`,
+        url: videoKey,
+        creditsCost: 0,
+        generationSettings: JSON.parse(JSON.stringify({
+          videoType: "motion-transfer",
+          videoModel: falModel,
+          testRun: true,
+        })),
+      },
+    });
+
+    const signedUrl = await getSignedImageUrl(videoKey);
+
+    return {
+      status: "COMPLETED" as const,
+      videoUrl: signedUrl,
+    };
+  }
+
+  return {
+    status: (status.status === "IN_QUEUE" ? "QUEUED" : "PROCESSING") as "QUEUED" | "PROCESSING",
+  };
+}

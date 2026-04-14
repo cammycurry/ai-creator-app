@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useCreatorStore } from "@/stores/creator-store";
 import { updateReference, toggleStar, deleteReference } from "@/server/actions/reference-actions";
-import { REFERENCE_TYPES, REFERENCE_TYPE_LABELS, type ReferenceItem, type ReferenceType } from "@/types/reference";
+import { REFERENCE_TYPES, REFERENCE_TYPE_LABELS, type ReferenceItem, type ReferenceType, type ReferencePurpose, type ReferenceMode } from "@/types/reference";
 
 export function LibraryDetailModal({
   item,
@@ -17,6 +17,8 @@ export function LibraryDetailModal({
   const [name, setName] = useState(item.name);
   const [description, setDescription] = useState(item.description);
   const [type, setType] = useState<ReferenceType>(item.type);
+  const [purpose, setPurpose] = useState<ReferencePurpose | undefined>(item.purpose);
+  const [mode, setMode] = useState<ReferenceMode | undefined>(item.mode);
   const [tags, setTags] = useState(item.tags.join(", "));
   const [saving, setSaving] = useState(false);
 
@@ -28,6 +30,8 @@ export function LibraryDetailModal({
       description: description.trim(),
       type,
       tags: tagList,
+      purpose,
+      mode: mode ?? null,
     });
     if (result.success) {
       updateReferenceInStore(item.id, {
@@ -35,6 +39,8 @@ export function LibraryDetailModal({
         description: description.trim(),
         type,
         tags: tagList,
+        purpose,
+        mode,
       });
     }
     setSaving(false);
@@ -95,6 +101,50 @@ export function LibraryDetailModal({
               ))}
             </select>
           </div>
+
+          <div className="lib-detail-row">
+            <span className="lib-detail-label">Purpose</span>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button
+                className={`sv2-cfg-pill${purpose === "scene" ? " on" : ""}`}
+                onClick={() => { setPurpose("scene"); }}
+              >
+                Scene
+              </button>
+              <button
+                className={`sv2-cfg-pill${purpose === "product" ? " on" : ""}`}
+                onClick={() => { setPurpose("product"); setMode("exact"); }}
+              >
+                Product
+              </button>
+              <button
+                className={`sv2-cfg-pill${purpose === "motion" ? " on" : ""}`}
+                onClick={() => { setPurpose("motion"); setMode(undefined); }}
+              >
+                Motion
+              </button>
+            </div>
+          </div>
+
+          {purpose === "scene" && (
+            <div className="lib-detail-row">
+              <span className="lib-detail-label">Mode</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button
+                  className={`sv2-cfg-pill${mode === "exact" ? " on" : ""}`}
+                  onClick={() => setMode("exact")}
+                >
+                  Exact
+                </button>
+                <button
+                  className={`sv2-cfg-pill${mode === "inspired" ? " on" : ""}`}
+                  onClick={() => setMode("inspired")}
+                >
+                  Inspired
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="lib-detail-row">
             <span className="lib-detail-label">Tags</span>
