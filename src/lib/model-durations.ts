@@ -30,9 +30,15 @@ export const MODEL_DURATIONS: Record<string, ModelDuration> = {
 
 const FALLBACK: ModelDuration = { label: "Generating", typicalMin: 30, typicalMax: 180 };
 
-function minutesLabel(sec: number): string {
-  if (sec < 60) return `${sec}s`;
-  return `${Math.round(sec / 60)} min`;
+// Format a duration range cleanly. Both in minutes -> "1–3 min".
+// Mixed sub-minute -> "30s–2 min". Both sub-minute -> "30s–50s".
+function formatRange(loSec: number, hiSec: number): string {
+  if (loSec >= 60 && hiSec >= 60) {
+    return `${Math.round(loSec / 60)}–${Math.round(hiSec / 60)} min`;
+  }
+  const lo = loSec < 60 ? `${loSec}s` : `${Math.round(loSec / 60)} min`;
+  const hi = hiSec < 60 ? `${hiSec}s` : `${Math.round(hiSec / 60)} min`;
+  return `${lo}–${hi}`;
 }
 
 // Return the message shown on a GENERATING card, based on elapsed time and
@@ -46,7 +52,7 @@ export function getExpectationMessage(
   const { typicalMin, typicalMax } = spec;
 
   if (elapsed < typicalMin * 0.1) return "Just started";
-  if (elapsed < typicalMin) return `Usually ${minutesLabel(typicalMin)}–${minutesLabel(typicalMax)}`;
+  if (elapsed < typicalMin) return `Usually ${formatRange(typicalMin, typicalMax)}`;
   if (elapsed < typicalMax) return "Still working — this is normal";
   if (elapsed < TIMEOUT_SEC * 0.8) return "Taking longer than usual";
   return "Almost at timeout — credits refund if it fails";

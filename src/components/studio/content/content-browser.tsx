@@ -81,8 +81,10 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
   } = useUnifiedStudioStore();
 
   const [contentItems, setContentItems] = useState<BrowserItem[]>([]);
-  // Tick every 1s so elapsed-time displays on GENERATING cards update live
-  const now = useTick(1000);
+  // Tick every 1s only when there are GENERATING cards — otherwise we'd
+  // re-render the entire library grid for no reason.
+  const anyGenerating = contentItems.some((c) => c.status === "GENERATING");
+  const now = useTick(1000, anyGenerating);
   const [templateItems, setTemplateItems] = useState<BrowserItem[]>([]);
   const [templateTrends, setTemplateTrends] = useState<Map<string, BrowserItem[]>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -115,8 +117,10 @@ export function ContentBrowser({ onItemSelect }: { onItemSelect?: () => void }) 
     const pollOnce = async () => {
       if (stopped) return;
       if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-      const items = await getCreatorContent(creator.id);
-      const generating = items.filter((c) => c.status === "GENERATING" && c.generationJobId);
+      // Read latest store state directly — avoids a redundant getCreatorContent
+      // call (which would re-generate signed URLs for every item in the library).
+      const latest = useCreatorStore.getState().content;
+      const generating = latest.filter((c) => c.status === "GENERATING" && c.generationJobId);
       if (generating.length > 0) {
         await Promise.all(generating.map((c) => checkVideoStatus(c.generationJobId!)));
       }

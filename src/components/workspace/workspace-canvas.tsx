@@ -125,8 +125,11 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
     setCredits,
   } = useCreatorStore();
 
-  // Tick every 1s so elapsed-time displays on GENERATING cards update live
-  const now = useTick(1000);
+  // Tick every 1s so elapsed-time displays on GENERATING cards update live.
+  // Gate on whether there's actually anything generating — otherwise the tick
+  // forces a 1Hz re-render of the entire grid for no reason.
+  const anyGenerating = content.some((c) => c.status === "GENERATING");
+  const now = useTick(1000, anyGenerating);
 
   useEffect(() => {
     getCreatorContent(creator.id).then(setContent);
@@ -146,8 +149,10 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
       if (stopped) return;
       if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
       const { checkVideoStatus } = await import("@/server/actions/video-actions");
-      const current = await getCreatorContent(creator.id);
-      const generating = current.filter((c) => c.status === "GENERATING" && c.generationJobId);
+      // Read latest store state directly — avoids a redundant getCreatorContent
+      // call (which would re-generate signed URLs for every item in the library).
+      const latest = useCreatorStore.getState().content;
+      const generating = latest.filter((c) => c.status === "GENERATING" && c.generationJobId);
       if (generating.length > 0) {
         await Promise.all(generating.map((c) => checkVideoStatus(c.generationJobId!)));
       }

@@ -81,9 +81,9 @@ export function CreatorList({ onCreatorClick }: { onCreatorClick?: () => void })
               )}
             </div>
             <div className="creator-meta">
-              <div className="creator-name">
-                {creator.name}
-                {isGenerating && <span className="creator-gen-dot" aria-label={`${creator.generatingCount} generating`} />}
+              <div className="creator-name-row">
+                <span className="creator-name">{creator.name}</span>
+                {isGenerating && <span className="creator-gen-dot" aria-label="Generating" />}
               </div>
               <div className="creator-count">{creator.contentCount} items</div>
             </div>
