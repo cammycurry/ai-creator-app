@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useUnifiedStudioStore } from "@/stores/unified-studio-store";
 import { useCreatorStore } from "@/stores/creator-store";
 import { generateContent, getCreatorContent } from "@/server/actions/content-actions";
@@ -9,7 +9,6 @@ import {
   generateVideoFromText,
   generateVideoFromImage,
   generateVideoMotionTransfer,
-  checkVideoStatus,
 } from "@/server/actions/video-actions";
 import { generateTalkingHead } from "@/server/actions/talking-head-actions";
 import { getWorkspaceData } from "@/server/actions/workspace-actions";
@@ -29,17 +28,6 @@ const CONTENT_TYPES = [
 ];
 
 const SCRIPT_STARTERS = ["Product review", "Day in my life", "Tips & advice"];
-
-const VIDEO_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-const TALKING_HEAD_TIMEOUT_MS = 8 * 60 * 1000; // 8 minutes
-
-function getProgressMessage(elapsedMs: number, type: "video" | "talking-head"): string {
-  const label = type === "talking-head" ? "talking head" : "video";
-  if (elapsedMs < 15_000) return `Starting ${label} generation...`;
-  if (elapsedMs < 60_000) return `Creating your ${label}...`;
-  if (elapsedMs < 180_000) return `Still working — ${label}s can take 2-3 minutes...`;
-  return `Almost there — finalizing your ${label}...`;
-}
 
 function friendlyError(raw: string): string {
   const lower = raw.toLowerCase();
@@ -84,7 +72,6 @@ export function CreationPanel() {
     generatingProgress,
     error,
     setGenerating,
-    setGeneratingProgress,
     setError,
     setResults,
     setResultContentSet,
@@ -95,14 +82,38 @@ export function CreationPanel() {
   const creator = getActiveCreator();
   const creatorName = creator?.name ?? "them";
 
-  const pollRef = useRef<NodeJS.Timeout | null>(null);
   const [refPickerOpen, setRefPickerOpen] = useState(false);
 
+  // Track video/talking-head IDs we've submitted this session so we can show
+  // the celebration view in the studio canvas when they complete. The grid
+  // polling loops drive the status transitions; we just watch the store.
+  const [pendingVideoIds, setPendingVideoIds] = useState<Set<string>>(new Set());
+  const storeContent = useCreatorStore((s) => s.content);
+
   useEffect(() => {
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, []);
+    if (pendingVideoIds.size === 0) return;
+    const completed = storeContent.filter(
+      (c) => pendingVideoIds.has(c.id) && c.status === "COMPLETED"
+    );
+    const failed = storeContent.filter(
+      (c) => pendingVideoIds.has(c.id) && c.status === "FAILED"
+    );
+    if (completed.length === 0 && failed.length === 0) return;
+
+    if (completed.length > 0) {
+      setResults(completed);
+      setShowResults(true);
+      useUnifiedStudioStore.getState().showCanvas();
+    }
+    // Drop completed and failed items from the pending set so we don't
+    // re-trigger the celebration on subsequent ticks.
+    setPendingVideoIds((prev) => {
+      const next = new Set(prev);
+      for (const c of completed) next.delete(c.id);
+      for (const c of failed) next.delete(c.id);
+      return next;
+    });
+  }, [storeContent, pendingVideoIds, setResults, setShowResults]);
 
   function getCreditCost(): number {
     switch (contentType) {
@@ -269,7 +280,9 @@ export function CreationPanel() {
           // whole 30-300s generation. Push the new GENERATING content to the
           // store so the grid shows it immediately, then let the user submit
           // more. The workspace-canvas / content-browser polling loops handle
-          // the rest.
+          // the rest. We track the jobId in pendingVideoIds so the celebration
+          // view fires when the grid polling transitions it to COMPLETED.
+          setPendingVideoIds((prev) => new Set(prev).add(result.contentId));
           if (activeCreatorId) {
             const items = await getCreatorContent(activeCreatorId);
             useCreatorStore.getState().setContent(items);
@@ -281,7 +294,6 @@ export function CreationPanel() {
           return;
         } else {
           setError(friendlyError(result.error));
-          setGenerating(false);
         }
         break;
       }
@@ -295,6 +307,7 @@ export function CreationPanel() {
         );
         if (result.success) {
           // Queue mode — same async pattern as video.
+          setPendingVideoIds((prev) => new Set(prev).add(result.contentId));
           if (activeCreatorId) {
             const items = await getCreatorContent(activeCreatorId);
             useCreatorStore.getState().setContent(items);
@@ -306,7 +319,6 @@ export function CreationPanel() {
           return;
         } else {
           setError(friendlyError(result.error));
-          setGenerating(false);
         }
         break;
       }
