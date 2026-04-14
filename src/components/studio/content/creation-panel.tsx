@@ -288,6 +288,9 @@ export function CreationPanel() {
             useCreatorStore.getState().setContent(items);
           }
           const data = await getWorkspaceData();
+          // Refresh creators too so sidebar dot appears immediately (the
+          // generatingCount is computed server-side on each getWorkspaceData)
+          useCreatorStore.getState().setCreators(data.creators);
           setCredits(data.balance);
           setPrompt("");
           setGenerating(false);
@@ -313,6 +316,7 @@ export function CreationPanel() {
             useCreatorStore.getState().setContent(items);
           }
           const data = await getWorkspaceData();
+          useCreatorStore.getState().setCreators(data.creators);
           setCredits(data.balance);
           setScript("");
           setGenerating(false);

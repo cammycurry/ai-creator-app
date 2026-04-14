@@ -192,6 +192,8 @@ function ContentArea({ creator }: { creator: { id: string; name: string; content
         const refreshed = await getCreatorContent(creator.id);
         setContent(refreshed);
         const data = await getWorkspaceData();
+        // Refresh creators so the sidebar dot lights up immediately
+        useCreatorStore.getState().setCreators(data.creators);
         setCredits(data.balance);
       } else {
         setContentError(result.error);
