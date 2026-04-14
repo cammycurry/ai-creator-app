@@ -12,6 +12,7 @@ export type Creator = {
   voiceId?: string;
   voiceProvider?: string;
   contentCount: number;
+  generatingCount: number;
   lastUsedAt?: string;
   createdAt: string;
   updatedAt: string;

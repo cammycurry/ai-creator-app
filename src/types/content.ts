@@ -37,4 +37,8 @@ export type ContentItem = {
   contentSetId?: string;
   slideIndex?: number;
   refAttachments?: ContentRefAttachment[];
+  generationJobId?: string;
+  jobStatus?: "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
+  jobStartedAt?: string;
+  falModel?: string;
 };

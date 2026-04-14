@@ -395,21 +395,43 @@ export async function getCreatorContent(creatorId: string): Promise<ContentItem[
     orderBy: { createdAt: "desc" },
   });
 
+  // Fetch matching GenerationJobs in one query to avoid N+1 — used to surface
+  // stage, startedAt, and falModel for the timeline UI on GENERATING cards.
+  const contentIds = content.map((c) => c.id);
+  const jobs = contentIds.length
+    ? await db.generationJob.findMany({
+        where: { contentId: { in: contentIds } },
+        select: { contentId: true, status: true, startedAt: true, falModel: true },
+      })
+    : [];
+  const jobByContentId = new Map(
+    jobs.filter((j) => j.contentId).map((j) => [j.contentId!, j] as const)
+  );
+
   return Promise.all(
-    content.map(async (c) => ({
-      id: c.id,
-      creatorId: c.creatorId,
-      type: c.type as ContentItem["type"],
-      status: c.status as ContentItem["status"],
-      url: c.url ? await getSignedImageUrl(c.url) : undefined,
-      s3Keys: (c.outputs as string[]) ?? [],
-      source: c.source as ContentItem["source"],
-      prompt: c.prompt ?? undefined,
-      userInput: c.userInput ?? undefined,
-      creditsCost: c.creditsCost,
-      createdAt: c.createdAt.toISOString(),
-      refAttachments: c.refAttachments as ContentRefAttachment[] | undefined,
-    }))
+    content.map(async (c) => {
+      const job = jobByContentId.get(c.id);
+      return {
+        id: c.id,
+        creatorId: c.creatorId,
+        type: c.type as ContentItem["type"],
+        status: c.status as ContentItem["status"],
+        url: c.url ? await getSignedImageUrl(c.url) : undefined,
+        thumbnailUrl: c.thumbnailUrl ? await getSignedImageUrl(c.thumbnailUrl) : undefined,
+        s3Keys: (c.outputs as string[]) ?? [],
+        source: c.source as ContentItem["source"],
+        prompt: c.prompt ?? undefined,
+        userInput: c.userInput ?? undefined,
+        creditsCost: c.creditsCost,
+        createdAt: c.createdAt.toISOString(),
+        contentSetId: c.contentSetId ?? undefined,
+        refAttachments: c.refAttachments as ContentRefAttachment[] | undefined,
+        generationJobId: ((c.generationSettings as Record<string, unknown>)?.jobId as string) ?? undefined,
+        jobStatus: job?.status as ContentItem["jobStatus"],
+        jobStartedAt: job?.startedAt?.toISOString(),
+        falModel: job?.falModel ?? undefined,
+      };
+    })
   );
 }
 

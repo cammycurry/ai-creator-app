@@ -38,12 +38,22 @@ export async function getWorkspaceData(): Promise<WorkspaceData> {
     });
   }
 
-  // Fetch creators with content count
-  const creators = await db.creator.findMany({
-    where: { userId: user.id },
-    orderBy: { lastUsedAt: { sort: "desc", nulls: "last" } },
-    include: { _count: { select: { content: true } } },
-  });
+  // Fetch creators with content count + generating count (parallel)
+  const [creators, generatingCounts] = await Promise.all([
+    db.creator.findMany({
+      where: { userId: user.id },
+      orderBy: { lastUsedAt: { sort: "desc", nulls: "last" } },
+      include: { _count: { select: { content: true } } },
+    }),
+    db.content.groupBy({
+      by: ["creatorId"],
+      where: { creator: { userId: user.id }, status: "GENERATING" },
+      _count: { _all: true },
+    }),
+  ]);
+  const generatingMap = new Map(
+    generatingCounts.map((g) => [g.creatorId, g._count._all] as const)
+  );
 
   const creatorsWithUrls = await Promise.all(
     creators.map(async (c) => ({
@@ -65,6 +75,7 @@ export async function getWorkspaceData(): Promise<WorkspaceData> {
       voiceId: c.voiceId ?? undefined,
       voiceProvider: c.voiceProvider ?? undefined,
       contentCount: c._count.content,
+      generatingCount: generatingMap.get(c.id) ?? 0,
       lastUsedAt: c.lastUsedAt?.toISOString(),
       createdAt: c.createdAt.toISOString(),
       updatedAt: c.updatedAt.toISOString(),
