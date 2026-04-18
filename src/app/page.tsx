@@ -76,18 +76,18 @@ export default function Home() {
           <h1>Create AI influencers.<br/>Generate content as them.</h1>
           <p className="hero-sub">Build a custom AI creator in 60 seconds. Photos, videos, talking-head clips. Same face every time. Manage one creator or a hundred from one dashboard.</p>
           <div className="hero-actions">
-            <Link className="btn-primary" href="/sign-up">
-              Start creating free
+            <Link className="btn-primary" href="/waitlist">
+              Join the waitlist
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </Link>
             <a className="btn-secondary" href="#how">See how it works</a>
           </div>
           <div className="hero-note">
+            <span>Limited beta access</span>
+            <span className="hero-note-dot"></span>
+            <span>Approved in batches</span>
+            <span className="hero-note-dot"></span>
             <span>No credit card</span>
-            <span className="hero-note-dot"></span>
-            <span>10 free credits</span>
-            <span className="hero-note-dot"></span>
-            <span>Cancel anytime</span>
           </div>
 
           {/* Creator showcase grid */}
@@ -285,7 +285,7 @@ export default function Home() {
               <li>Photo generation</li>
               <li>All templates</li>
             </ul>
-            <Link className="price-btn" href="/sign-up">Get started</Link>
+            <Link className="price-btn" href="/waitlist">Join waitlist</Link>
           </div>
           <div className="price-card">
             <div className="price-name">Starter</div>
@@ -298,7 +298,7 @@ export default function Home() {
               <li>Prompt enhancement</li>
               <li>Metadata stripping</li>
             </ul>
-            <Link className="price-btn" href="/sign-up">Get started</Link>
+            <Link className="price-btn" href="/waitlist">Join waitlist</Link>
           </div>
           <div className="price-card featured">
             <div className="price-badge">Most popular</div>
@@ -313,7 +313,7 @@ export default function Home() {
               <li>Metadata stripping</li>
               <li>Priority generation</li>
             </ul>
-            <Link className="price-btn primary" href="/sign-up">Get started</Link>
+            <Link className="price-btn primary" href="/waitlist">Join waitlist</Link>
           </div>
           <div className="price-card">
             <div className="price-name">Business</div>
@@ -327,7 +327,7 @@ export default function Home() {
               <li>Metadata stripping</li>
               <li>Priority generation</li>
             </ul>
-            <Link className="price-btn" href="/sign-up">Get started</Link>
+            <Link className="price-btn" href="/waitlist">Join waitlist</Link>
           </div>
         </div>
         <div className="pricing-packs">
@@ -367,10 +367,10 @@ export default function Home() {
       {/* CTA */}
       <section className="cta">
         <div className="cta-card">
-          <h2>Build your first AI influencer in 60 seconds</h2>
-          <p>10 free credits. No credit card. See what the hype is about.</p>
-          <Link className="cta-btn" href="/sign-up">
-            Start creating now
+          <h2>Get on the list. Be one of the first.</h2>
+          <p>We&apos;re onboarding creators in small batches. Drop your email and we&apos;ll send access as soon as a spot opens.</p>
+          <Link className="cta-btn" href="/waitlist">
+            Join the waitlist
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </Link>
         </div>
@@ -388,7 +388,7 @@ export default function Home() {
           </div>
           <div className="footer-col">
             <div className="footer-col-title">Product</div>
-            <Link href="/sign-up">Get started</Link>
+            <Link href="/waitlist">Join waitlist</Link>
             <a href="#pricing">Pricing</a>
             <a href="#features">Features</a>
           </div>

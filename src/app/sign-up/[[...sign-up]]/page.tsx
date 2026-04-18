@@ -148,7 +148,10 @@ function SignUpFlow() {
             <div className="auth-logo-mark">Vi</div>
           </Link>
           <h1 className="auth-title">Create your account</h1>
-          <p className="auth-subtitle">Start creating AI influencer content</p>
+          <p className="auth-subtitle">
+            Approved off the waitlist? Finish setup below. Otherwise{" "}
+            <Link href="/waitlist" className="auth-link">join the waitlist</Link>.
+          </p>
         </div>
 
         {error && <div className="auth-error">{error}</div>}
